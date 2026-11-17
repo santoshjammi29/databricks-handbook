@@ -98,6 +98,16 @@ def clean_for_table(text: str) -> str:
     t = text.replace("|", "&#124;").replace("\n", " ").strip()
     return re.sub(r"\s+", " ", t)
 
+def make_wrappable(filename: str) -> str:
+    """
+    Inserts zero-width spaces (&#8203;) after underscores and before .py
+    allowing long filenames to wrap naturally inside table cells without stretching layout.
+    """
+    w = filename.replace("_", "_&#8203;")
+    if w.endswith(".py"):
+        w = w[:-3] + "&#8203;.py"
+    return w
+
 def extract_notebook_meta(nb_path: Path):
     content = nb_path.read_text(encoding="utf-8")
     
@@ -158,7 +168,8 @@ def generate_markdown() -> str:
         for nb in nb_files:
             meta = extract_notebook_meta(nb)
             lvl_icon = "🟢" if "Foundational" in meta["level"] or "Beginner" in meta["level"] else ("🟡" if "Intermediate" in meta["level"] else ("🔴" if "Advanced" in meta["level"] else "🟣"))
-            lines.append(f"| **{meta['id']}** | [**{meta['title']}**]({meta['rel_path']}) | {lvl_icon}<br>`{meta['level']}` | {meta['objective']} | [`{meta['filename']}`]({meta['rel_path']}) |")
+            wrappable_name = make_wrappable(meta["filename"])
+            lines.append(f"| **{meta['id']}** | [**{meta['title']}**]({meta['rel_path']}) | {lvl_icon}<br>`{meta['level']}` | {meta['objective']} | [<code>{wrappable_name}</code>]({meta['rel_path']}) |")
             
         lines.append("\n[↑ Back to Curriculum Overview](#curriculum-overview)\n")
         lines.append("---")
