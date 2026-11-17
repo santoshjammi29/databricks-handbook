@@ -47,3 +47,15 @@ def test_readme_integrity(base_dir):
     assert "105" in content
     assert "001" in content and "105" in content
     assert len(content) > 40000, f"README.md unexpectedly small: {len(content)} bytes"
+
+def test_whiteboard_blueprints_integrity(base_dir):
+    wb_dir = base_dir / "assets" / "whiteboards"
+    assert wb_dir.exists() and wb_dir.is_dir()
+    webp_files = list(wb_dir.glob("*.webp"))
+    assert len(webp_files) == 52, f"Expected 52 whiteboard blueprints, found {len(webp_files)}"
+    
+    docs_readme = base_dir / "docs" / "whiteboard_diagrams" / "README.md"
+    assert docs_readme.exists()
+    content = docs_readme.read_text(encoding="utf-8")
+    assert "52" in content
+    assert "assets/whiteboards" in content

@@ -29,6 +29,9 @@
       Managed ID      Identity Policy                                  to Target Group Filter Function
 ```
 
+### 📐 Visual Architectural Blueprint: Unity Catalog Security & Storage Credential Architecture
+![Unity Catalog Security Architecture](../assets/whiteboards/unity_catalog_architecture.webp)
+
 ---
 
 ## 2. Forensic Diagnostic Queries

@@ -28,6 +28,12 @@
  Restart Stream  and route to DLQ                            Route to DLQ    re-run file
 ```
 
+### 📐 Visual Architectural Blueprint: Lakehouse Auto Loader Ingestion
+![Lakehouse Ingestion Auto Loader](../assets/whiteboards/lakehouse_ingestion_autoloader_architecture.webp)
+
+### 📐 Visual Architectural Blueprint: Data Quality WAP & Quarantine Architecture
+![Data Quality Quarantine](../assets/whiteboards/data_quality_wap_quarantine_architecture.webp)
+
 ---
 
 ## 2. Forensic Investigation Queries

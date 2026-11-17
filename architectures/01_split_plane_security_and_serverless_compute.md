@@ -43,6 +43,9 @@ flowchart TB
     Metastore -.->|Metadata Grants| Driver & SQL_WH
 ```
 
+### 📐 Visual Architectural Blueprint: Unified Lakehouse Platform
+![Databricks Unified Ecosystem & Lakehouse Architecture](../assets/whiteboards/databricks_ecosystem_landscape.webp)
+
 ---
 
 ## 2. Architectural Comparison: Classic Compute vs. Serverless Compute
@@ -57,6 +60,9 @@ flowchart TB
 | **Billing Model** | Databricks DBUs + Cloud Provider VM/Disk Infrastructure Costs | Unified all-inclusive Databricks DBU billing (zero direct VM bills) |
 | **Idle Cost Waste** | Minimum 15-20 min cluster termination delays incur cost | Scale-to-zero within seconds of query completion |
 | **Workload Suitability** | Long-running legacy batch pipelines requiring custom OS packages | DBSQL BI queries, automated Lakeflow Jobs, and DLT pipelines |
+
+### 📐 Visual Architectural Blueprint: Serverless Photon Engine vs. Classic JVM
+![Photon Engine vs. JVM Architecture](../assets/whiteboards/photon_engine_vs_jvm.webp)
 
 ---
 

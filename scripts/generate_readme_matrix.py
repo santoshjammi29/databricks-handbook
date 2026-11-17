@@ -126,11 +126,13 @@ def extract_notebook_meta(nb_path: Path):
         "title": title,
         "level": level,
         "objective": clean_for_table(objective),
+        "filename": nb_path.name,
         "rel_path": f"notebooks/{nb_path.parent.name}/{nb_path.name}"
     }
 
 def generate_markdown() -> str:
     lines = []
+    lines.append("<a id=\"curriculum-overview\"></a>")
     lines.append("## 🗺️ Curriculum Overview & Track Architecture\n")
     lines.append("| Track | Module Name | Recipe Range | Level | Domain Focus & Key Capabilities |")
     lines.append("| :---: | :--- | :---: | :---: | :--- |")
@@ -138,7 +140,7 @@ def generate_markdown() -> str:
     for mod_dir, cfg in MODULE_CONFIG.items():
         track_num = cfg["title"].split(".")[0]
         name_clean = cfg["title"].split(".")[1].strip()
-        lines.append(f"| **{track_num}** | **[{cfg['icon']} {name_clean}](#-{cfg['anchor']})** | `{cfg['range']}` | {cfg['level']} | {cfg['desc']} |")
+        lines.append(f"| **{track_num}** | **[{cfg['icon']} {name_clean}](#{cfg['anchor']})** | `{cfg['range']}` | {cfg['level']} | {cfg['desc']} |")
         
     lines.append("\n---\n")
     
@@ -150,15 +152,15 @@ def generate_markdown() -> str:
         nb_files = sorted(list(dir_path.glob("*.py")))
         lines.append(f"\n### {cfg['icon']} <a id=\"{cfg['anchor']}\"></a>{cfg['title']} (`{cfg['range']}`)\n")
         lines.append(f"> **Focus**: {cfg['desc']}\n")
-        lines.append("| # | Recipe Title | Level | Core Engineering Objective & Production Invariant | Source |")
-        lines.append("| :---: | :--- | :---: | :--- | :---: |")
+        lines.append("| # | Databricks Notebook Recipe | Level | Core Engineering Objective & Production Invariant | Source File (.py) |")
+        lines.append("| :---: | :--- | :---: | :--- | :--- |")
         
         for nb in nb_files:
             meta = extract_notebook_meta(nb)
             lvl_icon = "🟢" if "Foundational" in meta["level"] or "Beginner" in meta["level"] else ("🟡" if "Intermediate" in meta["level"] else ("🔴" if "Advanced" in meta["level"] else "🟣"))
-            lines.append(f"| **{meta['id']}** | **{meta['title']}** | {lvl_icon}<br>`{meta['level']}` | {meta['objective']} | [`.py`]({meta['rel_path']}) |")
+            lines.append(f"| **{meta['id']}** | [**{meta['title']}**]({meta['rel_path']}) | {lvl_icon}<br>`{meta['level']}` | {meta['objective']} | [`{meta['filename']}`]({meta['rel_path']}) |")
             
-        lines.append("\n[↑ Back to Curriculum Overview](#-curriculum-overview)\n")
+        lines.append("\n[↑ Back to Curriculum Overview](#curriculum-overview)\n")
         lines.append("---")
         
     return "\n".join(lines) + "\n"

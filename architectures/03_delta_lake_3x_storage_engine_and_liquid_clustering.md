@@ -28,6 +28,9 @@ flowchart TD
     CKP --> C11
 ```
 
+### 📐 Visual Architectural Blueprint: Delta Lake Storage Engine & Log Mechanics
+![Delta Lake Storage Engine](../assets/whiteboards/delta_lake_mechanism.webp)
+
 ---
 
 ## 2. Deletion Vectors (Merge-on-Read vs. Copy-on-Write)
@@ -65,6 +68,9 @@ flowchart LR
 - **Row-Level Concurrency (RLC)**: Two concurrent transactions updating distinct rows within the *exact same* physical Parquet file no longer trigger `ConcurrentModificationException` conflict failures.
 - **Physical Space Reclaim**: Running `REORG TABLE my_table APPLY (PURGE)` physically purges deleted rows from storage to satisfy GDPR/CCPA "right to be forgotten" compliance mandates.
 
+### 📐 Visual Architectural Blueprint: Lakehouse ACID Concurrency & Row-Level Conflicts
+![Lakehouse ACID Concurrency](../assets/whiteboards/lakehouse_acid_concurrency.webp)
+
 ---
 
 ## 3. Liquid Clustering (`CLUSTER BY`) Internals
@@ -89,3 +95,6 @@ For over a decade, big data architectures relied on Hive directory partitioning 
 ## 4. Delta UniForm (Universal Format) Architecture
 
 Delta UniForm eliminates data duplication across enterprise platforms. When UniForm is enabled on a Delta table, Databricks automatically and asynchronously generates Apache Iceberg and Apache Hudi metadata catalogs in the background alongside native `_delta_log` commits. External compute engines (Snowflake, Trino, BigQuery, AWS Athena) query the table as if it were a native Iceberg table without copying a single byte of Parquet data.
+
+### 📐 Visual Architectural Blueprint: Delta Lake 3.x vs. Apache Iceberg
+![Delta Lake vs Apache Iceberg Architecture](../assets/whiteboards/delta_lake_vs_iceberg_architecture.webp)

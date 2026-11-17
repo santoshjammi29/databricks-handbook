@@ -29,6 +29,9 @@
                                                          RAM per query
 ```
 
+### 📐 Visual Architectural Blueprint: Catalyst Optimizer & Vectorized Photon C++ Engine
+![Catalyst & Photon Engine Architecture](../assets/whiteboards/catalyst_photon_engine.webp)
+
 ---
 
 ## 2. Forensic Investigation Queries

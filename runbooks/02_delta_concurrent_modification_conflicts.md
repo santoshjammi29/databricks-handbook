@@ -30,6 +30,9 @@
         Vectors         (maxRetries=5)                                 Pruning         DeletionVectors)
 ```
 
+### 📐 Visual Architectural Blueprint: Lakehouse ACID Concurrency & Row-Level Conflicts
+![Lakehouse ACID Concurrency](../assets/whiteboards/lakehouse_acid_concurrency.webp)
+
 ---
 
 ## 2. Forensic Inspection Queries

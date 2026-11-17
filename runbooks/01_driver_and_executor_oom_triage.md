@@ -29,6 +29,9 @@
  .take(100)      BroadcastJoinThreshold)                                     or lower partition size)
 ```
 
+### 📐 Visual Architectural Blueprint: Spark Memory Management & Tungsten Spill
+![Spark Memory Management & Spill](../assets/whiteboards/spark_memory_management_spill_diagram.webp)
+
 ---
 
 ## 2. Immediate Diagnostic Procedures

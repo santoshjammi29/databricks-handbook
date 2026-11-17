@@ -21,6 +21,9 @@ flowchart TD
     SchGold --> ModelProphet["Model: churn_predictor (MLflow Model)"]
 ```
 
+### 📐 Visual Architectural Blueprint: Unity Catalog Unified Governance
+![Unity Catalog Architecture](../assets/whiteboards/unity_catalog_architecture.webp)
+
 ---
 
 ## 2. Managed Tables vs. External Tables vs. Unity Catalog Volumes
@@ -68,6 +71,9 @@ RETURN
 ALTER TABLE prod_lakehouse.silver.employees
 ALTER COLUMN national_id SET MASK prod_lakehouse.silver.ssn_mask;
 ```
+
+### 📐 Visual Architectural Blueprint: Dynamic Access & Masking Lifecycle
+![Lakehouse Access & Masking Lifecycle](../assets/whiteboards/lakehouse_access_masking_lifecycle_architecture.webp)
 
 ---
 

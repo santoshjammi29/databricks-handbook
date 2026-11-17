@@ -30,6 +30,9 @@ flowchart LR
     Deploy -->|Target: prod (OIDC / OAuth)| Prod
 ```
 
+### 📐 Visual Architectural Blueprint: Databricks Asset Bundles (DABs) Enterprise DevOps
+![Databricks DABs DevOps Pipeline](../assets/whiteboards/databricks_dabs_devops_pipeline.webp)
+
 ---
 
 ## 2. DABs Multi-Environment Targeting & Variable Scoping
@@ -87,6 +90,9 @@ flowchart TD
     T4 --> T6["Task 6: Mosaic AI Lakehouse Monitoring & Drift Audit"]
     T5 --> T7["Task 7: PagerDuty On-Call Incident Notification"]
 ```
+
+### 📐 Visual Architectural Blueprint: Lakeflow Declarative Delta Live Tables (DLT) Pipeline
+![Databricks DLT Pipeline](../assets/whiteboards/databricks_dlt_pipeline.webp)
 
 ### Production Orchestration Invariants:
 1. **Inter-Task Parameter Passing**: Upstream tasks emit dynamic metrics (processed row counts, execution timestamps, validation flags) using `dbutils.jobs.taskValues.set(key, value)`. Downstream tasks consume them via `dbutils.jobs.taskValues.get(taskKey, key)`.

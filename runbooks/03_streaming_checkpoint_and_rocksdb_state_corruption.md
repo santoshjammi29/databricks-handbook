@@ -30,6 +30,12 @@
         TTL             options                                       Offset
 ```
 
+### 📐 Visual Architectural Blueprint: Spark Streaming State Store & RocksDB
+![Spark Streaming State Store Architecture](../assets/whiteboards/spark_streaming_state_store.webp)
+
+### 📐 Visual Architectural Blueprint: Streaming DLQ Recovery Flow
+![Streaming DLQ Recovery Flow](../assets/whiteboards/streaming_dlq_recovery_flow_architecture.webp)
+
 ---
 
 ## 2. Forensic Inspection Steps

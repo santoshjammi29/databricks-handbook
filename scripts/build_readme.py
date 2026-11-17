@@ -29,10 +29,11 @@ def build_readme():
 *The definitive enterprise reference repository of 105 battle-tested Databricks Data Intelligence Platform recipes, architectural blueprints, and disaster recovery incident runbooks.*  
 *Structured in the official **Databricks Source Notebook format (`.py`)** for seamless 1-click sync with **Databricks Repos / Git Folders**, **Databricks Asset Bundles (DABs)**, **VS Code / Databricks Connect v2**, and CI/CD pipelines.*
 
-[Curriculum Overview](#-curriculum-overview) • [Lakehouse Architecture](#-platform-architecture) • [Quickstart](#-quickstart--local-development) • [DAB Deployment](#-production-deployment-with-dabs) • [Interview Matrix](#-4-tier-interview-preparation-matrix) • [Incident Runbooks](#-battle-tested-production-runbooks) • [FinOps Telemetry](#-finops--system-tables-observability)
+[Curriculum Overview](#curriculum-overview) • [Platform Architecture](#platform-architecture) • [Whiteboard Blueprints](#whiteboard-blueprints) • [Quickstart](#quickstart) • [DAB Deployment](#dabs) • [Architecture Deep Dives](#architectures) • [Runbooks](#runbooks) • [Interview Matrix](#interview-matrix) • [FinOps Telemetry](#finops)
 
 ---
 
+<a id="overview"></a>
 ## 🎯 Overview & Mission
 
 Modern Lakehouse engineering on the **Databricks Data Intelligence Platform** demands far more than writing isolated Spark DataFrame transformations.
@@ -50,6 +51,7 @@ This repository provides **105 end-to-end, runnable, modular production recipes*
 
 ---
 
+<a id="platform-architecture"></a>
 ## 🏛️ Platform Architecture
 
 ### 1. Split-Plane Cloud Architecture (Control Plane vs. Classic vs. Serverless)
@@ -145,6 +147,66 @@ flowchart LR
 
 ---
 
+<a id="whiteboard-blueprints"></a>
+## 📐 Master Whiteboard Architecture Blueprints
+
+The Databricks Handbook contains **52 architect-grade, hand-drawn digital whiteboard schematics** mirrored directly under [`assets/whiteboards/`](assets/whiteboards) and indexed with comprehensive multi-persona breakdowns, failure modes, and engine internals in [`docs/whiteboard_diagrams/README.md`](docs/whiteboard_diagrams/README.md).
+
+### 🏛️ Core Platform & Engine Blueprints
+
+#### 1. Databricks Unified Ecosystem & Lakehouse Architecture
+![Databricks Unified Ecosystem & Lakehouse Architecture](assets/whiteboards/databricks_ecosystem_landscape.webp)
+
+#### 2. Databricks Medallion Architecture (Bronze → Silver → Gold)
+![Databricks Medallion Architecture](assets/whiteboards/databricks_medallion_architecture.webp)
+
+#### 3. Unity Catalog Unified Governance & 3-Tier Namespace
+![Unity Catalog Unified Governance](assets/whiteboards/unity_catalog_architecture.webp)
+
+#### 4. Delta Lake 3.x Storage Engine & Transaction Log Mechanism
+![Delta Lake Storage Engine](assets/whiteboards/delta_lake_mechanism.webp)
+
+#### 5. Delta Lake 3.x vs. Apache Iceberg Architecture
+![Delta Lake vs Apache Iceberg](assets/whiteboards/delta_lake_vs_iceberg_architecture.webp)
+
+#### 6. Lakehouse ACID Concurrency, OCC & Row-Level Conflicts
+![Lakehouse ACID Concurrency](assets/whiteboards/lakehouse_acid_concurrency.webp)
+
+#### 7. Databricks Delta Live Tables (DLT) Declarative Pipeline
+![Databricks DLT Pipeline](assets/whiteboards/databricks_dlt_pipeline.webp)
+
+#### 8. Databricks Asset Bundles (DABs) Enterprise DevOps Pipeline
+![Databricks DABs DevOps](assets/whiteboards/databricks_dabs_devops_pipeline.webp)
+
+#### 9. Catalyst Optimizer & Vectorized Photon C++ Engine
+![Catalyst & Photon Engine](assets/whiteboards/catalyst_photon_engine.webp)
+
+#### 10. Photon Vectorized Engine vs. JVM Memory Execution
+![Photon vs JVM](assets/whiteboards/photon_engine_vs_jvm.webp)
+
+#### 11. Spark Memory Management, Execution Memory & Tungsten Disk Spill
+![Spark Memory Management & Spill](assets/whiteboards/spark_memory_management_spill_diagram.webp)
+
+#### 12. Lakehouse FinOps & DBU Cost Optimization Framework
+![Lakehouse FinOps Cost Optimization](assets/whiteboards/lakehouse_finops_cost_optimization.webp)
+
+---
+
+### 🗺️ Full 52-Blueprint Catalog by Enterprise Domain
+
+| Domain | Count | Primary Architecture Topics | Detailed Documentation |
+| :--- | :---: | :--- | :---: |
+| 🛡️ **Platform Landscape** | 8 | Ecosystem Landscape, Edge Compute, Distributed Resilience, Clean Rooms | [`docs/whiteboard_diagrams/#platform-landscape`](docs/whiteboard_diagrams/README.md#platform-landscape) |
+| 🏛️ **Governance & Security** | 4 | Unity Catalog, Purview, Access Masking Lifecycle, BCDR Failover | [`docs/whiteboard_diagrams/#governance-security`](docs/whiteboard_diagrams/README.md#governance-security) |
+| 💾 **Storage Engine** | 9 | Delta Lake Internals, Delta vs Iceberg, Open Formats, Compaction/Vacuum | [`docs/whiteboard_diagrams/#storage-engine`](docs/whiteboard_diagrams/README.md#storage-engine) |
+| 🌊 **Data Pipelines & Ingestion** | 12 | DLT, Auto Loader, CDC Debezium, Kafka Streaming, Airflow, dbt, ADF | [`docs/whiteboard_diagrams/#data-pipelines-ingestion`](docs/whiteboard_diagrams/README.md#data-pipelines-ingestion) |
+| 🚀 **Compute & Optimization** | 11 | Catalyst/Photon, Photon vs JVM, AQE Skew, Memory Spill, Join Trees | [`docs/whiteboard_diagrams/#compute-optimization`](docs/whiteboard_diagrams/README.md#compute-optimization) |
+| 📊 **Fabric & Power BI** | 4 | OneLake Unified, Direct Lake VertiPaq, DAX Context, Shortcuts | [`docs/whiteboard_diagrams/#fabric-power-bi`](docs/whiteboard_diagrams/README.md#fabric-power-bi) |
+| 📐 **Data Modeling** | 4 | Kimball Star Schema, Data Vault 2.0, SCD Types 1-6, Data Mesh | [`docs/whiteboard_diagrams/#data-modeling-architecture`](docs/whiteboard_diagrams/README.md#data-modeling-architecture) |
+
+---
+
+<a id="quickstart"></a>
 ## 🚀 Quickstart & Local Development
 
 ### 1. Clone & Set Up Python Environment
@@ -180,19 +242,15 @@ python3 scripts/validate_notebooks.py
 # Validate Databricks Asset Bundle schemas and paths
 python3 scripts/validate_bundle.py
 
-# Run full pytest test suite
-pytest tests/ -v
+# Run standalone integrity test suite
+python3 scripts/run_tests.py
 ```
-
----
-
-<a id="-curriculum-overview"></a>
 """
 
     footer = """
-
 ---
 
+<a id="dabs"></a>
 ## 📦 Production Deployment with DABs
 
 This repository includes a complete production-grade **Databricks Asset Bundle (DAB)** configuration suite under `databricks.yml` and `resources/*.yml`.
@@ -223,6 +281,7 @@ databricks bundle run -t prod databricks_handbook_master_pipeline
 
 ---
 
+<a id="architectures"></a>
 ## 🏛️ Architecture Deep Dives
 
 The repository includes 4 exhaustive system design and architectural specifications under `architectures/`:
@@ -236,6 +295,7 @@ The repository includes 4 exhaustive system design and architectural specificati
 
 ---
 
+<a id="runbooks"></a>
 ## 🚨 Battle-Tested Production Runbooks
 
 The repository includes 6 emergency incident triage runbooks under `runbooks/`:
@@ -251,6 +311,7 @@ The repository includes 6 emergency incident triage runbooks under `runbooks/`:
 
 ---
 
+<a id="interview-matrix"></a>
 ## 🎓 4-Tier Interview Preparation Matrix
 
 Comprehensive technical interview guides and flashcard decks under `interview/`:
@@ -265,6 +326,7 @@ Comprehensive technical interview guides and flashcard decks under `interview/`:
 
 ---
 
+<a id="finops"></a>
 ## 💰 FinOps & System Tables Observability
 
 Every production workload deployed on Databricks must be cost-monitored using **Unity Catalog System Tables**. The handbook provides production queries across:
@@ -272,7 +334,7 @@ Every production workload deployed on Databricks must be cost-monitored using **
 - **Mandatory Cost Center Attribution**: Parse `custom_tags['CostCenter']` to eliminate unallocated cloud spend leaks.
 - **Compute Right-Sizing (`system.compute.clusters`)**: Identify zombie clusters running with < 10% CPU utilization.
 - **Predictive Optimization ROI (`system.storage.predictive_optimization`)**: Measure exact files compacted and terabytes reclaimed.
-- **Statistical Cost Anomaly Alerts**: Compute 14-day rolling mean and standard deviation ($3\sigma$) to catch runaway queries.
+- **Statistical Cost Anomaly Alerts**: Compute 14-day rolling mean and standard deviation ($3\\sigma$) to catch runaway queries.
 
 ---
 
