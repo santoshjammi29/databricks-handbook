@@ -1,0 +1,27 @@
+# Databricks Asset Bundle Resource: Unity Catalog Declarative Schema, Volumes & Permissions
+# Specification: https://docs.databricks.com/dev-tools/bundles/settings.html#resources-schemas
+
+resources:
+  schemas:
+    databricks_handbook_schema:
+      name: "${var.schema}"
+      catalog_name: "${var.catalog}"
+      comment: "Managed Unity Catalog schema for The Databricks Handbook data assets and volumes"
+      properties:
+        tier: "gold"
+        owner: "data-platform"
+
+  volumes:
+    landing_raw_volume:
+      name: "raw_landing_zone"
+      catalog_name: "${var.catalog}"
+      schema_name: "${var.schema}"
+      volume_type: "MANAGED"
+      comment: "Landing zone volume for raw unstructured PDFs, audio, and images"
+
+    checkpoints_volume:
+      name: "stream_checkpoints"
+      catalog_name: "${var.catalog}"
+      schema_name: "${var.schema}"
+      volume_type: "MANAGED"
+      comment: "Persistent state and RocksDB checkpoint directory for Structured Streaming and Auto Loader"

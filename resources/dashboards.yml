@@ -1,0 +1,9 @@
+# Databricks Asset Bundle Resource: AI/BI Lakeview Dashboards
+# Specification: https://docs.databricks.com/dev-tools/bundles/settings.html#resources-dashboards
+
+resources:
+  dashboards:
+    lakehouse_finops_executive_dashboard:
+      display_name: "[${bundle.target}] Lakehouse FinOps & DBU Attribution Dashboard"
+      parent_path: "/Shared/.bundle/${bundle.name}/${bundle.target}/dashboards"
+      warehouse_id: "${var.default_sql_warehouse_id}"

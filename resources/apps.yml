@@ -1,0 +1,9 @@
+# Databricks Asset Bundle Resource: Databricks Apps (Serverless Python Hosting)
+# Specification: https://docs.databricks.com/dev-tools/bundles/settings.html#resources-apps
+
+resources:
+  apps:
+    lakehouse_finops_monitor:
+      name: "[${bundle.target}]-lakehouse-finops-monitor"
+      description: "Interactive FinOps DBU consumption and cluster right-sizing monitoring app"
+      source_code_path: "../apps/lakehouse_finops_monitor"

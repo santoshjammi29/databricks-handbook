@@ -1,0 +1,13 @@
+# Databricks Asset Bundle Resource: Mosaic AI Model Serving Endpoints
+# Specification: https://docs.databricks.com/dev-tools/bundles/settings.html#resources-model-serving
+
+resources:
+  model_serving_endpoints:
+    lakehouse_rag_serving_endpoint:
+      name: "[${bundle.target}]-lakehouse-rag-endpoint"
+      config:
+        served_entities:
+          - entity_name: "${var.catalog}.${var.schema}.databricks_rag_assistant"
+            entity_version: "1"
+            workload_size: "Small"
+            scale_to_zero_enabled: true

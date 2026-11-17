@@ -1,0 +1,8 @@
+command: ["streamlit", "run", "app.py"]
+env:
+  - name: "STREAMLIT_SERVER_PORT"
+    value: "8501"
+  - name: "STREAMLIT_SERVER_ADDRESS"
+    value: "0.0.0.0"
+  - name: "DATABRICKS_APP_ENV"
+    value: "production"

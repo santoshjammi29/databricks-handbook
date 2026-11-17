@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "databricks-handbook"
+version = "1.0.0"
+description = "The Databricks Handbook: 105 Production Databricks Data Intelligence Platform Recipes, Unity Catalog, Delta Lake 3.x, Lakeflow, Photon, DABs, and Incident Runbooks"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Santosh Jammi" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

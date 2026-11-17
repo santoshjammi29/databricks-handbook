@@ -1,0 +1,86 @@
+# Databricks Asset Bundle Resource: Workflows & Multi-Task Orchestration Jobs
+# Specification: https://docs.databricks.com/dev-tools/bundles/settings.html#resources-jobs
+
+resources:
+  jobs:
+    databricks_handbook_master_pipeline:
+      name: "[${bundle.target}] Databricks Handbook Master Data Intelligence Pipeline"
+      description: "Production end-to-end multi-task Lakehouse orchestration: Auto Loader -> DLT Expectation -> Liquid Clustering -> Photon SQL -> Mosaic AI Monitoring"
+      
+      tags:
+        project: "databricks-handbook"
+        environment: "${bundle.target}"
+        managed_by: "databricks-asset-bundles"
+        CostCenter: "DataPlatform"
+
+      schedule:
+        quartz_cron_expression: "0 0 4 * * ?" # Run daily at 04:00 UTC
+        timezone_id: "UTC"
+        pause_status: "${bundle.target == 'prod' ? 'UNPAUSED' : 'PAUSED'}"
+
+      email_notifications:
+        on_failure:
+          - "${var.notification_email}"
+
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+
+      job_clusters:
+        - job_cluster_key: "primary_lakehouse_compute"
+          new_cluster:
+            spark_version: "${var.compute_spark_version}"
+            node_type_id: "${var.node_type_id}"
+            autoscale:
+              min_workers: 1
+              max_workers: 4
+            spark_conf:
+              "spark.sql.adaptive.enabled": "true"
+              "spark.sql.adaptive.coalescePartitions.enabled": "true"
+              "spark.sql.adaptive.skewJoin.enabled": "true"
+              "spark.databricks.delta.optimizeWrite.enabled": "true"
+              "spark.databricks.delta.autoCompact.enabled": "true"
+              "spark.databricks.photon.enabled": "true"
+
+      tasks:
+        # Task 1: Auto Loader Bronze Ingestion
+        - task_key: "01_bronze_autoloader_ingestion"
+          job_cluster_key: "primary_lakehouse_compute"
+          notebook_task:
+            notebook_path: "../notebooks/04_lakeflow_ingestion_and_dlt/033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py"
+            base_parameters:
+              catalog: "${var.catalog}"
+              schema: "${var.schema}"
+              environment: "${bundle.target}"
+
+        # Task 2: DLT Silver Conformance & Quality Expectations (depends on Bronze)
+        - task_key: "02_silver_conformance_and_expectations"
+          depends_on:
+            - task_key: "01_bronze_autoloader_ingestion"
+          job_cluster_key: "primary_lakehouse_compute"
+          notebook_task:
+            notebook_path: "../notebooks/04_lakeflow_ingestion_and_dlt/037_dlt_data_quality_expectations_expect_drop_fail.py"
+            base_parameters:
+              catalog: "${var.catalog}"
+              schema: "${var.schema}"
+
+        # Task 3: Liquid Clustering & Optimization (depends on Silver)
+        - task_key: "03_liquid_clustering_and_compaction"
+          depends_on:
+            - task_key: "02_silver_conformance_and_expectations"
+          job_cluster_key: "primary_lakehouse_compute"
+          notebook_task:
+            notebook_path: "../notebooks/03_delta_lake_storage_engine/025_liquid_clustering_cluster_by_hilbert_curves_and_hive_migration.py"
+            base_parameters:
+              catalog: "${var.catalog}"
+              schema: "${var.schema}"
+
+        # Task 4: FinOps Cost Calculation & SLA Audit (depends on Optimization)
+        - task_key: "04_finops_system_tables_audit"
+          depends_on:
+            - task_key: "03_liquid_clustering_and_compaction"
+          job_cluster_key: "primary_lakehouse_compute"
+          notebook_task:
+            notebook_path: "../notebooks/09_finops_and_system_tables/089_calculating_dbu_consumption_and_cloud_costs_via_system_billing_usage.py"
+            base_parameters:
+              catalog: "${var.catalog}"
+              schema: "${var.schema}"

@@ -1,0 +1,37 @@
+name: CI Databricks Integrity & Test Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate All 105 Databricks Notebooks
+        run: |
+          python scripts/validate_notebooks.py
+
+      - name: Validate DABs Resource Schemas
+        run: |
+          python scripts/validate_bundle.py
+
+      - name: Run Integrity Test Suite
+        run: |
+          pytest tests/ -v
