@@ -90,3 +90,66 @@ Legacy architectures relied on static storage account keys or DBFS root mounts (
 2. An account admin creates a **Storage Credential** in Unity Catalog pointing to that identity.
 3. An **External Location** is created binding the Storage Credential to a specific container path (`abfss://data@lake.dfs.core.windows.net/`).
 4. Users and compute clusters access tables using standard 3-level SQL (`SELECT * FROM prod.silver.orders`), and the driver obtains short-lived scoped SAS / STS tokens on demand. The user never sees or accesses storage keys.
+
+---
+
+## 4. Serverless Compute Architecture & Zero-Trust Workload Identity
+
+Databricks Serverless Compute abstracts cluster provisioning entirely into an instant-on, auto-elastic compute fleet managed within Databricks cloud infrastructure with strict network and tenant isolation.
+
+```mermaid
+flowchart TD
+    subgraph Client["Developer / CI/CD Client"]
+        CLI["Databricks CLI / IDE (Databricks Connect)"]
+        GHA["GitHub Actions (OIDC Token)"]
+    end
+
+    subgraph Auth["Zero-Trust Workload Identity"]
+        OIDC["OIDC Token Exchange (Azure Entra / AWS IAM)"]
+        OAuth["Short-Lived OAuth 2.0 Bearer Token (1 Hour)"]
+    end
+
+    subgraph ServerlessFleet["Serverless Compute Plane"]
+        WarmPool["Auto-Warming Container Fleet (< 2s Startup)"]
+        MicroVM["Encrypted Ephemeral Micro-VM (Single Tenant Pod)"]
+        NCC["Network Connectivity Config (NCC)"]
+    end
+
+    subgraph CustomerCloud["Customer Cloud Storage Plane"]
+        ADLS["ADLS Gen2 / AWS S3 (Data & Volumes)"]
+        PrivateLink["Private Endpoint / AWS Privatelink VPC"]
+    end
+
+    Client --> OIDC --> OAuth
+    OAuth --> MicroVM
+    WarmPool --> MicroVM
+    MicroVM --> NCC --> PrivateLink --> ADLS
+```
+
+### Production Security Implementation: OAuth M2M Workload Identity (GitHub Actions)
+```yaml
+# GitHub Actions workflow authenticating via OIDC federation
+name: Deploy Serverless Workload
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Mandate OIDC JWT token generation
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate to Databricks via OIDC
+        uses: databricks/setup-cli@v0.220.0
+        with:
+          host: https://adb-1234567890123456.7.azuredatabricks.net
+          client-id: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          oidc-token: true # Zero static long-lived PAT tokens
+```
+
+### Key Serverless Security Invariants:
+- **Instant Warm Pools**: Compute initializes in $< 2$ seconds by drawing from pre-warmed, patched container pools.
+- **Network Connectivity Config (NCC)**: Directs outbound traffic from serverless compute through dedicated customer private endpoints.
+- **Zero Static Credentials**: All service-to-service communication relies on short-lived OAuth 2.0 access tokens refreshed every 60 minutes.

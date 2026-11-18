@@ -98,3 +98,63 @@ flowchart TD
 1. **Inter-Task Parameter Passing**: Upstream tasks emit dynamic metrics (processed row counts, execution timestamps, validation flags) using `dbutils.jobs.taskValues.set(key, value)`. Downstream tasks consume them via `dbutils.jobs.taskValues.get(taskKey, key)`.
 2. **Surgical Repair and Rerun**: If Task 4 fails due to temporary network saturation, the data engineer triggers `Repair Run`. Lakeflow re-runs *only* Task 4 and downstream tasks, completely preserving the compute time and state of completed upstream tasks (Tasks 1 and 2).
 3. **Ephemeral Job Clusters vs. Serverless**: Batch ETL jobs utilize ephemeral job clusters (which terminate immediately upon task completion) or Serverless Jobs (instant zero-startup-latency compute) to eliminate idle infrastructure waste.
+
+---
+
+## 4. Databricks Lakeflow & Mosaic AI Agentic Framework
+
+The modern Databricks platform unifies data engineering with production Generative AI via **Databricks Lakeflow** (Connect, Pipelines, Jobs) and the **Mosaic AI Suite**.
+
+```mermaid
+flowchart TD
+    subgraph LakeflowSuite["Databricks Lakeflow Unified Data Engineering"]
+        Connect["Lakeflow Connect (Salesforce / Postgres / Kafka CDC)"]
+        Pipelines["Lakeflow Pipelines (Declarative DLT with Expectations)"]
+        Jobs["Lakeflow Jobs (Event-Driven Serverless DAGs)"]
+    end
+
+    subgraph MosaicAI["Mosaic AI Enterprise GenAI Platform"]
+        VectorSearch["Mosaic AI Vector Search (Delta Sync Index)"]
+        ModelServing["Mosaic AI Model Serving (Auto-scale to Zero)"]
+        Gateway["Mosaic AI Gateway (Guardrails & Rate Limits)"]
+        AgentEval["Mosaic AI Agent Evaluation (MLflow LLM-as-a-Judge)"]
+    end
+
+    subgraph SQLInference["In-Database GenAI SQL Execution"]
+        AI_Query["ai_query('databricks-meta-llama-3-70b', prompt)"]
+        AI_Classify["ai_classify(text, categories)"]
+        AI_Mask["ai_mask(text, ['email', 'ssn'])"]
+    end
+
+    Connect --> Pipelines --> Jobs
+    Pipelines --> VectorSearch --> ModelServing
+    ModelServing --> Gateway --> AgentEval
+    ModelServing --> SQLInference
+```
+
+### Production GenAI Implementation: In-Database SQL AI Functions & Vector Search
+```sql
+-- 1. In-database PII masking and classification using native AI functions
+SELECT
+    ticket_id,
+    ai_mask(customer_notes, ARRAY('email', 'phone', 'ssn')) AS sanitized_notes,
+    ai_classify(customer_notes, ARRAY('hardware', 'billing', 'outage')) AS issue_category,
+    ai_summarize(customer_notes, 50) AS executive_summary
+FROM prod_catalog.silver.customer_support_tickets;
+
+-- 2. Hybrid semantic similarity query over Mosaic AI Vector Search
+SELECT
+    doc_id,
+    document_title,
+    semantic_score
+FROM vector_search(
+    index => 'prod_catalog.knowledge_base.kb_vector_idx',
+    query_text => 'How do I resolve Spark shuffle spill on serverless?',
+    num_results => 5
+);
+```
+
+### Key AI Platform Invariants:
+- **Delta Sync Vector Indexes**: Embeddings update automatically in real-time as source Delta tables ingest new records via streaming checkpoints.
+- **AI Gateway Governance**: Intercepts external and internal LLM calls to enforce enterprise rate limits, token budgets, and automated PII redaction.
+- **Task-Specific AI Functions**: Prefer `ai_classify`, `ai_extract`, and `ai_mask` over raw LLM prompt calls for $5	imes$ lower latency and deterministic outputs.
