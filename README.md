@@ -2,7 +2,7 @@
 
 **105 Production Coding Recipes, Unity Catalog Governance, Delta Lake 3.x, Lakeflow, Photon & Incident Runbooks**
 
-[![CI Validation](https://github.com/santoshjammi29/databricks-handbook/actions/workflows/ci.yml/badge.svg)](https://github.com/santoshjammi29/databricks-handbook/actions)
+[![CI Validation](https://github.com/santoshjammi29/databricks-handbook/actions/workflows/ci.yml/badge.svg)](https://github.com/santoshjammi29/databricks-handbook/actions) • [Core Concepts (132 Topics)](#core-concepts)
 [![Databricks](https://img.shields.io/badge/Databricks-Runtime_15.4%2B_LTS-FF3621?style=flat-square&logo=databricks&logoColor=white)](https://www.databricks.com/)
 [![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.5%2B-E25A1C?style=flat-square&logo=apachespark&logoColor=white)](https://spark.apache.org/)
 [![Delta Lake](https://img.shields.io/badge/Delta_Lake-3.2_ACID-00ADD8?style=flat-square&logo=delta&logoColor=white)](https://delta.io/)
@@ -16,6 +16,159 @@
 *Structured in the official **Databricks Source Notebook format (`.py`)** for seamless 1-click sync with **Databricks Repos / Git Folders**, **Databricks Asset Bundles (DABs)**, **VS Code / Databricks Connect v2**, and CI/CD pipelines.*
 
 [Curriculum Overview](#curriculum-overview) • [Platform Architecture](#platform-architecture) • [Whiteboard Blueprints](#whiteboard-blueprints) • [Quickstart](#quickstart) • [DAB Deployment](#dabs) • [Architecture Deep Dives](#architectures) • [Runbooks](#runbooks) • [Interview Matrix](#interview-matrix) • [FinOps Telemetry](#finops)
+
+---
+
+<a id="core-concepts"></a>
+## 🧠 Core Curriculum Concepts & Topics (132 Topics Covered)
+
+> 💡 **Enterprise Knowledge Base Integration**: This repository implements **132 production topics** from the [Modern Data Engineering Systems Encyclopedia (921 Topics)](https://moderndataengineer.uk/concepts).
+
+### 📑 Topics Directory at a Glance
+
+| Pillar / Module | Topic Count | Key Core Primitives Covered | Status |
+|:---|:---:|:---|:---:|
+| ⚡ **Databricks Platform, Unity Catalog & Delta Lake 3.x** | **132** | Databricks Workspace, All-Purpose Cluster, Job Cluster, Databricks Notebook, and 128 more | ✅ Fully Documented |
+
+<details open>
+<summary><b>⚡ Databricks Platform, Unity Catalog & Delta Lake 3.x (132 Topics)</b> — <i>Click to collapse/expand</i></summary>
+
+| # | Topic / Concept | Level | Architectural Definition & Core Principle |
+|---|---|---|---|
+| 1 | **Databricks Workspace** | 🟢 Easy | A Databricks Workspace is a software-as-a-service (SaaS) environment that provides a unified collaborative interface for data engineers, data scientists, and analysts to access compute, notebooks, and storage. |
+| 2 | **All-Purpose Cluster** | 🟢 Easy | An All-Purpose Cluster is a shared interactive compute cluster designed for collaborative exploratory data analysis, interactive notebook development, and ad-hoc querying. |
+| 3 | **Job Cluster** | 🟢 Easy | A Job Cluster is an ephemeral, dedicated compute cluster automatically provisioned by Databricks to execute a specific automated workload and terminated immediately upon completion. |
+| 4 | **Databricks Notebook** | 🟢 Easy | A Databricks Notebook is a web-based interactive development document combining live executable code cells, interactive visualizations, and narrative markdown documentation. |
+| 5 | **DBFS (Databricks File System)** | 🟢 Easy | DBFS (Databricks File System) is a distributed file system abstraction layer mounted over cloud object storage (S3 bucket, Azure container, GCS bucket) accessible across the workspace. |
+| 6 | **Delta Lake (Databricks)** | 🟢 Easy | Delta Lake is an open-source storage framework that brings ACID transactions, scalable metadata handling, and unified streaming and batch data processing to Apache Spark and data lakes. |
+| 7 | **Unity Catalog** | 🟢 Easy | Unity Catalog is Databricks' centralized, multi-cloud governance solution providing unified access control, data auditing, lineage tracking, and discovery across all workspace assets. |
+| 8 | **Metastore** | 🟢 Easy | A Metastore is the central metadata repository that catalogs schema definitions, table partition locations, data types, and access privileges for data stored in the lakehouse. |
+| 9 | **Data Explorer** | 🟢 Easy | Data Explorer is the visual UI tool in the Databricks Workspace used to discover, manage, inspect, and grant permissions on Unity Catalog data assets. |
+| 10 | **dbutils** | 🟢 Easy | Databricks Utilities (dbutils) is a built-in Python and Scala library that provides programmatic helper methods for file system operations, secret management, notebook workflows, and UI widgets. |
+| 11 | **Magic Commands** | 🟢 Easy | Magic Commands are special prefix directives (%python, %sql, %scala, %r, %sh, %fs) entered at the beginning of a notebook cell to alter the execution runtime or execute system utilities. |
+| 12 | **Databricks Job** | 🟢 Easy | A Databricks Job is a scheduled or triggered execution unit that runs non-interactive code (notebooks, JARs, Python scripts, dbt models) on automated compute clusters. |
+| 13 | **Databricks Workflow** | 🟢 Easy | Databricks Workflows is the fully managed, native orchestration service within Databricks that designs, schedules, and monitors multi-task Directed Acyclic Graphs (DAGs). |
+| 14 | **Databricks Repos** | 🟢 Easy | Databricks Repos (now known as Git Folders) provides visual and programmatic Git version control integration directly inside the Databricks Workspace. |
+| 15 | **Cluster Policy** | 🟢 Easy | A Cluster Policy is an administrative governance rule set that restricts the configuration options available to users when provisioning compute clusters. |
+| 16 | **Delta Live Tables (DLT)** | 🟡 Intermediate | Delta Live Tables (DLT) is a declarative ETL framework in Databricks that simplifies data pipeline development by managing dependencies, infrastructure scaling, and data quality enforcement. |
+| 17 | **Auto Loader** | 🟡 Intermediate | Auto Loader is an optimized ingestion engine in Databricks that incrementally and efficiently ingests raw data files from cloud storage as they arrive without state tracking overhead. |
+| 18 | **Change Data Feed (CDF)** | 🟡 Intermediate | Change Data Feed (CDF) is a Delta Lake feature that captures and exposes row-level change events (inserts, updates, deletes) committed to a Delta table. |
+| 19 | **Z-Ordering** | 🟡 Intermediate | Z-Ordering is a multidimensional clustering technique that colocates related information in the same set of Parquet files to maximize file skipping during SQL queries. |
+| 20 | **OPTIMIZE Command** | 🟡 Intermediate | The OPTIMIZE command compacts fragmented small Parquet files in a Delta table into larger, query-efficient files (typically ~1GB in size). |
+| 21 | **VACUUM Command** | 🟡 Intermediate | The VACUUM command permanently deletes historical data files from cloud storage that are no longer referenced by the active Delta table log and exceed a retention threshold. |
+| 22 | **Delta Time Travel** | 🟡 Intermediate | Delta Time Travel is the ability to query point-in-time historical snapshots of a Delta table using historical commit versions or timestamps. |
+| 23 | **Shallow Clone vs Deep Clone** | 🟡 Intermediate | Delta Cloning creates copies of a table: Shallow Clone copies only metadata references with zero data duplication, whereas Deep Clone creates a fully independent physical copy of data and metadata. |
+| 24 | **Medallion Architecture on Databricks** | 🟡 Intermediate | The Medallion Architecture is a lakehouse data design pattern that logically organizes data into Bronze (raw ingestion), Silver (cleaned/conformed), and Gold (curated business marts) quality layers. |
+| 25 | **MLflow Tracking** | 🟡 Intermediate | MLflow Tracking is an enterprise logging API and UI for recording machine learning experiment runs, hyperparameters, evaluation metrics, code versions, and serialized model artifacts. |
+| 26 | **MLflow Model Registry** | 🟡 Intermediate | The MLflow Model Registry provides a centralized model store, set of APIs, and UI to collaboratively manage the full lifecycle of MLflow models from development to production deployment. |
+| 27 | **Databricks Feature Store** | 🟡 Intermediate | The Databricks Feature Store is a centralized catalog that enables data scientists to discover, share, and reuse ML features with guaranteed online/offline consistency. |
+| 28 | **Photon Engine** | 🟡 Intermediate | Photon is Databricks' next-generation vectorized query engine written from the ground up in native C++ to deliver high-performance execution of SQL and DataFrame workloads. |
+| 29 | **Databricks SQL Warehouse** | 🟡 Intermediate | A Databricks SQL Warehouse is a specialized compute resource optimized for SQL workloads, business intelligence queries, and high-concurrency analytical dashboards. |
+| 30 | **Vector Search** | 🟡 Intermediate | Databricks Vector Search is a serverless vector database integrated into Unity Catalog that stores and indexes vector embeddings for real-time similarity search and RAG applications. |
+| 31 | **Unity Catalog Fine-Grained Access Control** | 🔴 Advanced | Fine-Grained Access Control in Unity Catalog enforces cell-level security via Row Filters and Column Masks defined with standard SQL functions. |
+| 32 | **Lakehouse Federation** | 🔴 Advanced | Lakehouse Federation allows Unity Catalog to query external operational and analytical databases (Snowflake, BigQuery, PostgreSQL, MySQL, SQL Server) in place without moving data. |
+| 33 | **Delta Sharing** | 🔴 Advanced | Delta Sharing is an open, cross-platform protocol for securely sharing live data tables, schemas, and AI models across organizations and clouds without data duplication. |
+| 34 | **Databricks Structured Streaming** | 🔴 Advanced | Databricks Structured Streaming is a scalable stream processing engine built on Spark SQL that processes continuous data streams with micro-batch or continuous processing semantics. |
+| 35 | **Spark Connect** | 🔴 Advanced | Spark Connect is a decoupled client-server architecture for Apache Spark that enables thin clients and IDEs to execute Spark DataFrame queries via a lightweight gRPC protocol. |
+| 36 | **Serverless Compute (Databricks)** | 🔴 Advanced | Serverless Compute is an on-demand, fully managed compute architecture in Databricks that boots clusters in seconds and scales resources instantaneously within Databricks-managed cloud accounts. |
+| 37 | **Databricks Asset Bundles (DABs)** | 🔴 Advanced | Databricks Asset Bundles (DABs) is an Infrastructure-as-Code (IaC) framework that allows developers to define, test, and deploy entire Databricks projects using version-controlled YAML configurations. |
+| 38 | **SCIM Provisioning** | 🔴 Advanced | SCIM (System for Cross-domain Identity Management) Provisioning automatically synchronizes users, service principals, and security groups from enterprise identity providers to Databricks. |
+| 39 | **Audit Logging** | 🔴 Advanced | Audit Logging captures, records, and exports detailed security audit trails of all user and system activities occurring across Databricks workspaces and Unity Catalog. |
+| 40 | **DLT Expectations** | 🔴 Advanced | DLT Expectations are declarative data quality assertions applied to Delta Live Tables that validate incoming records and govern pipeline behavior upon data quality violations. |
+| 41 | **Predictive Optimization** | 🔴 Advanced | Predictive Optimization is an automated AI-driven service in Databricks that intelligently schedules OPTIMIZE and VACUUM maintenance operations on Unity Catalog managed tables. |
+| 42 | **Unity Catalog System Tables** | 🔴 Advanced | Unity Catalog System Tables are analytical Delta tables hosted in the system catalog that expose operational metadata, cost telemetry, query history, and data lineage. |
+| 43 | **Liquid Clustering** | 🔴 Advanced | Liquid Clustering is Databricks' next-generation data layout technology that dynamically clusters Delta tables without the rigid limitations of traditional partitioning and Z-Ordering. |
+| 44 | **Serverless DLT** | 🔴 Advanced | Serverless DLT executes Delta Live Tables pipelines on instant, fully managed serverless compute clusters operated within the Databricks cloud control plane. |
+| 45 | **Databricks Connect v2** | 🔴 Advanced | Databricks Connect v2 is a client library built on Spark Connect that allows developers to run PySpark code from local IDEs directly against remote Databricks compute clusters. |
+| 46 | **Databricks Lakehouse vs Snowflake** | 🟣 Architect | The enterprise architectural evaluation comparing Databricks' open, compute-flexible lakehouse platform against Snowflake's proprietary, SQL-centric cloud data warehouse platform. |
+| 47 | **Unity Catalog Multi-Workspace Topology** | 🟣 Architect | An enterprise architecture design that connects multiple environment- or business-unit-specific workspaces to a single regional Unity Catalog metastore. |
+| 48 | **DBU Cost Governance** | 🟣 Architect | The architectural framework and operational policies used to monitor, allocate, forecast, and optimize Databricks Unit (DBU) consumption and cloud infrastructure costs. |
+| 49 | **Multi-Cloud Databricks Deployment** | 🟣 Architect | An enterprise deployment pattern operating Databricks across multiple cloud providers (AWS, Azure, GCP) while maintaining unified governance and consistent CI/CD pipelines. |
+| 50 | **Databricks + dbt Integration** | 🟣 Architect | The production architecture pairing dbt with Databricks SQL Serverless and Unity Catalog, leveraging the dbt-databricks adapter for high-performance lakehouse transformations. |
+| 51 | **Databricks Workflows vs Airflow** | 🟣 Architect | The architectural decision framework comparing native Databricks Workflows with external general-purpose orchestrators like Apache Airflow. |
+| 52 | **Petabyte-Scale ELT on Databricks** | 🟣 Architect | The architectural principles and tuning strategies required to ingest, transform, and merge petabyte-scale data volumes on Databricks with predictable SLAs. |
+| 53 | **Data Mesh on Databricks** | 🟣 Architect | An architectural implementation of the Data Mesh paradigm on Databricks, treating data as a product owned by decentralized domain teams governed by Unity Catalog. |
+| 54 | **Governance with Unity Catalog + Purview** | 🟣 Architect | The enterprise governance integration between Databricks Unity Catalog and Microsoft Purview, unifying lakehouse metadata with company-wide data governance. |
+| 55 | **Databricks MLOps Platform** | 🟣 Architect | An end-to-end Machine Learning Operations (MLOps) architecture on Databricks encompassing automated feature engineering, experiment tracking, model registry, and serverless model serving. |
+| 56 | **Real-Time Lakehouse Architecture** | 🟣 Architect | A unified lakehouse architecture that processes high-frequency real-time event streams (Kafka, Event Hubs) with sub-second to minute-level latency directly into Delta Lake. |
+| 57 | **CI/CD for Databricks with DABs** | 🟣 Architect | The continuous integration and continuous deployment (CI/CD) architecture for Databricks using Databricks Asset Bundles (DABs) and Git automation pipelines. |
+| 58 | **Disaster Recovery for Databricks** | 🟣 Architect | The disaster recovery (DR) architecture for Databricks ensuring business continuity, minimal RPO, and near-zero RTO during regional cloud infrastructure outages. |
+| 59 | **Databricks for Data Products** | 🟣 Architect | The methodology and platform architecture for engineering, publishing, documenting, and monetizing curated data products on Databricks. |
+| 60 | **Unity Catalog Enterprise Governance** | 🟣 Architect | The enterprise governance operating model for Unity Catalog encompassing account-level identity management, catalog segregation, classification tagging, and regulatory audit compliance. |
+| 61 | **Databricks Auto Loader (cloudFiles)** | 🔴 Advanced | An optimized streaming source format in Databricks (`cloudFiles`) that incrementally and efficiently processes billions of new data files arriving in cloud storage without state file explosion. |
+| 62 | **Delta Lake Deletion Vectors** | 🟣 Architect | A storage optimization technique in Delta Lake that marks deleted or updated rows using lightweight bitmap index files instead of rewriting entire Parquet data files. |
+| 63 | **Databricks Unity Catalog Architecture** | 🟣 Architect | The centralized governance, metadata, and fine-grained access control layer for all data and AI assets across multiple Databricks workspaces in a cloud tenant. |
+| 64 | **Databricks Serverless SQL Warehouse** | 🔴 Advanced | A fully managed, instant-starting compute tier in Databricks optimized for high-concurrency SQL and BI queries running inside Databricks-managed compute planes. |
+| 65 | **Databricks Genie Spaces (Lakehouse AI)** | 🔴 Advanced | An AI-powered conversational interface in Databricks that allows non-technical business stakeholders to query Lakehouse Delta tables using natural language. |
+| 66 | **ACID Transactions** | 🟢 Easy | How Delta Lake guarantees atomicity, consistency, isolation, and durability on top of cloud object storage. |
+| 67 | **Transaction Log (`_delta_log`)** | 🟢 Easy | How the JSON-based transaction log tracks every change. |
+| 68 | **OPTIMIZE & File Compaction** | 🟡 Intermediate | Why small files kill read performance (causes: frequent appends, streaming micro-batches). |
+| 69 | **VACUUM & Storage Lifecycle** | 🟡 Intermediate | How VACUUM removes unreferenced files. |
+| 70 | **Delta Table Properties & Configuration** | 🔴 Advanced | Key table properties every DE manages: `delta.enableChangeDataFeed`, `delta.enableDeletionVectors`, `delta.columnMapping.mode`, `delta.minReaderVersion`/`minWriterVersion`, `delta.checkpointInterval`. |
+| 71 | **Volumes** | 🟢 Easy | Governed access to non-tabular files (CSVs, images, ML models) within Unity Catalog. |
+| 72 | **Incremental Processing Patterns** | 🟡 Intermediate | Processing only new/changed data. |
+| 73 | **SCD Type 1 & Type 2 Patterns** | 🔴 Advanced | SCD1 (overwrite current values) vs. |
+| 74 | **Serverless Compute Economics** | 🟢 Easy | How serverless pricing works (DBU-based, pay per query/task vs. |
+| 75 | **Column Statistics & File Pruning** | 🟡 Intermediate | Per-file min/max statistics collected for the first 32 columns by default (managed tables with Predictive Optimization choose columns intelligently). |
+| 76 | **Write Optimization** | 🟡 Intermediate | `optimizeWrite` for automatic file sizing on write. |
+| 77 | **Cluster Sizing & Autoscaling** | 🟡 Intermediate | Right-sizing for ETL vs. |
+| 78 | **DBU Cost Model & Billing** | 🟡 Intermediate | How Databricks bills (DBUs by SKU: Jobs, SQL, All-Purpose, Serverless). |
+| 79 | **Query Profile & Execution Plans** | 🟡 Intermediate | Reading the DBSQL Query Profile (visual plan, statistics, bottleneck identification). |
+| 80 | **Join Performance Diagnosis** | 🔴 Advanced | When a join is the bottleneck: reading shuffle sizes, spill metrics, and task skew in Spark UI for join stages. |
+| 81 | **MERGE Write Amplification** | 🔴 Advanced | Why MERGE rewrites entire files containing matched rows. |
+| 82 | **Three-Level Namespace** | 🟢 Easy | `catalog.schema.table` hierarchy. |
+| 83 | **Permission Model & Inheritance** | 🟡 Intermediate | How privileges cascade down (catalog -> schema -> table). |
+| 84 | **Dynamic Views for Security** | 🟡 Intermediate | Using `CURRENT_USER()` and `IS_MEMBER()` in view definitions. |
+| 85 | **Data Lineage** | 🟡 Intermediate | How Unity Catalog automatically tracks column-level lineage across notebooks, jobs, and SQL. |
+| 86 | **Information Schema & Metadata Queries** | 🟡 Intermediate | Querying `system.information_schema.tables`, `.columns`, `.table_privileges` to discover and audit catalog contents. |
+| 87 | **External Locations & Storage Credentials** | 🟡 Intermediate | Mapping cloud storage paths to Unity Catalog governance. |
+| 88 | **Service Principals & Managed Identity** | 🟡 Intermediate | Using service principals for automated jobs instead of personal credentials. |
+| 89 | **Row Filters & Column Masks** | 🔴 Advanced | Applying row-level and column-level security directly to tables via SQL UDFs. |
+| 90 | **Streaming Tables vs. Materialized Views** | 🟡 Intermediate | Streaming tables for append-only ingestion with exactly-once guarantees. |
+| 91 | **Expectations (Quality Rules)** | 🟡 Intermediate | Defining data quality constraints that warn, drop, or fail on violation. |
+| 92 | **CDC Processing: AUTO CDC INTO** | 🔴 Advanced | Processing Change Data Capture feeds with `AUTO CDC INTO` (SQL) or `create_auto_cdc_flow()` (Python). |
+| 93 | **Error Handling & Dead Letter Patterns** | 🔴 Advanced | Routing bad records to quarantine tables instead of failing the pipeline. |
+| 94 | **Choosing Compute for Jobs** | 🟢 Easy | Serverless compute as the default for new jobs (no cluster management, Photon auto-enabled). |
+| 95 | **Secrets Management** | 🟢 Easy | Databricks Secret Scopes for credentials (API keys, database passwords). |
+| 96 | **Parameterization: Widgets, Job Parameters, Task Values** | 🟢 Easy | `dbutils.widgets` for notebook parameters. |
+| 97 | **Notebook Development Patterns** | 🟢 Easy | `%run` for shared utilities. |
+| 98 | **Task Dependencies, Retries & Conditional Logic** | 🟡 Intermediate | Per-task retry policies and timeout limits. |
+| 99 | **Monitoring, Alerting & SQL Alerts** | 🟡 Intermediate | Setting up SQL alerts in DBSQL (threshold-based notifications). |
+| 100 | **System Tables for Operations** | 🟡 Intermediate | `system.billing.usage` for cost tracking and DBU consumption by SKU. |
+| 101 | **Shallow vs. Deep Clones** | 🟢 Easy | SHALLOW CLONE (zero-copy, references source files) vs. |
+| 102 | **Managed vs. External Tables: Architecture Tradeoffs** | 🟡 Intermediate | When managed tables are the right default (governance, Predictive Optimization, automatic lifecycle). |
+| 103 | **Delta UniForm & Multi-Engine Interoperability** | 🟡 Intermediate | How UniForm enables a single Delta table to be read as Apache Iceberg or Apache Hudi. |
+| 104 | **Compute Policies & Cluster Governance** | 🟡 Intermediate | Using cluster policies to control what users can provision (instance types, max workers, spot ratios, auto-termination). |
+| 105 | **AI Functions for Data Engineers** | 🟡 Intermediate | Using `ai_query()` and `ai_generate()` SQL functions for data enrichment, classification, and extraction within pipelines. |
+| 106 | **Multi-Workspace Architecture** | 🔴 Advanced | When to use one workspace vs. |
+| 107 | **Performance Troubleshooting Methodology** | 🔴 Advanced | A structured approach to diagnosing slow pipelines: check Spark UI stage breakdown, identify shuffle/spill bottlenecks, examine query plan for full scans or bad joins, verify clustering/statistics, check cluster utilization. |
+| 108 | **Delta Lake Liquid Clustering Architecture** | 🟣 Architect | A modern, dynamic data layout architecture that organizes Delta Lake Parquet files along a space-filling Hilbert curve without rigid Hive directory hierarchies. |
+| 109 | **Databricks Asset Bundles (DABs) Multi-Target CI/CD** | 🟣 Architect | The official Infrastructure-as-Code (IaC) standard for authoring, version-controlling, testing, and deploying Databricks Lakehouse workflows and pipelines across environments. |
+| 110 | **Databricks Serverless Compute Architecture** | 🟣 Architect | A cloud compute model where Databricks manages an instant warm pool of virtual machines in the Databricks compute plane, eliminating cluster startup latency. |
+| 111 | **Unity Catalog Dynamic Row Filters & Column Masks** | 🟣 Architect | Fine-grained SQL access control mechanisms in Unity Catalog that dynamically redact columns or filter table rows based on the querying user's group membership. |
+| 112 | **Unity Catalog Volumes (Managed vs. External)** | 🟡 Intermediate | A Unity Catalog securable object that extends centralized catalog governance, audit trails, and SQL permissions to unstructured and semi-structured files. |
+| 113 | **Databricks DBU Allocation via system.billing.usage** | 🔴 Advanced | The system catalog telemetry table in Unity Catalog that records minute-by-minute Databricks Unit (DBU) consumption across all workspaces, jobs, and users. |
+| 114 | **Databricks Delta Live Tables (DLT) Expectations** | 🔴 Advanced | Declarative data quality rules (`@dlt.expect`, `@dlt.expect_or_drop`, `@dlt.expect_or_fail`) embedded into streaming pipelines. |
+| 115 | **Databricks Lakeflow Connectors** | 🟣 Architect | Native managed SaaS and database ingestion connectors for Salesforce, Workday, ServiceNow, and SQL databases into Unity Catalog. |
+| 116 | **Databricks Genie Compound AI** | 🟣 Architect | A natural language conversational interface translating business questions into certified SQL over Unity Catalog metric views. |
+| 117 | **Databricks Workspace File Sync (Repos)** | 🟡 Intermediate | Bi-directional Git integration synchronizing branch code directly into Databricks workspace directories. |
+| 118 | **Databricks Secret Scopes (Azure Key Vault)** | 🟡 Intermediate | Secure credential storage backed by cloud key vaults, accessed in notebooks via `dbutils.secrets.get()`. |
+| 119 | **Unity Catalog Lineage Tracking** | 🟡 Intermediate | Automated capture of column-level and table-level data flow across queries, jobs, and dashboards. |
+| 120 | **Databricks Clean Rooms** | 🟣 Architect | A secure multi-party collaboration environment allowing organizations to query shared datasets without exposing raw data. |
+| 121 | **Stream-to-Table Commit Boundary** | 🟣 Architect | The consistency boundary between a streaming engine's checkpoint progress and the durable commit visible in its table sink. |
+| 122 | **Delta Lake Liquid Clustering vs Hive Partitioning** | 🟢 Easy | A physical data layout protocol that dynamically groups data along multiple columns without the rigidity, small-file explosion, or partition skew of traditional Hive directory trees. |
+| 123 | **Databricks Asset Bundles Multi-Environment Promotion** | 🔴 Advanced | A declarative Infrastructure-as-Code (IaC) packaging framework that defines jobs, pipelines, notebooks, and permissions as versioned YAML for automated CI/CD promotion. |
+| 124 | **Serverless vs Provisioned Auto-scaling Compute Economics** | 🟡 Intermediate | The unit cost and utilization modeling comparing pay-per-second serverless execution runtimes against fixed, provisioned auto-scaling VM cluster pools. |
+| 125 | **Databricks Split-Plane Cloud Architecture** | 🟣 Architect | A dual-plane cloud security model that segregates management/control infrastructure from distributed compute execution and persistent customer storage. |
+| 126 | **Databricks Serverless Compute Plane** | 🟣 Architect | A fully managed, instant-start compute tier running inside Databricks-managed cloud subscriptions with pre-warmed container fleets and sub-second elasticity. |
+| 127 | **Lakeflow Spark Declarative Pipelines (DLT)** | 🟣 Architect | A declarative framework for building, testing, and operating reliable lakehouse ETL pipelines with managed orchestration, state, and data quality expectations. |
+| 128 | **Unity Catalog Dynamic Column Masking & Row Filters** | 🟣 Architect | Declarative SQL-based fine-grained access control policies enforced transparently at the Unity Catalog metadata layer. |
+| 129 | **Databricks Asset Bundles (DABs) Infrastructure-as-Code** | 🟣 Architect | A declarative Infrastructure-as-Code (IaC) standard for authoring, testing, deploying, and version-controlling Databricks data and AI projects. |
+| 130 | **Unity Catalog System Tables for Lakehouse FinOps** | 🟣 Architect | Centrally governed, read-only analytical schemas providing real-time telemetry on compute usage, billing, audit access, and lineage across an entire account. |
+| 131 | **Mosaic AI Vector Search Continuous Delta Sync** | 🟣 Architect | A serverless vector database integrated with Unity Catalog that automatically synchronizes vector embeddings with underlying Delta tables in real time. |
+| 132 | **Delta Lake Schema Enforcement vs. Evolution** | 🔴 Advanced | Schema Enforcement prevents data corruption by blocking appends that deviate from table schema, while Schema Evolution allows controlled addition of new columns during write operations. |
+
+</details>
 
 ---
 
