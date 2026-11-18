@@ -161,7 +161,7 @@ In enterprise Databricks lakehouses, Memory Management & Spill is an essential m
 
 **Production Code / SQL Implementation:**
 ```python
-# Diagnosing memory spill: Spark unified memory divides into Storage (cache) and Execution (shuffle/join)
+# Triage memory spill across Storage vs Execution
 # Increase executor memory or reduce shuffle partitions to prevent Spill (Disk)
 ```
 

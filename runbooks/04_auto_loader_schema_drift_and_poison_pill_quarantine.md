@@ -78,7 +78,7 @@ df_poison = df_raw.filter(F.col("_rescued_data").isNotNull())
     .saveAsTable("prod_catalog.quarantine.ingestion_poison_pills")
 )
 
-# 2. Delete poison records from Bronze table so Silver pipeline can proceed safely
+# Quarantine corrupt records from Bronze table safely
 spark.sql("DELETE FROM prod_catalog.bronze.raw_events WHERE _rescued_data IS NOT NULL")
 ```
 

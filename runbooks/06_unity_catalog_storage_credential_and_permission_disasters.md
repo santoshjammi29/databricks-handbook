@@ -39,7 +39,7 @@
 Execute these queries as an Account Admin or Metastore Admin:
 
 ```sql
--- 1. Inspect the Storage Credential configuration and cloud identity ARN / client ID
+-- Check Storage Credential and cloud IAM role
 DESCRIBE STORAGE CREDENTIAL prod_storage_credential;
 
 -- 2. Inspect the External Location bound to the storage container

@@ -56,7 +56,7 @@ latest_commit = sorted([int(f.name) for f in commits])[-1]
 print(f"Latest Offset Batch: {latest_offset}")
 print(f"Latest Commit Batch: {latest_commit}")
 
-# If latest_offset > latest_commit, batch latest_offset failed mid-execution
+# Check uncommitted batch offset
 if latest_offset > latest_commit:
     print(f"WARNING: Batch {latest_offset} is uncommitted and must be retried or rolled back.")
 ```
@@ -74,10 +74,10 @@ If an uncommitted batch wrote partial state to RocksDB, safely rollback the offs
 uncommitted_batch = latest_offset
 dbutils.fs.rm(f"{checkpoint_dir}/offsets/{uncommitted_batch}")
 
-# 3. Clean any partial state delta for that uncommitted batch in RocksDB state store
+# Purge uncommitted RocksDB state delta
 dbutils.fs.rm(f"{checkpoint_dir}/state/0/0/{uncommitted_batch}.delta", recurse=True)
 
-# 4. Restart the stream; Structured Streaming will re-read from latest_commit + 1
+# Restart stream from last committed offset
 ```
 
 ### 3.2 Scenario B: Off-Heap RocksDB State Store Configuration

@@ -596,7 +596,7 @@ In enterprise Databricks lakehouses, Catalyst Optimizer & Query Plans is an esse
 ```python
 # Reading Catalyst Optimizer Physical Plan
 df.explain(extended=True)
-# Outputs: Parsed Logical Plan -> Analyzed Logical Plan -> Optimized Logical Plan -> Physical Plan
+# Catalyst: Parsed -> Analyzed -> Optimized -> Physical
 ```
 
 **Key Invariants & Architectural Best Practices:**
