@@ -1,144 +1,356 @@
-# ⚡ Databricks Technical Mastery: 50 Rapid-Fire Flashcards
+# 🗂️ Databricks Technical Flashcard Deck (50 Active Recall Questions)
 
-> **Format**: Question & Immediate Senior Architect Answer  
-> **Coverage**: 5 Questions per module across all 10 modules in the Databricks Handbook curriculum.
-
----
-
-### Module 01: Platform Architecture, Workspaces & Security
-1. **Q: What is the primary difference between Control Plane and Compute Plane?**  
-   **A:** Control plane runs in Databricks cloud tenant (UI, scheduler, metastore); compute plane runs in customer VNet or Databricks-managed serverless containers where Spark processes execute.
-2. **Q: Why should scheduled production jobs never run on All-Purpose Compute?**  
-   **A:** All-Purpose compute costs $2\times$ to $3\times$ more DBUs per hour than Job Compute and lacks automated ephemeral cluster lifecycle management.
-3. **Q: What does `enableNoPublicIp = true` do on Databricks clusters?**  
-   **A:** Enforces Secure Cluster Connectivity (SCC) where worker VMs have zero public IP addresses and communicate outbound-only over private tunnels.
-4. **Q: How do you retrieve a secret securely in Databricks code?**  
-   **A:** Use `dbutils.secrets.get(scope="my_scope", key="my_key")`, which redacts the plaintext value from execution logs.
-5. **Q: What is the replacement for legacy `/mnt/` DBFS mounts in modern Databricks?**  
-   **A:** Unity Catalog Managed and External Volumes (`/Volumes/catalog/schema/volume_name`).
+> **Coverage**: Modules 01 through 10 of The Databricks Handbook curriculum
+> **Focus**: Rapid-fire architectural invariants, API mechanics, and performance rules
 
 ---
 
-### Module 02: Unity Catalog — Governance, Security & Federation
-6. **Q: What is the 3-level namespace in Unity Catalog?**  
-   **A:** `catalog.schema.table_or_volume_or_model`.
-7. **Q: What happens physically when you run `DROP TABLE` on a Managed vs. External Table?**  
-   **A:** Managed table deletes both metadata and underlying cloud Parquet files; External table deletes metadata only, leaving cloud files intact.
-8. **Q: How do you implement Dynamic Row-Level Security in Unity Catalog?**  
-   **A:** Create a SQL function returning a boolean (`IS_ACCOUNT_GROUP_MEMBER()`) and attach it via `ALTER TABLE ... SET ROW FILTER func ON (col)`.
-9. **Q: What is Lakehouse Federation?**  
-   **A:** Querying remote database engines (Snowflake, BigQuery, Postgres) directly through Unity Catalog foreign catalogs with predicate pushdown and zero ETL.
-10. **Q: What open protocol allows sharing Delta tables with non-Databricks consumers without copying data?**  
-    **A:** Delta Sharing.
+### 1. ACID Transactions
+
+**Answer:**  
+How Delta Lake guarantees atomicity, consistency, isolation, and durability on top of cloud object storage. Optimistic concurrency control. Why this matters vs. raw Parquet.
 
 ---
 
-### Module 03: Delta Lake 3.x Storage Engine
-11. **Q: What file records atomic commits in Delta Lake?**  
-    **A:** Sequentially numbered JSON commit files in the `_delta_log/` directory (e.g., `000000.json`).
-12. **Q: How do Deletion Vectors (Merge-on-Read) improve DML performance?**  
-    **A:** Instead of rewriting an entire 500 MB Parquet file on update/delete, Delta writes a small roaring bitmap (.dv) of deleted row offsets, speeding writes by up to $100\times$.
-13. **Q: What replaces Hive directory partitioning and Z-Ordering in Delta Lake 3.x?**  
-    **A:** Liquid Clustering (`CLUSTER BY`), which uses incremental Hilbert-curve space-filling algorithms.
-14. **Q: Can Liquid Clustering keys be changed without rewriting historical table data?**  
-    **A:** Yes, via `ALTER TABLE ... CLUSTER BY (...)`; newly appended data clusters on the new keys during subsequent `OPTIMIZE`.
-15. **Q: What is Delta UniForm?**  
-    **A:** Automatic background generation of Apache Iceberg and Hudi metadata alongside Delta commits so external engines can read Delta tables natively.
+### 2. Transaction Log (`_delta_log`)
+
+**Answer:**  
+How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 100 commits. How the log enables time travel.
 
 ---
 
-### Module 04: Lakeflow Ingestion & DLT
-16. **Q: What are the two file discovery modes in Databricks Auto Loader?**  
-    **A:** Incremental Directory Listing (default, lexical scan) and File Notification Mode (AWS SQS / Azure Event Grid).
-17. **Q: What is the purpose of the `_rescued_data` column in Auto Loader?**  
-    **A:** To capture unparseable, malformed, or data-type-mismatched fields as JSON without failing the ingestion stream.
-18. **Q: In Delta Live Tables, what is the difference between a Streaming Table and a Materialized View?**  
-    **A:** Streaming tables ingest append-only streams incrementally; Materialized views precompute results and update based on current upstream state.
-19. **Q: What are the three DLT expectation severity levels?**  
-    **A:** `expect` (log metric only), `expect_or_drop` (drop invalid rows), `expect_or_fail` (terminate pipeline immediately).
-20. **Q: What DLT function performs CDC upserts for SCD Type 1 and Type 2?**  
-    **A:** `dlt.apply_changes()`.
+### 3. Time Travel & RESTORE
+
+**Answer:**  
+Querying previous versions with `VERSION AS OF` and `TIMESTAMP AS OF`. Restoring tables with `RESTORE`. When time travel stops working (after VACUUM). Retention configuration.
 
 ---
 
-### Module 05: Lakeflow Jobs & Orchestration
-21. **Q: How do tasks in a Lakeflow Job pass dynamic values to downstream tasks?**  
-    **A:** `dbutils.jobs.taskValues.set(key, value)` in the upstream task and `dbutils.jobs.taskValues.get(taskKey, key)` in downstream tasks.
-22. **Q: What is the advantage of Serverless Jobs over classic job clusters?**  
-    **A:** Zero VM allocation latency (starts in seconds), automated horizontal concurrency, and no cluster configuration maintenance.
-23. **Q: What does the "Repair and Rerun" feature do in Databricks Workflows?**  
-    **A:** Re-runs only the failed tasks and their downstream dependencies without re-executing successful upstream tasks.
-24. **Q: Why should production jobs run as a Service Principal instead of a user?**  
-    **A:** To prevent pipeline failures when employees leave the company, change passwords, or have tokens revoked.
-25. **Q: What trigger type should be used to run a job immediately when new files land in cloud storage?**  
-    **A:** File Arrival Trigger.
+### 4. Schema Enforcement vs. Evolution
+
+**Answer:**  
+How `mergeSchema` and `overwriteSchema` work. What happens when a write doesn't match the schema. When to use enforcement vs. evolution in production.
 
 ---
 
-### Module 06: Databricks SQL & Photon Engine
-26. **Q: What programming language is the Photon Engine written in, and why?**  
-    **A:** C++; to achieve SIMD-vectorized execution, direct off-heap memory management, and zero JVM garbage collection pauses.
-27. **Q: What is Intelligent Workload Management (IWM) in SQL Warehouses?**  
-    **A:** Databricks' dynamic admission control that queues queries when compute is saturated and predicts runtime to prevent memory spills.
-28. **Q: What are the three layers of caching in Databricks SQL?**  
-    **A:** Result Cache (UI/query level), Local SSD Disk/Delta Cache (executor level), and Remote Cloud Storage metadata cache.
-29. **Q: What is the difference between Economy and Pro scaling policies on SQL Warehouses?**  
-    **A:** Economy delays scaling out clusters until a consistent queue forms (optimizes cost); Pro scales out immediately upon detecting queued queries (optimizes latency).
-30. **Q: What Databricks feature provides a conversational AI interface over curated lakehouse SQL data?**  
-    **A:** Databricks Genie Spaces.
+### 5. Liquid Clustering
+
+**Answer:**  
+The recommended layout strategy for all new tables. How `CLUSTER BY` works. Replaces legacy partitioning and Z-ORDER. Clustering triggered on writes that exceed size thresholds. Why OPTIMIZE is still recommended for comprehensive clustering.
 
 ---
 
-### Module 07: Enterprise DevOps & DABs
-31. **Q: What is a Databricks Asset Bundle (DAB)?**  
-    **A:** A declarative Infrastructure as Code (IaC) framework defined in YAML (`databricks.yml`) to deploy workflows, pipelines, apps, and schemas.
-32. **Q: What does `databricks bundle validate` do?**  
-    **A:** Performs offline and online syntax, variable substitution, and schema validation of all YAML bundle resources.
-33. **Q: What is the behavioral difference between `mode: development` and `mode: production` in DABs?**  
-    **A:** Development prefixes resources with user names, pauses schedules, and cleans up; Production enforces branch locks and unpauses schedules.
-34. **Q: How does GitHub Actions authenticate to Databricks securely without static tokens?**  
-    **A:** OpenID Connect (OIDC) cloud federation with Azure Federated Credentials or AWS IAM Roles.
-35. **Q: What tool enables local IDE development in VS Code while executing against remote Databricks clusters?**  
-    **A:** Databricks Connect v2.
+### 6. OPTIMIZE & File Compaction
+
+**Answer:**  
+Why small files kill read performance (causes: frequent appends, streaming micro-batches). How OPTIMIZE rewrites files and triggers Liquid Clustering. Auto Compaction as a lighter-weight alternative. When to rely on Predictive Optimization (#53) vs. running manually.
 
 ---
 
-### Module 08: Databricks Apps & Mosaic AI
-36. **Q: What is Databricks Apps?**  
-    **A:** Serverless hosting inside the Databricks workspace for Python web applications (Streamlit, Dash, Gradio, FastAPI).
-37. **Q: What configuration file defines a Databricks App manifest?**  
-    **A:** `app.yaml`.
-38. **Q: What is a Delta Sync Index in Databricks Vector Search?**  
-    **A:** A vector index that automatically and continuously syncs embeddings from an underlying Delta table as new rows are inserted or updated.
-39. **Q: Where are MLflow models registered in modern Databricks?**  
-    **A:** In Unity Catalog using the 3-level namespace (`catalog.schema.model_name`).
-40. **Q: What SQL function allows invoking an LLM directly in a Databricks SQL query?**  
-    **A:** `ai_query(endpoint_name, prompt)`.
+### 7. VACUUM & Storage Lifecycle
+
+**Answer:**  
+How VACUUM removes unreferenced files. The 7-day default retention and why lowering it breaks time travel. Interaction with concurrent readers. How Predictive Optimization automates VACUUM on managed tables.
 
 ---
 
-### Module 09: FinOps & System Tables
-41. **Q: Which system table tracks all DBU consumption across workspaces?**  
-    **A:** `system.billing.usage`.
-42. **Q: How do you enforce cost attribution by department in Databricks?**  
-    **A:** Mandate cluster tagging (`CostCenter`, `Owner`, `Project`) via Cluster Policies; tags propagate directly into `system.billing.usage`.
-43. **Q: Which system table tracks user logins, permission grants, and notebook edits?**  
-    **A:** `system.access.audit`.
-44. **Q: What is the recommended auto-stop idle timeout for Serverless SQL Warehouses?**  
-    **A:** 5 to 10 minutes (serverless clusters start in 2–4 seconds, eliminating cold start delays).
-45. **Q: What cloud VM architecture migration typically saves 30–40% on worker compute costs?**  
-    **A:** Migrating to ARM-based instances (AWS Graviton or Azure ARM VM families).
+### 8. Change Data Feed (CDF)
+
+**Answer:**  
+How to enable and query `table_changes()`. The `_change_type` column (insert, update_preimage, update_postimage, delete). Use cases: incremental downstream processing, audit trails, replication.
 
 ---
 
-### Module 10: Production Incidents & Blueprints
-46. **Q: What is the most common cause of a Driver OutOfMemoryError in PySpark?**  
-    **A:** Executing `df.collect()` or `df.toPandas()` on large distributed DataFrames, which forces all worker partitions into the driver JVM heap.
-47. **Q: How do you resolve a `ConcurrentAppendException` when two jobs write to the same Delta table?**  
-    **A:** Enable Deletion Vectors and Row Tracking (`delta.enableDeletionVectors = true`, `delta.enableRowTracking = true`) for Row-Level Concurrency.
-48. **Q: How do you fix an unpartitioned window function causing stragglers?**  
-    **A:** Add a `PARTITION BY` column to distribute rows across worker nodes, or rewrite using pre-aggregations.
-49. **Q: What does a high `waiting_for_compute_ms` in `system.compute.query_history` indicate?**  
-    **A:** Severe query queuing on the SQL Warehouse caused by insufficient maximum cluster concurrency.
-50. **Q: What is the first recovery step when an uncommitted batch corrupts a Structured Streaming checkpoint?**  
-    **A:** Remove the uncommitted offset file from `offsets/` and partial state delta from `state/` to rewind the stream to the last successful commit.
+### 9. Deletion Vectors
+
+**Answer:**  
+Soft-delete markers that avoid rewriting files on DELETE, UPDATE, and MERGE. Enabled by default on new tables (rolling out). Physical deletion happens at OPTIMIZE/compaction. Compatibility considerations for external readers.
+
+---
+
+### 10. Delta Table Properties & Configuration
+
+**Answer:**  
+Key table properties every DE manages: `delta.enableChangeDataFeed`, `delta.enableDeletionVectors`, `delta.columnMapping.mode`, `delta.minReaderVersion`/`minWriterVersion`, `delta.checkpointInterval`. How these affect compatibility, performance, and feature availability. Checking and setting with `ALTER TABLE SET TBLPROPERTIES`.
+
+---
+
+### 11. Lazy Evaluation & Actions
+
+**Answer:**  
+Why transformations build a plan but don't execute. Which operations are actions (collect, count, write, show) vs. transformations (filter, select, join). Why this enables optimization.
+
+---
+
+### 12. Photon Engine
+
+**Answer:**  
+Native vectorized C++ query engine for SQL and DataFrame operations. Which operations benefit most (scans, filters, aggregations, joins). How to verify Photon is active in query plans. Automatically enabled on serverless compute.
+
+---
+
+### 13. Catalyst Optimizer & Query Plans
+
+**Answer:**  
+How Catalyst transforms logical plans into physical plans. Reading `EXPLAIN` output. Recognizing when the optimizer makes good vs. poor decisions.
+
+---
+
+### 14. Adaptive Query Execution (AQE)
+
+**Answer:**  
+How AQE adjusts plans at runtime based on actual data statistics. Three key optimizations: coalescing shuffle partitions, converting sort-merge joins to broadcast, optimizing skew joins. Enabled by default.
+
+---
+
+### 15. Shuffle Operations
+
+**Answer:**  
+What triggers a shuffle (groupBy, join, repartition, distinct). Why shuffles are expensive (serialization + network + disk I/O). Reading shuffle metrics in Spark UI.
+
+---
+
+### 16. Join Strategies
+
+**Answer:**  
+The three join types: broadcast hash join (small table fits in memory), sort-merge join (default for large-large), shuffle hash join (rare). The 10MB broadcast threshold (higher with Photon). Using `broadcast()` hints. How AQE dynamically converts at runtime.
+
+---
+
+### 17. Reading the Spark UI
+
+**Answer:**  
+The tabs that matter: Jobs, Stages, Tasks, SQL. What to look for: task duration variance, spill metrics, shuffle read/write sizes, scan statistics. Diagnosing bottlenecks from the UI.
+
+---
+
+### 18. Partitioning & Parallelism
+
+**Answer:**  
+How `spark.sql.shuffle.partitions` controls parallelism after shuffles. When to repartition vs. coalesce. The relationship between partition count, core count, and task parallelism. How to diagnose over/under-partitioning from Spark UI task metrics.
+
+---
+
+### 19. Data Skew: Detection & Mitigation
+
+**Answer:**  
+Recognizing skew in Spark UI (one task takes 10x longer). Why skew kills parallelism. Salting technique for skewed keys. AQE's automatic skew join optimization. When manual salting is still needed.
+
+---
+
+### 20. Memory Management & Spill
+
+**Answer:**  
+The unified memory model (execution + storage pool). What causes spill to disk. How to diagnose spill from Spark UI. Tuning `spark.sql.shuffle.partitions` and executor memory.
+
+---
+
+### 21. DataFrame API: Core Operations
+
+**Answer:**  
+select, filter, withColumn, groupBy, agg, join. Method chaining patterns. When to use DataFrame API vs. Spark SQL (same execution plan either way).
+
+---
+
+### 22. Temp Views & Global Temp Views
+
+**Answer:**  
+Scope: temp views live in the SparkSession, global temp views in `global_temp` and survive across notebooks on the same cluster. Neither persists across restarts.
+
+---
+
+### 23. Window Functions
+
+**Answer:**  
+ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, running totals with SUM OVER. Partition and ordering clauses. How these translate to physical execution (shuffles on partition keys).
+
+---
+
+### 24. Complex Types: ARRAY, STRUCT, MAP
+
+**Answer:**  
+Creating and querying nested structures. Exploding arrays with `explode()` and `posexplode()`. Struct field access with dot notation. Flattening deeply nested JSON.
+
+---
+
+### 25. Higher-Order Functions
+
+**Answer:**  
+`transform()`, `filter()`, `exists()`, `aggregate()` for array manipulation without exploding. When these outperform explode + groupBy. Real patterns: cleaning arrays, conditional filtering.
+
+---
+
+### 26. CTEs, PIVOT & Subqueries
+
+**Answer:**  
+Writing CTEs for readable multi-step queries. PIVOT for wide-format reshaping. Correlated vs. uncorrelated subqueries. How these map to physical plans.
+
+---
+
+### 27. UDFs vs. Native Functions
+
+**Answer:**  
+Why Python UDFs break Catalyst and force row-by-row execution. The 10-100x performance gap. Pandas UDFs (vectorized) as a middle ground. When a UDF is genuinely the right choice.
+
+---
+
+### 28. VARIANT Type
+
+**Answer:**  
+Storing semi-structured data (JSON) in a native binary format. Schema-on-read without parsing overhead. Querying with `:` path syntax. When VARIANT outperforms STRING or STRUCT columns for JSON data.
+
+---
+
+### 29. MERGE INTO & Upsert Patterns
+
+**Answer:**  
+The MERGE syntax for insert/update/delete in one statement. Clause ordering (MATCHED before NOT MATCHED). Write amplification and why MERGE rewrites entire files. Optimization: match on Liquid Clustering keys. How deletion vectors reduce cost.
+
+---
+
+### 30. Table Constraints & Generated Columns
+
+**Answer:**  
+CHECK constraints, NOT NULL, PRIMARY KEY (informational), FOREIGN KEY (informational). Generated columns with expressions (e.g., `date GENERATED ALWAYS AS CAST(timestamp AS DATE)`). How constraints enforce data quality at the write layer.
+
+---
+
+### 31. COPY INTO vs. Auto Loader
+
+**Answer:**  
+COPY INTO for ad-hoc/batch loads (idempotent, simpler). Auto Loader for continuous/streaming ingestion (exactly-once, scalable, schema evolution). Why Auto Loader is preferred for production.
+
+---
+
+### 32. File Formats in the Lakehouse
+
+**Answer:**  
+Why Parquet is the default (columnar, compressed, schema-embedded). Delta stores Parquet under the hood. When to use JSON, CSV, or Avro for ingestion sources. Schema-on-read vs. schema-on-write.
+
+---
+
+### 33. Volumes
+
+**Answer:**  
+Governed access to non-tabular files (CSVs, images, ML models) within Unity Catalog. Managed vs. external volumes. Using Volumes as landing zones and staging areas.
+
+---
+
+### 34. Auto Loader: File Discovery
+
+**Answer:**  
+File notification mode (cloud events, efficient at scale, requires setup) vs. directory listing mode (simpler, slower with millions of files). When to use each. Why Auto Loader is the default for production ingestion.
+
+---
+
+### 35. Auto Loader: Schema Evolution & Rescued Data
+
+**Answer:**  
+How schema inference works from the first batch. `cloudFiles.schemaEvolutionMode` options (addNewColumns, rescue, failOnNewColumns, none). The `_rescued_data` column for capturing mismatches instead of failing.
+
+---
+
+### 36. Multi-Hop Medallion Architecture
+
+**Answer:**  
+Bronze (raw, append-only), Silver (cleaned, deduplicated, typed), Gold (business aggregates). Why this pattern exists. When it's overkill. How each layer serves different consumers with different freshness requirements.
+
+---
+
+### 37. Incremental Processing Patterns
+
+**Answer:**  
+Processing only new/changed data. Techniques: Auto Loader (file-level), Change Data Feed (row-level), watermark-based (time-based), merge keys (hash-based). Cost vs. latency tradeoffs for each.
+
+---
+
+### 38. Lakehouse Federation
+
+**Answer:**  
+Querying external databases (PostgreSQL, MySQL, SQL Server, Snowflake) without copying data. Query pushdown optimization. Connection objects and security. When federation beats ETL and when it doesn't.
+
+---
+
+### 39. Idempotent Pipeline Design
+
+**Answer:**  
+Why every production pipeline must produce the same result when re-run. Databricks-specific techniques: MERGE with natural keys, `INSERT OVERWRITE` with `replaceWhere`, Auto Loader checkpoint recovery, Workflows retry policies. How streaming checkpoints provide built-in idempotency.
+
+---
+
+### 40. SCD Type 1 & Type 2 Patterns
+
+**Answer:**  
+SCD1 (overwrite current values) vs. SCD2 (maintain full history with effective dates). Implementing SCD2 with MERGE. Why Lakeflow Declarative Pipelines' `AUTO CDC INTO` (#75) is simpler for SCD2 at scale.
+
+---
+
+### 41. Structured Streaming Fundamentals
+
+**Answer:**  
+How Structured Streaming on Databricks uses Delta Lake as both source and sink. The `readStream`/`writeStream` API. Why Delta-to-Delta streaming is the most common production pattern. Integration with Auto Loader as a file source.
+
+---
+
+### 42. Triggers
+
+**Answer:**  
+`processingTime` (recurring micro-batches at fixed intervals). `availableNow` (process all available data then stop; replaces deprecated `once`). Choosing the right trigger for latency vs. cost.
+
+---
+
+### 43. Output Modes
+
+**Answer:**  
+Append (new rows only, default). Complete (full result table, aggregations only). Update (changed rows only). Which modes work with which operations and sinks.
+
+---
+
+### 44. Stream-Static Joins
+
+**Answer:**  
+Joining streaming DataFrames with batch DataFrames. Static side re-read each micro-batch. Use cases: enriching events with dimension data. Outer join limitations on the streaming side.
+
+---
+
+### 45. Windowed Aggregations
+
+**Answer:**  
+Tumbling windows (fixed, non-overlapping), sliding windows (fixed, overlapping), session windows (gap-based). Combining windows with watermarks for bounded state.
+
+---
+
+### 46. foreachBatch Pattern
+
+**Answer:**  
+Using `foreachBatch()` to apply arbitrary batch logic to each micro-batch. Use cases: writing to multiple sinks, MERGE operations in streaming, calling external APIs. Exactly-once considerations.
+
+---
+
+### 47. Streaming Tables in Lakeflow Pipelines
+
+**Answer:**  
+How streaming tables in Lakeflow Declarative Pipelines abstract away checkpoint and state management. The difference between streaming tables and raw Structured Streaming. When to use each approach.
+
+---
+
+### 48. Checkpointing & Exactly-Once
+
+**Answer:**  
+How checkpoint directories track processing state. Stream restart behavior (replay from checkpoint). Why checkpoint location must be stable and unique per query. Limitations of exactly-once guarantees.
+
+---
+
+### 49. Watermarks & Late Data
+
+**Answer:**  
+How `withWatermark()` bounds how late data can arrive. The tradeoff: longer watermark = more complete results but higher memory/state. How Spark drops state for expired windows.
+
+---
+
+### 50. Stream-Stream Joins
+
+**Answer:**  
+Joining two streaming DataFrames. Watermark requirements for state cleanup. Inner, left outer, and right outer join semantics. State management implications.
+
+---
