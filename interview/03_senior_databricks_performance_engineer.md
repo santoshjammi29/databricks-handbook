@@ -579,3 +579,128 @@ SELECT 1;
 **Certification Alignment:** `Databricks Certified Data Engineer Associate / Professional`
 
 ---
+
+---
+
+### Q3.26: Mosaic AI Vector Search Performance & Delta Sync Throughput (Performance & Cost)
+
+**Question & Concept Overview:**  
+Tuning ingestion throughput and query latency on Mosaic AI Vector Search endpoints. How to rightsize endpoints, select between `TRIGGERED` and `CONTINUOUS` pipelines, and minimize ANN search latency on multi-million vector tables.
+
+**Detailed Technical Explanation:**  
+Mosaic AI Vector Search compute endpoints provide hierarchical scaling. A **STANDARD** endpoint handles low-concurrency workloads, while high-throughput applications leverage **PROVISIONED_CONCURRENCY** or multi-endpoint load balancing. Ingestion latency depends on the sync mode: `CONTINUOUS` streaming sync processes updates in $< 20	ext{ seconds}$ but consumes continuous DBU budget; `TRIGGERED` runs on a schedule (e.g. hourly) for lower cost. For query performance, partition filtering on metadata columns before approximate nearest neighbor (ANN) HNSW graph traversal reduces scan space by up to $90\%$.
+
+**Production Code / SQL Implementation:**
+```python
+# Query Vector Search index with metadata pre-filtering
+from databricks.vector_search.client import VectorSearchClient
+
+vsc = VectorSearchClient()
+index = vsc.get_index(
+    endpoint_name="prod_vector_search_endpoint",
+    index_name="prod_catalog.ai_schema.kb_docs_vector_idx"
+)
+
+# Perform ANN query filtered by tenant and doc category
+# Pre-filtering restricts ANN graph traversal to match
+results = index.similarity_search(
+    query_text="How do I configure Single Sign-On with SAML?",
+    columns=["doc_id", "title", "chunk_content", "category"],
+    filters={"category": "Authentication", "tenant_id": "cust_1042"},
+    num_results=5
+)
+for row in results["result"]["data_array"]:
+    print(f"Matched Doc: {row[1]} (Score: {row[-1]})")
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Use metadata filters to restrict search space before ANN graph traversal.
+- Ensure embedding model endpoint has sufficient provisioned concurrency.
+- Delta Sync indexes inherit source table deletion vectors for instant removals.
+- Standardize vector dimensions across ingestion and query encoders.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Performance Specialist`
+
+---
+
+### Q3.27: Mosaic AI Model Serving Concurrency & GPU Provisioned Throughput (Performance & Cost)
+
+**Question & Concept Overview:**  
+Architecting high-concurrency LLM serving endpoints. When to use Pay-per-Token Foundation Model APIs vs. Provisioned Throughput with dedicated GPUs. Autoscaling metrics, cold-start mitigation, and queue management.
+
+**Detailed Technical Explanation:**  
+Model Serving offers two primary billing and performance models: **Pay-per-Token** (shared foundation models, zero infrastructure management, best for variable workloads) and **Provisioned Throughput** (dedicated GPU instances, guaranteed tokens-per-second, deterministic SLAs for $> 100	ext{ req/sec}$). Autoscaling monitors concurrency and request queue depth, spinning up GPU worker replicas. Cold starts are mitigated via minimum replica configuration (`min_provisioned_throughput = 1`) or serverless auto-warming pools.
+
+**Production Code / SQL Implementation:**
+```python
+# Deploy Provisioned Throughput GPU serving endpoint
+from databricks.sdk import WorkspaceClient
+from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
+
+w = WorkspaceClient()
+
+# Configure Llama 3 endpoint with guaranteed throughput
+# Minimum throughput prevents cold starts for production SLAs
+w.serving_endpoints.create_and_wait(
+    name="prod-llama-3-8b-instruct",
+    config=EndpointCoreConfigInput(
+        served_entities=[
+            ServedEntityInput(
+                entity_name="system.ai.llama_3_8b_instruct",
+                entity_version="1",
+                min_provisioned_throughput=10,
+                max_provisioned_throughput=50
+            )
+        ]
+    )
+)
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Provisioned throughput guarantees tokens/sec without throttling.
+- Minimum replicas $>0$ eliminate cold start latency ($15	ext{--}45	ext{s}$) for critical APIs.
+- Pay-per-token is cost-optimal for developmental or low-volume endpoints.
+- Monitor `system.ai.model_serving_events` for concurrency saturation.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Performance Specialist`
+
+---
+
+### Q3.28: Databricks SQL AI Function Batch Optimization & Rate Limit Handling (Performance & Cost)
+
+**Question & Concept Overview:**  
+Optimizing bulk batch scoring with `ai_query()` on Serverless SQL Warehouses. Avoiding HTTP 429 rate limit exceptions, configuring concurrency, and minimizing compute cost on millions of rows.
+
+**Detailed Technical Explanation:**  
+Running `ai_query()` across millions of rows in a batch pipeline generates substantial outbound requests to serving endpoints. If the endpoint is unprovisioned, queries encounter HTTP 429 throttling or socket timeouts. To optimize: (1) use `ai_query` inside micro-batch queries rather than scanning entire historical tables, (2) filter rows first to eliminate nulls or non-actionable records, and (3) wrap calls with `COALESCE` or fallback logic to prevent single-row LLM failures from aborting multi-hour pipeline jobs.
+
+**Production Code / SQL Implementation:**
+```sql
+-- Optimized batch inference with null skipping and rate limit safety
+WITH eligible_records AS (
+    SELECT 
+        feedback_id,
+        feedback_text
+    FROM customer_feedback
+    -- Filter out short or empty rows to save LLM tokens
+    WHERE feedback_text IS NOT NULL AND length(trim(feedback_text)) > 20
+)
+SELECT 
+    feedback_id,
+    -- Invoke serving endpoint with bounded temperature
+    ai_query(
+        'databricks-meta-llama-3-70b-instruct',
+        CONCAT('Extract 3 key themes as comma-separated tags: ', feedback_text),
+        -- Configure model parameters for deterministic classification
+        modelParameters => map('temperature', '0.0', 'max_tokens', '64')
+    ) AS extracted_themes
+FROM eligible_records;
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Filter input rows aggressively before passing to `ai_query` to control cost.
+- Set deterministic parameters (`temperature: 0.0`) for classification and extraction.
+- Rightsize serving endpoint provisioned throughput to match warehouse concurrency.
+- Store output in Delta tables with Liquid Clustering on prediction dates.
+
+**Certification Alignment:** `Databricks Certified Data Engineer Professional`

@@ -84,8 +84,21 @@ In enterprise Databricks lakehouses, AI Functions for Data Engineers is an essen
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for AI Functions for Data Engineers
-SELECT 1;
+-- Classify sentiment, extract entities and mask PII
+SELECT 
+    comment_id,
+    -- Classify ticket sentiment into predefined buckets
+    ai_classify(comment_text, ARRAY('urgent', 'neutral', 'satisfied')) AS sentiment,
+    -- Extract product model and defect reason as JSON
+    ai_extract(comment_text, ARRAY('product_model', 'defect_reason')) AS extracted_entities,
+    -- Mask customer names, emails, and phone numbers
+    ai_mask(comment_text, ARRAY('person', 'email_address', 'phone_number')) AS sanitized_comment,
+    -- Route complex inquiries to Foundation Model serving
+    ai_query(
+        'databricks-dbrx-instruct',
+        CONCAT('Summarize root cause in 15 words: ', comment_text)
+    ) AS root_cause_summary
+FROM bronze_support_tickets;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -599,3 +612,221 @@ SELECT 1;
 **Certification Alignment:** `Databricks Certified Data Engineer Associate / Professional`
 
 ---
+
+---
+
+### Q4.26: Mosaic AI Vector Search & Delta Sync Architecture (GenAI & Lakehouse AI)
+
+**Question & Concept Overview:**  
+How Mosaic AI Vector Search provides auto-updating similarity indexes over Unity Catalog Delta tables using Change Data Feed (CDF). Contrast Delta Sync Index vs. Direct-access Index, managed embeddings vs. self-managed embeddings, and similarity metrics (cosine, dot-product, L2).
+
+**Detailed Technical Explanation:**  
+Mosaic AI Vector Search is a fully managed vector database integrated directly into Unity Catalog. A **Delta Sync Index** continuously monitors a source Delta table where `delta.enableChangeDataFeed = true`. Whenever records are inserted, updated, or deleted, Vector Search computes embeddings via managed Foundation Model APIs (e.g., `databricks-bge-large-en`) or ingests pre-computed vector columns, updating the vector index with sub-minute latency. Direct-access indexes accept REST API vector insertions directly. Security is natively inherited from Unity Catalog table permissions.
+
+**Production Code / SQL Implementation:**
+```python
+# Create managed Delta Sync vector index in Python SDK
+from databricks.vector_search.client import VectorSearchClient
+
+vsc = VectorSearchClient()
+
+# Provision or reuse vector search compute endpoint
+# Endpoint handles indexing pipelines and similarity queries
+vsc.create_endpoint(
+    name="prod_vector_search_endpoint",
+    endpoint_type="STANDARD"
+)
+
+# Create Delta Sync Index with auto-managed embeddings
+# Embeddings generated using BGE-Large via Model Serving
+index = vsc.create_delta_sync_index(
+    endpoint_name="prod_vector_search_endpoint",
+    index_name="prod_catalog.ai_schema.kb_docs_vector_idx",
+    source_table_name="prod_catalog.gold_docs.knowledge_base",
+    pipeline_type="TRIGGERED",
+    primary_key="doc_id",
+    embedding_source_column="chunk_content",
+    embedding_model_endpoint_name="databricks-bge-large-en"
+)
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Delta Sync indexes require `delta.enableChangeDataFeed = true` on the source table.
+- Managed embeddings automatically sync without managing external embedding pipelines.
+- Supports filtered similarity searches combining metadata predicates with ANN search.
+- Inherits Unity Catalog row filters, column masks, and access control policies.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Lakehouse Architect`
+
+---
+
+### Q4.27: Mosaic AI Model Serving & AI Gateway Enterprise Governance (GenAI & Lakehouse AI)
+
+**Question & Concept Overview:**  
+Designing scalable, governed LLM inference endpoints. How Mosaic AI Model Serving provides scale-to-zero serverless endpoints, provisioned concurrency, and multi-cloud AI Gateway routing with PII guardrails, token rate limiting, and cost tracking.
+
+**Detailed Technical Explanation:**  
+Mosaic AI Model Serving delivers production-grade REST endpoints for open LLMs (Llama 3, DBRX, Mistral), custom fine-tuned models, and external APIs (OpenAI, Anthropic). It supports **Scale-to-Zero** for cost efficiency and **Provisioned Concurrency** for deterministic low-latency SLAs. The **AI Gateway** sits in front of external and internal endpoints, enforcing organizational guardrails: automated PII redaction, toxicity filtering, fallback routing across providers, and token-bucket rate limits tracked via `system.ai.model_serving_events`.
+
+**Production Code / SQL Implementation:**
+```python
+# Configure AI Gateway route with guardrails in MLflow
+import mlflow.deployments
+
+client = mlflow.deployments.get_deploy_client("databricks")
+
+# Create governed AI Gateway endpoint with rate limits
+# Enforces PII masking and safety filters across queries
+client.create_endpoint(
+    name="enterprise-claude-gateway",
+    config={
+        "served_entities": [{
+            "name": "anthropic-claude-3-5-sonnet",
+            "external_model": {
+                "name": "claude-3-5-sonnet-20241022",
+                "provider": "anthropic",
+                "task": "llm/v1/chat",
+                "anthropic_config": {
+                    "anthropic_api_key": "{{secrets/genai/anthropic_key}}"
+                }
+            }
+        }],
+        "rate_limits": [
+            {"calls": 100, "key": "user", "renewal_period": "minute"}
+        ],
+        "ai_gateway": {
+            "guardrails": {
+                "input": {"pii": {"behavior": "mask"}},
+                "output": {"toxicity": {"behavior": "block"}}
+            }
+        }
+    }
+)
+```
+
+**Key Invariants & Architectural Best Practices:**
+- AI Gateway decouples client applications from specific LLM providers.
+- Secrets are securely injected via Databricks Secret Scopes (`{{secrets/...}}`).
+- PII is masked before leaving the Databricks compliance boundary.
+- Telemetry streams automatically to system billing tables for FinOps auditing.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Lakehouse Architect`
+
+---
+
+### Q4.28: Mosaic AI Agent Framework & MLflow 3.x Evaluation (GenAI & Lakehouse AI)
+
+**Question & Concept Overview:**  
+Building multi-turn conversational agents with tool calling and evaluating them using MLflow 3.x LLM-as-a-judge. Architecture of the Databricks Review App for human-in-the-loop validation and automated regression testing.
+
+**Detailed Technical Explanation:**  
+The Mosaic AI Agent Framework standardizes building, deploying, and evaluating AI agents that leverage Unity Catalog functions as tools. Agents are packaged as MLflow `pyfunc` models that interact with Vector Search indexes and SQL functions. **MLflow Agent Evaluation** computes multi-dimensional quality metrics: groundedness (did the LLM invent facts?), relevance (did it answer the prompt?), safety, and latency. The **Review App** exposes a web UI where subject matter experts review traces, thumbs-up/down responses, and submit corrections stored directly in Delta tables.
+
+**Production Code / SQL Implementation:**
+```python
+# Evaluate Agent with MLflow LLM-as-a-Judge metrics
+import mlflow
+import pandas as pd
+
+eval_df = pd.DataFrame({
+    "request": ["What is the refund policy for Enterprise tiers?"],
+    "expected_response": ["Full refund within 30 days of purchase."],
+})
+
+# Run automated evaluation using judge model
+# Computes groundedness, relevance, and correctness scores
+results = mlflow.evaluate(
+    data=eval_df,
+    model_type="databricks-agent",
+    targets="expected_response",
+    evaluators="default",
+    extra_metrics=[
+        mlflow.metrics.genai.relevance(),
+        mlflow.metrics.genai.faithfulness()
+    ]
+)
+print(f"Agent Quality Metrics: {results.metrics}")
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Groundedness evaluation prevents hallucinations in enterprise knowledge retrieval.
+- Review App feedback loops directly into Delta tables for LoRA fine-tuning.
+- Traces capture every tool execution step, query latency, and token consumption.
+- Evaluation runs in CI/CD before any agent model is promoted to production.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Lakehouse Architect`
+
+---
+
+### Q4.29: Databricks Apps: Serverless Web Application Hosting on Unity Catalog (GenAI & Lakehouse AI)
+
+**Question & Concept Overview:**  
+Deploying custom data and AI web applications (Streamlit, Dash, Gradio, FastAPI) inside Databricks using Databricks Apps. Security boundaries, service principal identity, and resource bindings to Unity Catalog.
+
+**Detailed Technical Explanation:**  
+Databricks Apps is a serverless application runtime that hosts Python web applications natively within the Databricks security perimeter. It eliminates the need for external hosting (AWS ECS, Kubernetes, Heroku). Apps run under a dedicated managed Service Principal with least-privilege resource bindings defined in `app.yaml`. Users access apps via SSO authentication with role-based access control, querying Unity Catalog tables and invoking Mosaic AI endpoints directly.
+
+**Production Code / SQL Implementation:**
+```yaml
+# app.yaml: Databricks Apps resource binding manifest
+# Binds secure service principal to SQL Warehouse and Models
+version: "1"
+command: ["streamlit", "run", "app.py"]
+resources:
+  - name: sql-warehouse
+    sql_warehouse:
+      id: "a1b2c3d4e5f67890"
+      permission: "CAN_USE"
+  - name: vector-search
+    vector_search_endpoint:
+      name: "prod_vector_search_endpoint"
+      permission: "CAN_USE"
+```
+
+**Key Invariants & Architectural Best Practices:**
+- No credentials hardcoded in code; authentication handled via Databricks SSO.
+- Resource bindings grant explicit least-privilege permissions to the app.
+- Runs inside the Databricks serverless compute plane with automatic scaling.
+- Integrated with Unity Catalog audit logging for complete governance.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Lakehouse Architect`
+
+---
+
+### Q4.30: Lakehouse Monitoring for Data & GenAI Drift (GenAI & Lakehouse AI)
+
+**Question & Concept Overview:**  
+How Lakehouse Monitoring provides automated data profiling, statistical drift detection, and GenAI output monitoring on Delta tables without writing custom monitoring DAGs.
+
+**Detailed Technical Explanation:**  
+Lakehouse Monitoring computes data quality and statistical drift metrics on Unity Catalog tables. It operates in three profiles: **Snapshot** (static tables), **TimeSeries** (tables with timestamp columns), and **InferenceLog** (request/response payload tables from Model Serving). For GenAI, it analyzes token count drift, response latency, sentiment distribution, and user feedback scores over time, publishing metrics into profile tables (`_profile_metrics`) and alert tables (`_drift_metrics`) with automated Slack/email notifications.
+
+**Production Code / SQL Implementation:**
+```python
+# Create InferenceLog Lakehouse Monitor on Model Serving logs
+from databricks import lakehouse_monitoring as lm
+
+# Setup automated monitoring for LLM serving payloads
+# Tracks request drift, response lengths, and error rates
+lm.create_monitor(
+    table_name="prod_catalog.ml_serving.llm_payload_logs",
+    profile_type=lm.InferenceLog(
+        timestamp_col="timestamp",
+        granularities=["1 hour", "1 day"],
+        model_id_col="endpoint_name",
+        prediction_col="response_text",
+        label_col="ground_truth_label",
+        problem_type="text"
+    ),
+    output_schema_name="prod_catalog.monitoring_gold",
+    schedule=lm.CronSchedule(quartz_cron_expression="0 0 * * * ?")
+)
+```
+
+**Key Invariants & Architectural Best Practices:**
+- Zero infrastructure to manage; monitoring runs serverless on schedule.
+- Creates pre-built Databricks SQL dashboards for data drift and quality.
+- Emits anomaly alerts when Kolmogorov-Smirnov test exceeds drift threshold.
+- Directly supports inference logs from Mosaic AI Model Serving endpoints.
+
+**Certification Alignment:** `Databricks Certified Generative AI Engineer / Lakehouse Architect`

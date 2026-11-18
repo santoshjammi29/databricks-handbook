@@ -100,3 +100,49 @@ OPTIMIZE prod_catalog.gold.fact_sales;
    ```
 2. **Workload Separation**: Never share a single SQL warehouse between scheduled heavy reporting jobs (e.g., Tableau extract refreshes) and ad-hoc executive dashboard browsing.
 3. **Query Limits**: Enforce maximum execution timeout limits (e.g., 600 seconds) in warehouse configuration to automatically terminate accidental Cartesian products.
+
+
+---
+
+## 5. Mosaic AI SQL Functions Throttling & 429 Rate Limit Recovery
+
+### 5.1 Incident Symptoms & Root Cause
+- **Symptoms**: Batch SQL pipelines calling `ai_query()` fail with `HTTP 429: Too Many Requests` or query execution times spike $10\times$ as serverless workers back off and retry.
+- **Root Cause**: The underlying Model Serving endpoint (e.g. `databricks-dbrx-instruct` or custom GPU serving) lacks sufficient provisioned concurrency for the degree of parallelism spawned by the Serverless SQL Warehouse.
+
+### 5.2 Remediation & Concurrency Provisioning
+```sql
+-- Step 1: Wrap ai_query in safe error-handling with default fallback
+SELECT 
+    review_id,
+    -- Prevent query failure on temporary 429 or timeout
+    coalesce(
+        ai_query(
+            'databricks-meta-llama-3-70b-instruct',
+            CONCAT('Classify sentiment (positive/neutral/negative): ', review_text),
+            modelParameters => map('temperature', '0.0', 'max_tokens', '16')
+        ),
+        'unclassified_pending_retry'
+    ) AS sentiment_status
+FROM prod_catalog.silver.customer_reviews
+WHERE review_text IS NOT NULL;
+```
+
+### 5.3 Scaling Model Serving Provisioned Throughput
+1. Navigate to **Serving** -> Target Serving Endpoint -> **Edit Settings**.
+2. Scale **Provisioned Concurrency**: Increase minimum provisioned concurrency or provisioned tokens-per-second to match warehouse peak concurrency:
+```python
+# Scale Model Serving endpoint throughput using Python SDK
+from databricks.sdk import WorkspaceClient
+
+w = WorkspaceClient()
+w.serving_endpoints.update_config_and_wait(
+    name="prod-customer-classification",
+    served_entities=[{
+        "name": "system.ai.llama_3_70b_instruct",
+        "entity_version": "1",
+        "min_provisioned_throughput": 40,
+        "max_provisioned_throughput": 120
+    }]
+)
+```

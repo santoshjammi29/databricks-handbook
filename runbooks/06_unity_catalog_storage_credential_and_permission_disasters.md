@@ -93,3 +93,40 @@ GRANT SELECT ON TABLE prod_lakehouse.silver.orders TO `analytics_users`;
 1. **Role-Based Access via SCIM Groups**: Never grant permissions to individual user emails (`user@company.com`). Always grant to enterprise SCIM groups synchronized from Okta / Microsoft Entra ID.
 2. **Infrastructure as Code (IaC) Only**: Manage all Unity Catalog grants, storage credentials, and external locations exclusively via Databricks Asset Bundles (DABs) or Terraform to prevent unauthorized manual clicks in the UI.
 3. **Automated Credential Monitoring**: Schedule a daily test notebook via Lakeflow Jobs that reads and writes a 1-row canary table across all external locations and fires PagerDuty alerts on failure.
+
+
+---
+
+## 5. Mosaic AI Vector Search Endpoint & AI Gateway Access Triage
+
+### 5.1 Incident Symptoms & Root Cause
+- **Symptoms**: AI application queries or Lakeflow pipelines fail with `PERMISSION_DENIED: User does not have CAN_USE on Vector Search endpoint` or AI Gateway returns `403 Forbidden: route unauthorized`.
+- **Root Cause**: Vector Search compute endpoints and AI Gateway routes have independent Unity Catalog securable ACLs that must be granted to the calling Service Principal or user group.
+
+### 5.2 Remediation & Permission Recovery
+```sql
+-- Step 1: Grant CAN_USE on the Vector Search compute endpoint
+-- Executed by Metastore Admin or Endpoint Owner
+GRANT CAN_USE ON VECTOR SEARCH ENDPOINT prod_vector_search_endpoint TO `data-engineers`;
+GRANT CAN_USE ON VECTOR SEARCH ENDPOINT prod_vector_search_endpoint TO `sp-genai-app-prod`;
+
+-- Step 2: Grant SELECT on the underlying Delta Sync index and source table
+GRANT SELECT ON TABLE prod_catalog.ai_schema.kb_docs_vector_idx TO `sp-genai-app-prod`;
+GRANT SELECT ON TABLE prod_catalog.gold_docs.knowledge_base TO `sp-genai-app-prod`;
+
+-- Step 3: Grant USE permission on parent Catalog and Schema
+GRANT USE CATALOG ON CATALOG prod_catalog TO `sp-genai-app-prod`;
+GRANT USE SCHEMA ON SCHEMA prod_catalog.ai_schema TO `sp-genai-app-prod`;
+```
+
+### 5.3 Automated Verification
+```python
+# Verify Vector Search endpoint connectivity and permissions
+from databricks.vector_search.client import VectorSearchClient
+
+vsc = VectorSearchClient()
+endpoint = vsc.get_endpoint("prod_vector_search_endpoint")
+print(f"Endpoint Status: {endpoint.get('endpoint_status', {}).get('state')}")
+index = vsc.get_index("prod_vector_search_endpoint", "prod_catalog.ai_schema.kb_docs_vector_idx")
+print(f"Index Status: {index.describe().get('status', {}).get('ready')}")
+```
