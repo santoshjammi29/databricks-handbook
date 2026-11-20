@@ -1,0 +1,1160 @@
+{
+  "repo": "databricks-handbook",
+  "github": "santoshjammi29/databricks-handbook",
+  "name": "Databricks Handbook",
+  "role": "105 Databricks production recipes, Unity Catalog governance, Delta Lake 3.x, Lakeflow, Serverless, DABs, FinOps",
+  "last_synced": "2026-11-20T08:25:01.793135Z",
+  "entry_count": 115,
+  "entries": [
+    {
+      "id": "databricks-handbook-001_split_plane_cloud_architecture_control_plane_classic_compute_and_serverless_networking",
+      "type": "notebook_recipe",
+      "title": "Split Plane Cloud Architecture Control Plane Classic Compute And Serverless Networking",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/001_split_plane_cloud_architecture_control_plane_classic_compute_and_serverless_networking.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-002_databricks_workspace_topologies_multi_workspace_hub_and_spoke_and_private_link",
+      "type": "notebook_recipe",
+      "title": "Databricks Workspace Topologies Multi Workspace Hub And Spoke And Private Link",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/002_databricks_workspace_topologies_multi_workspace_hub_and_spoke_and_private_link.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-003_cluster_types_and_workload_isolation_all_purpose_vs_automated_job_vs_sql_warehouses",
+      "type": "notebook_recipe",
+      "title": "Cluster Types And Workload Isolation All Purpose Vs Automated Job Vs Sql Warehouses",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/003_cluster_types_and_workload_isolation_all_purpose_vs_automated_job_vs_sql_warehouses.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-004_cluster_policies_t_shirt_sizing_and_fleet_autoscaling_mechanics",
+      "type": "notebook_recipe",
+      "title": "Cluster Policies T Shirt Sizing And Fleet Autoscaling Mechanics",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/004_cluster_policies_t_shirt_sizing_and_fleet_autoscaling_mechanics.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-005_databricks_cli_v0_200_automation_authentication_and_oauth_m2m_profiles",
+      "type": "notebook_recipe",
+      "title": "Databricks Cli V0 200 Automation Authentication And Oauth M2M Profiles",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/005_databricks_cli_v0_200_automation_authentication_and_oauth_m2m_profiles.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-006_databricks_rest_api_2_1_programmatic_workspace_and_compute_lifecycle_management",
+      "type": "notebook_recipe",
+      "title": "Databricks Rest Api 2 1 Programmatic Workspace And Compute Lifecycle Management",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/006_databricks_rest_api_2_1_programmatic_workspace_and_compute_lifecycle_management.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-007_databricks_secrets_and_cloud_kms_scopes_dbutils_secrets_and_zero_trust_ingestion",
+      "type": "notebook_recipe",
+      "title": "Databricks Secrets And Cloud Kms Scopes Dbutils Secrets And Zero Trust Ingestion",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/007_databricks_secrets_and_cloud_kms_scopes_dbutils_secrets_and_zero_trust_ingestion.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-008_workspace_filesystem_vs_volumes_vs_legacy_dbfs_mounts",
+      "type": "notebook_recipe",
+      "title": "Workspace Filesystem Vs Volumes Vs Legacy Dbfs Mounts",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/008_workspace_filesystem_vs_volumes_vs_legacy_dbfs_mounts.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-009_service_principals_scim_provisioning_and_enterprise_identity_federation",
+      "type": "notebook_recipe",
+      "title": "Service Principals Scim Provisioning And Enterprise Identity Federation",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/009_service_principals_scim_provisioning_and_enterprise_identity_federation.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-010_workspace_audit_logging_and_security_event_ingestion_via_diagnostic_settings",
+      "type": "notebook_recipe",
+      "title": "Workspace Audit Logging And Security Event Ingestion Via Diagnostic Settings",
+      "difficulty": "L300",
+      "relative_path": "notebooks/01_platform_architecture_and_security/010_workspace_audit_logging_and_security_event_ingestion_via_diagnostic_settings.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-011_unity_catalog_3_level_namespace_catalogs_schemas_tables_and_volumes_architecture",
+      "type": "notebook_recipe",
+      "title": "Unity Catalog 3 Level Namespace Catalogs Schemas Tables And Volumes Architecture",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/011_unity_catalog_3_level_namespace_catalogs_schemas_tables_and_volumes_architecture.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-012_managed_tables_vs_external_tables_storage_credentials_and_external_locations",
+      "type": "notebook_recipe",
+      "title": "Managed Tables Vs External Tables Storage Credentials And External Locations",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/012_managed_tables_vs_external_tables_storage_credentials_and_external_locations.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-013_unity_catalog_volumes_governance_for_pdfs_images_audio_and_semi_structured_data",
+      "type": "notebook_recipe",
+      "title": "Unity Catalog Volumes Governance For Pdfs Images Audio And Semi Structured Data",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/013_unity_catalog_volumes_governance_for_pdfs_images_audio_and_semi_structured_data.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-014_fine_grained_row_level_security_rls_using_dynamic_row_filter_functions",
+      "type": "notebook_recipe",
+      "title": "Fine Grained Row Level Security Rls Using Dynamic Row Filter Functions",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/014_fine_grained_row_level_security_rls_using_dynamic_row_filter_functions.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-015_dynamic_column_masking_for_pii_protection_and_compliance",
+      "type": "notebook_recipe",
+      "title": "Dynamic Column Masking For Pii Protection And Compliance",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/015_dynamic_column_masking_for_pii_protection_and_compliance.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-016_lakehouse_federation_querying_postgresql_mysql_and_sql_server_without_etl",
+      "type": "notebook_recipe",
+      "title": "Lakehouse Federation Querying Postgresql Mysql And Sql Server Without Etl",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/016_lakehouse_federation_querying_postgresql_mysql_and_sql_server_without_etl.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-017_lakehouse_federation_querying_snowflake_and_google_bigquery_via_unity_catalog",
+      "type": "notebook_recipe",
+      "title": "Lakehouse Federation Querying Snowflake And Google Bigquery Via Unity Catalog",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/017_lakehouse_federation_querying_snowflake_and_google_bigquery_via_unity_catalog.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-018_delta_sharing_zero_copy_open_protocol_data_sharing_with_external_consumers",
+      "type": "notebook_recipe",
+      "title": "Delta Sharing Zero Copy Open Protocol Data Sharing With External Consumers",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/018_delta_sharing_zero_copy_open_protocol_data_sharing_with_external_consumers.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-019_delta_sharing_databricks_to_databricks_managed_cross_account_data_virtualization",
+      "type": "notebook_recipe",
+      "title": "Delta Sharing Databricks To Databricks Managed Cross Account Data Virtualization",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/019_delta_sharing_databricks_to_databricks_managed_cross_account_data_virtualization.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-020_attribute_based_access_control_abac_and_automated_pii_tagging_via_information_schema",
+      "type": "notebook_recipe",
+      "title": "Attribute Based Access Control Abac And Automated Pii Tagging Via Information Schema",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/020_attribute_based_access_control_abac_and_automated_pii_tagging_via_information_schema.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-021_clean_rooms_privacy_preserving_collaborative_analytics_across_enterprise_boundaries",
+      "type": "notebook_recipe",
+      "title": "Clean Rooms Privacy Preserving Collaborative Analytics Across Enterprise Boundaries",
+      "difficulty": "L300",
+      "relative_path": "notebooks/02_unity_catalog_and_governance/021_clean_rooms_privacy_preserving_collaborative_analytics_across_enterprise_boundaries.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-022_delta_transaction_log_internals_atomic_commits_checkpoints_and_crc",
+      "type": "notebook_recipe",
+      "title": "Delta Transaction Log Internals Atomic Commits Checkpoints And Crc",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/022_delta_transaction_log_internals_atomic_commits_checkpoints_and_crc.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-023_optimistic_concurrency_control_occ_and_row_level_concurrency_conflicts",
+      "type": "notebook_recipe",
+      "title": "Optimistic Concurrency Control Occ And Row Level Concurrency Conflicts",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/023_optimistic_concurrency_control_occ_and_row_level_concurrency_conflicts.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-024_deletion_vectors_mor_bitmap_invalidation_vs_copy_on_write_rewrite_overhead",
+      "type": "notebook_recipe",
+      "title": "Deletion Vectors Mor Bitmap Invalidation Vs Copy On Write Rewrite Overhead",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/024_deletion_vectors_mor_bitmap_invalidation_vs_copy_on_write_rewrite_overhead.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-025_liquid_clustering_cluster_by_hilbert_curves_and_hive_migration",
+      "type": "notebook_recipe",
+      "title": "Liquid Clustering Cluster By Hilbert Curves And Hive Migration",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/025_liquid_clustering_cluster_by_hilbert_curves_and_hive_migration.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-026_delta_change_data_feed_cdf_batch_and_streaming_micro_batch_deduplicated_merges",
+      "type": "notebook_recipe",
+      "title": "Delta Change Data Feed Cdf Batch And Streaming Micro Batch Deduplicated Merges",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/026_delta_change_data_feed_cdf_batch_and_streaming_micro_batch_deduplicated_merges.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-027_predictive_optimization_serverless_automatic_compaction_vacuum_and_analyze",
+      "type": "notebook_recipe",
+      "title": "Predictive Optimization Serverless Automatic Compaction Vacuum And Analyze",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/027_predictive_optimization_serverless_automatic_compaction_vacuum_and_analyze.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-028_delta_uniform_asynchronous_iceberg_metadata_manifest_generation_and_trino_access",
+      "type": "notebook_recipe",
+      "title": "Delta Uniform Asynchronous Iceberg Metadata Manifest Generation And Trino Access",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/028_delta_uniform_asynchronous_iceberg_metadata_manifest_generation_and_trino_access.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-029_shallow_clones_vs_deep_clones_zero_copy_sandboxes_testing_and_disaster_recovery",
+      "type": "notebook_recipe",
+      "title": "Shallow Clones Vs Deep Clones Zero Copy Sandboxes Testing And Disaster Recovery",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/029_shallow_clones_vs_deep_clones_zero_copy_sandboxes_testing_and_disaster_recovery.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-030_schema_evolution_mergeschema_vs_enforcement_and_table_constraints",
+      "type": "notebook_recipe",
+      "title": "Schema Evolution Mergeschema Vs Enforcement And Table Constraints",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/030_schema_evolution_mergeschema_vs_enforcement_and_table_constraints.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-031_delta_time_travel_historical_point_in_time_auditing_rollbacks_and_log_retention",
+      "type": "notebook_recipe",
+      "title": "Delta Time Travel Historical Point In Time Auditing Rollbacks And Log Retention",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/031_delta_time_travel_historical_point_in_time_auditing_rollbacks_and_log_retention.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-032_in_place_parquet_to_delta_migration_convert_to_delta_and_schema_repair",
+      "type": "notebook_recipe",
+      "title": "In Place Parquet To Delta Migration Convert To Delta And Schema Repair",
+      "difficulty": "L300",
+      "relative_path": "notebooks/03_delta_lake_storage_engine/032_in_place_parquet_to_delta_migration_convert_to_delta_and_schema_repair.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-033_auto_loader_cloudfiles_directory_listing_vs_file_notifications",
+      "type": "notebook_recipe",
+      "title": "Auto Loader Cloudfiles Directory Listing Vs File Notifications",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-034_auto_loader_schema_inference_addnewcolumns_evolution_and_rescued_data_quarantine",
+      "type": "notebook_recipe",
+      "title": "Auto Loader Schema Inference Addnewcolumns Evolution And Rescued Data Quarantine",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/034_auto_loader_schema_inference_addnewcolumns_evolution_and_rescued_data_quarantine.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-035_high_throughput_semi_structured_json_csv_ingestion_with_cloudfiles_and_rocksdb",
+      "type": "notebook_recipe",
+      "title": "High Throughput Semi Structured Json Csv Ingestion With Cloudfiles And Rocksdb",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/035_high_throughput_semi_structured_json_csv_ingestion_with_cloudfiles_and_rocksdb.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-036_delta_live_tables_dlt_foundations_streaming_tables_vs_materialized_views",
+      "type": "notebook_recipe",
+      "title": "Delta Live Tables Dlt Foundations Streaming Tables Vs Materialized Views",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/036_delta_live_tables_dlt_foundations_streaming_tables_vs_materialized_views.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-037_dlt_data_quality_expectations_expect_drop_fail",
+      "type": "notebook_recipe",
+      "title": "Dlt Data Quality Expectations Expect Drop Fail",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/037_dlt_data_quality_expectations_expect_drop_fail.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-038_advanced_dlt_data_quality_dead_letter_queue_dlq_quarantine_tables_pattern",
+      "type": "notebook_recipe",
+      "title": "Advanced Dlt Data Quality Dead Letter Queue Dlq Quarantine Tables Pattern",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/038_advanced_dlt_data_quality_dead_letter_queue_dlq_quarantine_tables_pattern.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-039_dlt_change_data_capture_incremental_upserts_apply_changes_scd1",
+      "type": "notebook_recipe",
+      "title": "Dlt Change Data Capture Incremental Upserts Apply Changes Scd1",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/039_dlt_change_data_capture_incremental_upserts_apply_changes_scd1.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-040_dlt_change_data_capture_historical_tracking_apply_changes_scd2",
+      "type": "notebook_recipe",
+      "title": "Dlt Change Data Capture Historical Tracking Apply Changes Scd2",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/040_dlt_change_data_capture_historical_tracking_apply_changes_scd2.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-041_dlt_execution_modes_triggered_vs_continuous_pipelines_and_serverless_runtime",
+      "type": "notebook_recipe",
+      "title": "Dlt Execution Modes Triggered Vs Continuous Pipelines And Serverless Runtime",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/041_dlt_execution_modes_triggered_vs_continuous_pipelines_and_serverless_runtime.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-042_dlt_event_log_forensics_querying_lineage_metrics_quality_rates_and_execution_slas",
+      "type": "notebook_recipe",
+      "title": "Dlt Event Log Forensics Querying Lineage Metrics Quality Rates And Execution Slas",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/042_dlt_event_log_forensics_querying_lineage_metrics_quality_rates_and_execution_slas.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-043_metaprogramming_dlt_dynamic_pipeline_generation_from_data_contracts_and_yaml_specs",
+      "type": "notebook_recipe",
+      "title": "Metaprogramming Dlt Dynamic Pipeline Generation From Data Contracts And Yaml Specs",
+      "difficulty": "L300",
+      "relative_path": "notebooks/04_lakeflow_ingestion_and_dlt/043_metaprogramming_dlt_dynamic_pipeline_generation_from_data_contracts_and_yaml_specs.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-044_multi_task_lakeflow_jobs_dag_task_dependencies_parameters_and_conditional_paths",
+      "type": "notebook_recipe",
+      "title": "Multi Task Lakeflow Jobs Dag Task Dependencies Parameters And Conditional Paths",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/044_multi_task_lakeflow_jobs_dag_task_dependencies_parameters_and_conditional_paths.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-045_task_types_mastery_notebook_python_wheel_dlt_pipeline_dbt_and_sql_warehouse",
+      "type": "notebook_recipe",
+      "title": "Task Types Mastery Notebook Python Wheel Dlt Pipeline Dbt And Sql Warehouse",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/045_task_types_mastery_notebook_python_wheel_dlt_pipeline_dbt_and_sql_warehouse.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-046_inter_task_communication_and_context_sharing_via_dbutils_jobs_taskvalues",
+      "type": "notebook_recipe",
+      "title": "Inter Task Communication And Context Sharing Via Dbutils Jobs Taskvalues",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/046_inter_task_communication_and_context_sharing_via_dbutils_jobs_taskvalues.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-047_production_job_execution_run_as_service_principal_and_zero_interactive_identity",
+      "type": "notebook_recipe",
+      "title": "Production Job Execution Run As Service Principal And Zero Interactive Identity",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/047_production_job_execution_run_as_service_principal_and_zero_interactive_identity.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-048_cluster_allocation_strategy_ephemeral_job_clusters_vs_shared_compute_pools",
+      "type": "notebook_recipe",
+      "title": "Cluster Allocation Strategy Ephemeral Job Clusters Vs Shared Compute Pools",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/048_cluster_allocation_strategy_ephemeral_job_clusters_vs_shared_compute_pools.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-049_advanced_job_triggers_periodic_cron_file_arrival_triggers_and_continuous_triggers",
+      "type": "notebook_recipe",
+      "title": "Advanced Job Triggers Periodic Cron File Arrival Triggers And Continuous Triggers",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/049_advanced_job_triggers_periodic_cron_file_arrival_triggers_and_continuous_triggers.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-050_resilient_error_handling_exponential_backoff_retries_and_pagerduty_slack_webhooks",
+      "type": "notebook_recipe",
+      "title": "Resilient Error Handling Exponential Backoff Retries And Pagerduty Slack Webhooks",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/050_resilient_error_handling_exponential_backoff_retries_and_pagerduty_slack_webhooks.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-051_serverless_workflows_zero_startup_latency_scheduling_and_managed_concurrency",
+      "type": "notebook_recipe",
+      "title": "Serverless Workflows Zero Startup Latency Scheduling And Managed Concurrency",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/051_serverless_workflows_zero_startup_latency_scheduling_and_managed_concurrency.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-052_repair_and_rerun_workflows_surgical_partial_dag_replay_on_upstream_failures",
+      "type": "notebook_recipe",
+      "title": "Repair And Rerun Workflows Surgical Partial Dag Replay On Upstream Failures",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/052_repair_and_rerun_workflows_surgical_partial_dag_replay_on_upstream_failures.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-053_lakeflow_job_parameters_and_dynamic_base_parameters_inheritance",
+      "type": "notebook_recipe",
+      "title": "Lakeflow Job Parameters And Dynamic Base Parameters Inheritance",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/053_lakeflow_job_parameters_and_dynamic_base_parameters_inheritance.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-054_orchestration_governance_monitoring_job_run_history_via_system_tables",
+      "type": "notebook_recipe",
+      "title": "Orchestration Governance Monitoring Job Run History Via System Tables",
+      "difficulty": "L300",
+      "relative_path": "notebooks/05_lakeflow_jobs_and_orchestration/054_orchestration_governance_monitoring_job_run_history_via_system_tables.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-055_serverless_sql_warehouses_instant_spin_up_autoscaling_policies_and_sizing_t_shirts",
+      "type": "notebook_recipe",
+      "title": "Serverless Sql Warehouses Instant Spin Up Autoscaling Policies And Sizing T Shirts",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/055_serverless_sql_warehouses_instant_spin_up_autoscaling_policies_and_sizing_t_shirts.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-056_photon_engine_internals_c_vectorized_execution_simd_hardware_and_memory_off_heap",
+      "type": "notebook_recipe",
+      "title": "Photon Engine Internals C Vectorized Execution Simd Hardware And Memory Off Heap",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/056_photon_engine_internals_c_vectorized_execution_simd_hardware_and_memory_off_heap.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-057_intelligent_workload_management_iwm_query_admission_control_and_queue_spill_prevention",
+      "type": "notebook_recipe",
+      "title": "Intelligent Workload Management Iwm Query Admission Control And Queue Spill Prevention",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/057_intelligent_workload_management_iwm_query_admission_control_and_queue_spill_prevention.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-058_multi_tier_caching_architecture_result_cache_local_disk_cache_and_remote_cache",
+      "type": "notebook_recipe",
+      "title": "Multi Tier Caching Architecture Result Cache Local Disk Cache And Remote Cache",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/058_multi_tier_caching_architecture_result_cache_local_disk_cache_and_remote_cache.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-059_dbsql_query_profile_analysis_diagnosing_scans_shuffles_spills_and_pruning_efficiency",
+      "type": "notebook_recipe",
+      "title": "Dbsql Query Profile Analysis Diagnosing Scans Shuffles Spills And Pruning Efficiency",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/059_dbsql_query_profile_analysis_diagnosing_scans_shuffles_spills_and_pruning_efficiency.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-060_materialized_views_and_streaming_tables_in_dbsql_without_apache_spark_code",
+      "type": "notebook_recipe",
+      "title": "Materialized Views And Streaming Tables In Dbsql Without Apache Spark Code",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/060_materialized_views_and_streaming_tables_in_dbsql_without_apache_spark_code.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-061_ai_bi_dashboards_lakeview_interactive_filtering_canvas_layouts_and_cross_filtering",
+      "type": "notebook_recipe",
+      "title": "Ai Bi Dashboards Lakeview Interactive Filtering Canvas Layouts And Cross Filtering",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/061_ai_bi_dashboards_lakeview_interactive_filtering_canvas_layouts_and_cross_filtering.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-062_databricks_genie_spaces_conversational_data_intelligence_and_certified_sql_assets",
+      "type": "notebook_recipe",
+      "title": "Databricks Genie Spaces Conversational Data Intelligence And Certified Sql Assets",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/062_databricks_genie_spaces_conversational_data_intelligence_and_certified_sql_assets.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-063_databricks_semantic_layer_and_metric_views_enterprise_dimensions_and_measures",
+      "type": "notebook_recipe",
+      "title": "Databricks Semantic Layer And Metric Views Enterprise Dimensions And Measures",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/063_databricks_semantic_layer_and_metric_views_enterprise_dimensions_and_measures.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-064_dbsql_alerts_automated_refresh_schedules_and_sla_driven_slack_notifications",
+      "type": "notebook_recipe",
+      "title": "Dbsql Alerts Automated Refresh Schedules And Sla Driven Slack Notifications",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/064_dbsql_alerts_automated_refresh_schedules_and_sla_driven_slack_notifications.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-065_sql_warehouse_concurrency_scaling_horizontal_multi_cluster_load_balancing",
+      "type": "notebook_recipe",
+      "title": "Sql Warehouse Concurrency Scaling Horizontal Multi Cluster Load Balancing",
+      "difficulty": "L300",
+      "relative_path": "notebooks/06_databricks_sql_and_photon/065_sql_warehouse_concurrency_scaling_horizontal_multi_cluster_load_balancing.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-066_databricks_asset_bundles_dabs_architecture_databricks_yml_and_variable_scopes",
+      "type": "notebook_recipe",
+      "title": "Databricks Asset Bundles Dabs Architecture Databricks Yml And Variable Scopes",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/066_databricks_asset_bundles_dabs_architecture_databricks_yml_and_variable_scopes.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-067_defining_multi_resource_bundles_jobs_dlt_pipelines_volumes_and_model_serving",
+      "type": "notebook_recipe",
+      "title": "Defining Multi Resource Bundles Jobs Dlt Pipelines Volumes And Model Serving",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/067_defining_multi_resource_bundles_jobs_dlt_pipelines_volumes_and_model_serving.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-068_dabs_multi_environment_targeting_dev_staging_and_prod_promotion_topologies",
+      "type": "notebook_recipe",
+      "title": "Dabs Multi Environment Targeting Dev Staging And Prod Promotion Topologies",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/068_dabs_multi_environment_targeting_dev_staging_and_prod_promotion_topologies.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-069_bundle_lifecycle_automation_bundle_validate_bundle_deploy_and_bundle_run_cli",
+      "type": "notebook_recipe",
+      "title": "Bundle Lifecycle Automation Bundle Validate Bundle Deploy And Bundle Run Cli",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/069_bundle_lifecycle_automation_bundle_validate_bundle_deploy_and_bundle_run_cli.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-070_github_actions_ci_cd_pipeline_automated_bundle_linting_testing_and_validation",
+      "type": "notebook_recipe",
+      "title": "Github Actions Ci Cd Pipeline Automated Bundle Linting Testing And Validation",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/070_github_actions_ci_cd_pipeline_automated_bundle_linting_testing_and_validation.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-071_service_principal_authentication_in_ci_cd_runners_using_azure_oidc_aws_iam",
+      "type": "notebook_recipe",
+      "title": "Service Principal Authentication In Ci Cd Runners Using Azure Oidc Aws Iam",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/071_service_principal_authentication_in_ci_cd_runners_using_azure_oidc_aws_iam.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-072_infrastructure_as_code_iac_with_databricks_terraform_provider",
+      "type": "notebook_recipe",
+      "title": "Infrastructure As Code Iac With Databricks Terraform Provider",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/072_infrastructure_as_code_iac_with_databricks_terraform_provider.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-073_databricks_connect_v2_local_ide_development_in_vs_code_with_remote_dbr_compute",
+      "type": "notebook_recipe",
+      "title": "Databricks Connect V2 Local Ide Development In Vs Code With Remote Dbr Compute",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/073_databricks_connect_v2_local_ide_development_in_vs_code_with_remote_dbr_compute.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-074_unit_testing_databricks_data_pipelines_with_pytest_chispa_and_mock_dataframes",
+      "type": "notebook_recipe",
+      "title": "Unit Testing Databricks Data Pipelines With Pytest Chispa And Mock Dataframes",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/074_unit_testing_databricks_data_pipelines_with_pytest_chispa_and_mock_dataframes.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-075_python_wheel_packaging_uc_volume_deployment_and_dependency_pinning",
+      "type": "notebook_recipe",
+      "title": "Python Wheel Packaging Uc Volume Deployment And Dependency Pinning",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/075_python_wheel_packaging_uc_volume_deployment_and_dependency_pinning.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-076_blue_green_pipeline_deployment_and_zero_downtime_bundle_rollouts",
+      "type": "notebook_recipe",
+      "title": "Blue Green Pipeline Deployment And Zero Downtime Bundle Rollouts",
+      "difficulty": "L300",
+      "relative_path": "notebooks/07_enterprise_devops_and_dabs/076_blue_green_pipeline_deployment_and_zero_downtime_bundle_rollouts.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-077_databricks_apps_serverless_hosting_for_streamlit_dash_gradio_and_fastapi",
+      "type": "notebook_recipe",
+      "title": "Databricks Apps Serverless Hosting For Streamlit Dash Gradio And Fastapi",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/077_databricks_apps_serverless_hosting_for_streamlit_dash_gradio_and_fastapi.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-078_databricks_app_manifest_app_yaml_resource_bindings_and_service_principal_iam",
+      "type": "notebook_recipe",
+      "title": "Databricks App Manifest App Yaml Resource Bindings And Service Principal Iam",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/078_databricks_app_manifest_app_yaml_resource_bindings_and_service_principal_iam.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-079_databricks_vector_search_managed_vector_endpoints_and_delta_sync_indexes",
+      "type": "notebook_recipe",
+      "title": "Databricks Vector Search Managed Vector Endpoints And Delta Sync Indexes",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/079_databricks_vector_search_managed_vector_endpoints_and_delta_sync_indexes.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-080_embedding_models_and_foundation_model_apis_bge_large_text_embedding_3_and_serving",
+      "type": "notebook_recipe",
+      "title": "Embedding Models And Foundation Model Apis Bge Large Text Embedding 3 And Serving",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/080_embedding_models_and_foundation_model_apis_bge_large_text_embedding_3_and_serving.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-081_mlflow_2_15_in_unity_catalog_tracking_runs_signatures_and_3_level_model_registry",
+      "type": "notebook_recipe",
+      "title": "Mlflow 2 15 In Unity Catalog Tracking Runs Signatures And 3 Level Model Registry",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/081_mlflow_2_15_in_unity_catalog_tracking_runs_signatures_and_3_level_model_registry.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-082_mosaic_ai_model_serving_serverless_real_time_endpoints_and_provisioned_concurrency",
+      "type": "notebook_recipe",
+      "title": "Mosaic Ai Model Serving Serverless Real Time Endpoints And Provisioned Concurrency",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/082_mosaic_ai_model_serving_serverless_real_time_endpoints_and_provisioned_concurrency.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-083_enterprise_rag_architecture_semantic_chunking_dense_vector_sparse_bm25_search",
+      "type": "notebook_recipe",
+      "title": "Enterprise Rag Architecture Semantic Chunking Dense Vector Sparse Bm25 Search",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/083_enterprise_rag_architecture_semantic_chunking_dense_vector_sparse_bm25_search.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-084_mosaic_ai_agent_evaluation_mlflow_evaluate_groundedness_faithfulness_and_relevance",
+      "type": "notebook_recipe",
+      "title": "Mosaic Ai Agent Evaluation Mlflow Evaluate Groundedness Faithfulness And Relevance",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/084_mosaic_ai_agent_evaluation_mlflow_evaluate_groundedness_faithfulness_and_relevance.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-085_ai_functions_in_sql_ai_query_ai_summarize_ai_classify_and_ai_analyze_sentiment",
+      "type": "notebook_recipe",
+      "title": "Ai Functions In Sql Ai Query Ai Summarize Ai Classify And Ai Analyze Sentiment",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/085_ai_functions_in_sql_ai_query_ai_summarize_ai_classify_and_ai_analyze_sentiment.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-086_lakehouse_monitoring_automated_drift_detection_quality_metrics_and_alerting_tables",
+      "type": "notebook_recipe",
+      "title": "Lakehouse Monitoring Automated Drift Detection Quality Metrics And Alerting Tables",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/086_lakehouse_monitoring_automated_drift_detection_quality_metrics_and_alerting_tables.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-087_fine_tuning_llms_on_lakehouse_data_mosaic_ai_training_and_parameter_efficient_lora",
+      "type": "notebook_recipe",
+      "title": "Fine Tuning Llms On Lakehouse Data Mosaic Ai Training And Parameter Efficient Lora",
+      "difficulty": "L300",
+      "relative_path": "notebooks/08_databricks_apps_and_mosaic_ai/087_fine_tuning_llms_on_lakehouse_data_mosaic_ai_training_and_parameter_efficient_lora.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-088_system_tables_architecture_enabling_and_navigating_billing_access_and_compute",
+      "type": "notebook_recipe",
+      "title": "System Tables Architecture Enabling And Navigating Billing Access And Compute",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/088_system_tables_architecture_enabling_and_navigating_billing_access_and_compute.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-089_calculating_dbu_consumption_and_cloud_costs_via_system_billing_usage",
+      "type": "notebook_recipe",
+      "title": "Calculating Dbu Consumption And Cloud Costs Via System Billing Usage",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/089_calculating_dbu_consumption_and_cloud_costs_via_system_billing_usage.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-090_mandatory_cluster_tagging_costcenter_environment_owner_and_cost_attribution",
+      "type": "notebook_recipe",
+      "title": "Mandatory Cluster Tagging Costcenter Environment Owner And Cost Attribution",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/090_mandatory_cluster_tagging_costcenter_environment_owner_and_cost_attribution.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-091_cost_breakdown_analysis_interactive_vs_job_vs_dbsql_vs_serverless_vs_dlt",
+      "type": "notebook_recipe",
+      "title": "Cost Breakdown Analysis Interactive Vs Job Vs Dbsql Vs Serverless Vs Dlt",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/091_cost_breakdown_analysis_interactive_vs_job_vs_dbsql_vs_serverless_vs_dlt.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-092_audit_and_security_analytics_investigating_access_logs_with_system_access_audit",
+      "type": "notebook_recipe",
+      "title": "Audit And Security Analytics Investigating Access Logs With System Access Audit",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/092_audit_and_security_analytics_investigating_access_logs_with_system_access_audit.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-093_compute_right_sizing_detecting_zombie_clusters_and_low_cpu_utilization",
+      "type": "notebook_recipe",
+      "title": "Compute Right Sizing Detecting Zombie Clusters And Low Cpu Utilization",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/093_compute_right_sizing_detecting_zombie_clusters_and_low_cpu_utilization.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-094_evaluating_predictive_optimization_roi_with_system_storage_predictive_optimization",
+      "type": "notebook_recipe",
+      "title": "Evaluating Predictive Optimization Roi With System Storage Predictive Optimization",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/094_evaluating_predictive_optimization_roi_with_system_storage_predictive_optimization.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-095_automated_finops_anomaly_detection_and_daily_budget_exceedance_alerting",
+      "type": "notebook_recipe",
+      "title": "Automated Finops Anomaly Detection And Daily Budget Exceedance Alerting",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/095_automated_finops_anomaly_detection_and_daily_budget_exceedance_alerting.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-096_spot_instance_fleet_optimization_and_aws_graviton_azure_arm_vm_migrations",
+      "type": "notebook_recipe",
+      "title": "Spot Instance Fleet Optimization And Aws Graviton Azure Arm Vm Migrations",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/096_spot_instance_fleet_optimization_and_aws_graviton_azure_arm_vm_migrations.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-097_aggressive_auto_stop_policies_and_cold_compute_idle_reduction_strategies",
+      "type": "notebook_recipe",
+      "title": "Aggressive Auto Stop Policies And Cold Compute Idle Reduction Strategies",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/097_aggressive_auto_stop_policies_and_cold_compute_idle_reduction_strategies.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-098_multi_tenant_showback_and_chargeback_dashboards_for_enterprise_business_units",
+      "type": "notebook_recipe",
+      "title": "Multi Tenant Showback And Chargeback Dashboards For Enterprise Business Units",
+      "difficulty": "L300",
+      "relative_path": "notebooks/09_finops_and_system_tables/098_multi_tenant_showback_and_chargeback_dashboards_for_enterprise_business_units.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-099_production_incident_01_driver_and_executor_oom_forensic_triage",
+      "type": "notebook_recipe",
+      "title": "Production Incident 01 Driver And Executor Oom Forensic Triage",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/099_production_incident_01_driver_and_executor_oom_forensic_triage.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-100_production_incident_02_concurrent_modification_occ_conflict_resolution_in_delta",
+      "type": "notebook_recipe",
+      "title": "Production Incident 02 Concurrent Modification Occ Conflict Resolution In Delta",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/100_production_incident_02_concurrent_modification_occ_conflict_resolution_in_delta.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-101_production_incident_03_straggler_tasks_and_extreme_data_skew_salting_remediation",
+      "type": "notebook_recipe",
+      "title": "Production Incident 03 Straggler Tasks And Extreme Data Skew Salting Remediation",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/101_production_incident_03_straggler_tasks_and_extreme_data_skew_salting_remediation.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-102_production_incident_04_streaming_state_explosions_and_rocksdb_checkpoint_recovery",
+      "type": "notebook_recipe",
+      "title": "Production Incident 04 Streaming State Explosions And Rocksdb Checkpoint Recovery",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/102_production_incident_04_streaming_state_explosions_and_rocksdb_checkpoint_recovery.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-103_production_incident_05_auto_loader_schema_drift_and_poison_pill_quarantine_forensics",
+      "type": "notebook_recipe",
+      "title": "Production Incident 05 Auto Loader Schema Drift And Poison Pill Quarantine Forensics",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/103_production_incident_05_auto_loader_schema_drift_and_poison_pill_quarantine_forensics.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-104_production_incident_06_serverless_sql_warehouse_queue_saturation_and_spill_tuning",
+      "type": "notebook_recipe",
+      "title": "Production Incident 06 Serverless Sql Warehouse Queue Saturation And Spill Tuning",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/104_production_incident_06_serverless_sql_warehouse_queue_saturation_and_spill_tuning.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-105_enterprise_lakehouse_master_blueprint_end_to_end_multi_cloud_production_architecture",
+      "type": "notebook_recipe",
+      "title": "Enterprise Lakehouse Master Blueprint End To End Multi Cloud Production Architecture",
+      "difficulty": "L300",
+      "relative_path": "notebooks/10_production_incidents_and_blueprints/105_enterprise_lakehouse_master_blueprint_end_to_end_multi_cloud_production_architecture.py",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-01_driver_and_executor_oom_triage",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Driver And Executor Oom Triage",
+      "difficulty": "L400",
+      "relative_path": "runbooks/01_driver_and_executor_oom_triage.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-02_delta_concurrent_modification_conflicts",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Delta Concurrent Modification Conflicts",
+      "difficulty": "L400",
+      "relative_path": "runbooks/02_delta_concurrent_modification_conflicts.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-03_streaming_checkpoint_and_rocksdb_state_corruption",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Streaming Checkpoint And Rocksdb State Corruption",
+      "difficulty": "L400",
+      "relative_path": "runbooks/03_streaming_checkpoint_and_rocksdb_state_corruption.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-04_auto_loader_schema_drift_and_poison_pill_quarantine",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Auto Loader Schema Drift And Poison Pill Quarantine",
+      "difficulty": "L400",
+      "relative_path": "runbooks/04_auto_loader_schema_drift_and_poison_pill_quarantine.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-05_serverless_sql_warehouse_queueing_and_spill_tuning",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Serverless Sql Warehouse Queueing And Spill Tuning",
+      "difficulty": "L400",
+      "relative_path": "runbooks/05_serverless_sql_warehouse_queueing_and_spill_tuning.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-rb-06_unity_catalog_storage_credential_and_permission_disasters",
+      "type": "incident_runbook",
+      "title": "Incident Runbook: Unity Catalog Storage Credential And Permission Disasters",
+      "difficulty": "L400",
+      "relative_path": "runbooks/06_unity_catalog_storage_credential_and_permission_disasters.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-doc-01_split_plane_security_and_serverless_compute",
+      "type": "architecture_blueprint",
+      "title": "Architecture: 01 Split Plane Security And Serverless Compute",
+      "difficulty": "L400",
+      "relative_path": "architectures/01_split_plane_security_and_serverless_compute.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-doc-02_unity_catalog_governance_and_lakehouse_federation",
+      "type": "architecture_blueprint",
+      "title": "Architecture: 02 Unity Catalog Governance And Lakehouse Federation",
+      "difficulty": "L400",
+      "relative_path": "architectures/02_unity_catalog_governance_and_lakehouse_federation.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-doc-03_delta_lake_3x_storage_engine_and_liquid_clustering",
+      "type": "architecture_blueprint",
+      "title": "Architecture: 03 Delta Lake 3X Storage Engine And Liquid Clustering",
+      "difficulty": "L400",
+      "relative_path": "architectures/03_delta_lake_3x_storage_engine_and_liquid_clustering.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-doc-04_enterprise_devops_dabs_and_lakeflow_orchestration",
+      "type": "architecture_blueprint",
+      "title": "Architecture: 04 Enterprise Devops Dabs And Lakeflow Orchestration",
+      "difficulty": "L400",
+      "relative_path": "architectures/04_enterprise_devops_dabs_and_lakeflow_orchestration.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    }
+  ]
+}
