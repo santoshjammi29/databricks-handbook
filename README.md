@@ -773,7 +773,7 @@ Every production workload deployed on Databricks must be cost-monitored using **
 
 ## 🌐 Ecosystem Interlinking & Sister Repositories
 
-The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 13 production-grade, specialized repositories anchored by the **[Modern Data Engineer Platform (`moderndataengineer.uk`)](https://github.com/santoshjammi29/moderndataengineer)**. Every repository couples directly with its siblings for cross-domain mastery:
+The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 14 production-grade, specialized repositories anchored by the **[Modern Data Engineer Platform (`moderndataengineer.uk`)](https://github.com/santoshjammi29/moderndataengineer)**. Every repository couples directly with its siblings for cross-domain mastery:
 
 | Repository | Focus & Domain | Tightly Coupled Cross-Reference & Integration Points |
 | :--- | :--- | :--- |
@@ -788,6 +788,7 @@ The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 13 pro
 | **[System Design Handbook](https://github.com/santoshjammi29/data-system-design-handbook)** | Distributed Storage, Table Formats & BCDR | • **Delta vs Iceberg vs Hudi**: Storage engine comparative benchmarks, catalog federation, and Delta UniForm mechanics.<br>• **Disaster Recovery (BCDR)**: Active-passive and active-active cross-region failover architectures. |
 | **[Azure Cheat Sheet](https://github.com/santoshjammi29/azure-cheat-sheet)** | Fabric OneLake, Synapse & Azure Infrastructure | • **Azure Databricks Landing Zones**: Private Endpoints, VNet Injection, and Entra ID Managed Identities.<br>• **OneLake Shortcuts**: Zero-copy federation between Azure Databricks Delta tables and Microsoft Fabric. |
 | **[Interview Handbook](https://github.com/santoshjammi29/data-engineering-interview-handbook)** | Architectural Defense Playbooks & Concepts | • **100 Databricks Defense Questions**: Level 100–400 architectural defense scenarios covering all recipes in this handbook.<br>• **20 Knowledge Pillars**: End-to-end multi-plane architectural schematics. |
+| **[The Security Handbook](https://github.com/santoshjammi29/security-handbook)** | Enterprise Cloud Security, Zero Trust & Lakehouse Governance | • **Zero Trust Lakehouse Perimeter**: Private endpoints, NSGs, and Azure Key Vault envelope encryption.<br>• **Workload Identity Federation**: Keyless GitHub Actions OIDC and Azure Managed Identities. |
 | **[Modern Data Engineer Hub](https://github.com/santoshjammi29/moderndataengineer)** | Central Edge Presentation Platform | • **Interactive Whiteboard Viewer**: Pan, zoom, and inspect all 52 blueprints at [moderndataengineer.uk/whiteboards](https://moderndataengineer.uk/whiteboards).<br>• **Interactive Code Practice**: Execute and explore the complete 20-page technical manual online. |
 
 
