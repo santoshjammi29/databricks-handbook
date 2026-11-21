@@ -291,43 +291,106 @@ flowchart LR
 
 The Databricks Handbook contains **52 architect-grade, hand-drawn digital whiteboard schematics** mirrored directly under [`assets/whiteboards/`](assets/whiteboards) and indexed with comprehensive multi-persona breakdowns, failure modes, and engine internals in [`docs/whiteboard_diagrams/README.md`](docs/whiteboard_diagrams/README.md).
 
-### 🏛️ Core Platform & Engine Blueprints
+### 🏛️ Core Platform & Engine Blueprints Showcase (2x2 Grid)
 
-#### 1. Databricks Unified Ecosystem & Lakehouse Architecture
-![Databricks Unified Ecosystem & Lakehouse Architecture](assets/whiteboards/databricks_ecosystem_landscape.webp)
-
-#### 2. Databricks Medallion Architecture (Bronze → Silver → Gold)
-![Databricks Medallion Architecture](assets/whiteboards/databricks_medallion_architecture.webp)
-
-#### 3. Unity Catalog Unified Governance & 3-Tier Namespace
-![Unity Catalog Unified Governance](assets/whiteboards/unity_catalog_architecture.webp)
-
-#### 4. Delta Lake 3.x Storage Engine & Transaction Log Mechanism
-![Delta Lake Storage Engine](assets/whiteboards/delta_lake_mechanism.webp)
-
-#### 5. Delta Lake 3.x vs. Apache Iceberg Architecture
-![Delta Lake vs Apache Iceberg](assets/whiteboards/delta_lake_vs_iceberg_architecture.webp)
-
-#### 6. Lakehouse ACID Concurrency, OCC & Row-Level Conflicts
-![Lakehouse ACID Concurrency](assets/whiteboards/lakehouse_acid_concurrency.webp)
-
-#### 7. Databricks Delta Live Tables (DLT) Declarative Pipeline
-![Databricks DLT Pipeline](assets/whiteboards/databricks_dlt_pipeline.webp)
-
-#### 8. Databricks Asset Bundles (DABs) Enterprise DevOps Pipeline
-![Databricks DABs DevOps](assets/whiteboards/databricks_dabs_devops_pipeline.webp)
-
-#### 9. Catalyst Optimizer & Vectorized Photon C++ Engine
-![Catalyst & Photon Engine](assets/whiteboards/catalyst_photon_engine.webp)
-
-#### 10. Photon Vectorized Engine vs. JVM Memory Execution
-![Photon vs JVM](assets/whiteboards/photon_engine_vs_jvm.webp)
-
-#### 11. Spark Memory Management, Execution Memory & Tungsten Disk Spill
-![Spark Memory Management & Spill](assets/whiteboards/spark_memory_management_spill_diagram.webp)
-
-#### 12. Lakehouse FinOps & DBU Cost Optimization Framework
-![Lakehouse FinOps Cost Optimization](assets/whiteboards/lakehouse_finops_cost_optimization.webp)
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#databricks-platform-master">
+        <img src="assets/whiteboards/databricks_ecosystem_landscape.webp" alt="Databricks Unified Ecosystem & Lakehouse Architecture" width="100%" />
+      </a>
+      <br><strong>Databricks Unified Ecosystem & Lakehouse Architecture</strong><br>
+      <em>Unified Data Intelligence Platform: Control Plane, Classic vs Serverless Compute, Unity Catalog, and Lakeflow.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#databricks-medallion-pipeline">
+        <img src="assets/whiteboards/databricks_medallion_architecture.webp" alt="Databricks Medallion Architecture (Bronze → Silver → Gold)" width="100%" />
+      </a>
+      <br><strong>Databricks Medallion Architecture (Bronze → Silver → Gold)</strong><br>
+      <em>Multi-hop lakehouse pattern: Raw ingestion, Conformed cleaning, and Business-curated Gold marts.</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#unity-catalog-governance">
+        <img src="assets/whiteboards/unity_catalog_architecture.webp" alt="Unity Catalog Unified Governance & 3-Tier Namespace" width="100%" />
+      </a>
+      <br><strong>Unity Catalog Unified Governance & 3-Tier Namespace</strong><br>
+      <em>3-level namespace (catalog.schema.table), dynamic row filters, column masks, and lineage tracing.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#delta-lake-under-the-hood">
+        <img src="assets/whiteboards/delta_lake_mechanism.webp" alt="Delta Lake 3.x Storage Engine & Transaction Log Mechanism" width="100%" />
+      </a>
+      <br><strong>Delta Lake 3.x Storage Engine & Transaction Log Mechanism</strong><br>
+      <em>_delta_log atomic commits, compacted Parquet checkpoints, and forward/reverse Time Travel.</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#delta-vs-iceberg-architecture">
+        <img src="assets/whiteboards/delta_lake_vs_iceberg_architecture.webp" alt="Delta Lake 3.x vs. Apache Iceberg Architecture" width="100%" />
+      </a>
+      <br><strong>Delta Lake 3.x vs. Apache Iceberg Architecture</strong><br>
+      <em>Linear commit log vs hierarchical tree metadata, concurrency resolution, and UniForm interoperability.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#lakehouse-acid-concurrency">
+        <img src="assets/whiteboards/lakehouse_acid_concurrency.webp" alt="Lakehouse ACID Concurrency, OCC & Row-Level Conflicts" width="100%" />
+      </a>
+      <br><strong>Lakehouse ACID Concurrency, OCC & Row-Level Conflicts</strong><br>
+      <em>Optimistic Concurrency Control (OCC), mutual exclusion commit locks, and partition/file-level write conflicts.</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#delta-live-tables-pipeline">
+        <img src="assets/whiteboards/databricks_dlt_pipeline.webp" alt="Databricks Delta Live Tables (DLT) Declarative Pipeline" width="100%" />
+      </a>
+      <br><strong>Databricks Delta Live Tables (DLT) Declarative Pipeline</strong><br>
+      <em>Declarative ETL DAG, Streaming Tables vs Materialized Views, and automated data quality expectations.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#databricks-dabs-devops-pipeline">
+        <img src="assets/whiteboards/databricks_dabs_devops_pipeline.webp" alt="Databricks Asset Bundles (DABs) Enterprise DevOps Pipeline" width="100%" />
+      </a>
+      <br><strong>Databricks Asset Bundles (DABs) Enterprise DevOps Pipeline</strong><br>
+      <em>Infrastructure-as-Code (IaC), GitOps CI/CD promotion, and automated multi-environment deployment.</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#spark-catalyst-photon-engine">
+        <img src="assets/whiteboards/catalyst_photon_engine.webp" alt="Catalyst Optimizer & Vectorized Photon C++ Engine" width="100%" />
+      </a>
+      <br><strong>Catalyst Optimizer & Vectorized Photon C++ Engine</strong><br>
+      <em>5-phase query optimization: Analysis, Logical Optimization, Physical Planning, and Native Vectorized Photon execution.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#photon-engine-vs-jvm">
+        <img src="assets/whiteboards/photon_engine_vs_jvm.webp" alt="Photon Vectorized Engine vs. JVM Memory Execution" width="100%" />
+      </a>
+      <br><strong>Photon Vectorized Engine vs. JVM Memory Execution</strong><br>
+      <em>Native SIMD hardware acceleration, off-heap memory buffers, and eliminating JVM GC pause overhead.</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#spark-memory-management-spill">
+        <img src="assets/whiteboards/spark_memory_management_spill_diagram.webp" alt="Spark Memory Management, Execution Memory & Tungsten Disk Spill" width="100%" />
+      </a>
+      <br><strong>Spark Memory Management, Execution Memory & Tungsten Disk Spill</strong><br>
+      <em>Execution vs Storage memory pools, Tungsten binary cache, and spill-to-disk triage runbooks.</em>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/whiteboard_diagrams/README.md#lakehouse-finops-cost-optimization">
+        <img src="assets/whiteboards/lakehouse_finops_cost_optimization.webp" alt="Lakehouse FinOps & DBU Cost Optimization Framework" width="100%" />
+      </a>
+      <br><strong>Lakehouse FinOps & DBU Cost Optimization Framework</strong><br>
+      <em>System Tables (system.billing.usage), cluster right-sizing, cost center attribution, and anomaly alerting.</em>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -710,15 +773,22 @@ Every production workload deployed on Databricks must be cost-monitored using **
 
 ## 🌐 Ecosystem Interlinking & Sister Repositories
 
-The Modern Data Engineering ecosystem is intentionally partitioned into specialized, tightly coupled reference repositories anchored by **[Modern Data Engineer Platform (`moderndataengineer.uk`)](https://github.com/santoshjammi29/moderndataengineer)**. Use this cross-reference matrix to navigate directly between complementary implementations across our repositories:
+The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 13 production-grade, specialized repositories anchored by the **[Modern Data Engineer Platform (`moderndataengineer.uk`)](https://github.com/santoshjammi29/moderndataengineer)**. Every repository couples directly with its siblings for cross-domain mastery:
 
-| Core Engineering Focus | Flagship Repository | Direct Deep-Link Topics & Implementations in Sister Repositories |
+| Repository | Focus & Domain | Tightly Coupled Cross-Reference & Integration Points |
 | :--- | :--- | :--- |
-| **Apache Spark & PySpark Core** | **[The PySpark Handbook](https://github.com/santoshjammi29/pyspark-handbook)** | • **Delta Lake ACID & Liquid Clustering**: [Databricks Handbook Mod 03 & 04](https://github.com/santoshjammi29/databricks-handbook)<br>• **SQL Windowing Equivalents**: [SQL Handbook Mod 04](https://github.com/santoshjammi29/sql-handbook)<br>• **Azure VNet Injection & Fabric Spark**: [Azure Cheat Sheet](https://github.com/santoshjammi29/azure-cheat-sheet) |
-| **Databricks Data Intelligence Platform** | **[The Databricks Handbook](https://github.com/santoshjammi29/databricks-handbook)** | • **Core PyArrow UDFs & Higher-Order Functions**: [PySpark Handbook Mod 01 & 02](https://github.com/santoshjammi29/pyspark-handbook)<br>• **Databricks SQL vs ANSI Rosetta Stone**: [SQL Handbook Runbook 05](https://github.com/santoshjammi29/sql-handbook)<br>• **Azure Databricks Landing Zones & Bicep IaC**: [Azure Cheat Sheet](https://github.com/santoshjammi29/azure-cheat-sheet) |
-| **Relational & Cloud MPP SQL** | **[The SQL Handbook](https://github.com/santoshjammi29/sql-handbook)** | • **Distributed Data Movement & Skew Salting**: [PySpark Runbook 03](https://github.com/santoshjammi29/pyspark-handbook)<br>• **Serverless SQL Warehouse Spill Tuning**: [Databricks Runbook 05](https://github.com/santoshjammi29/databricks-handbook)<br>• **Synapse & Fabric OneLake Direct Lake SQL**: [Azure Architecture 01](https://github.com/santoshjammi29/azure-cheat-sheet) |
-| **Enterprise Cloud Architecture & Fabric** | **[Azure Enterprise Handbook](https://github.com/santoshjammi29/azure-cheat-sheet)** | • **Databricks Asset Bundles (DABs) & Lakeflow**: [Databricks Handbook Mod 07](https://github.com/santoshjammi29/databricks-handbook)<br>• **Structured Streaming & RocksDB State**: [PySpark Handbook Mod 06](https://github.com/santoshjammi29/pyspark-handbook)<br>• **Cloud Warehouse Cost Hardening**: [SQL Handbook Runbook 06](https://github.com/santoshjammi29/sql-handbook) |
-| **Complete 11,950+ Verified Encyclopedia** | **[Modern Data Engineer Hub](https://github.com/santoshjammi29/moderndataengineer)** | • **Interactive Execution Simulators & 52 Blueprints**: [Live Web Platform (`moderndataengineer.uk`)](https://moderndataengineer.uk)<br>• **Google-Grade BM25F Search & Virtual DOM**: [Architecture Spec](https://github.com/santoshjammi29/moderndataengineer/blob/main/docs/STANDARDIZED_ARCHITECTURE.md) |
+| **[The PySpark Handbook](https://github.com/santoshjammi29/pyspark-handbook)** | Apache Spark 3.5+, Catalyst, Tungsten, AQE & Arrow UDFs | • **Catalyst Execution Plans**: Deep dive into Spark execution trees and off-heap memory management alongside Databricks Photon.<br>• **Skew Remediation**: Two-phase salting algorithms companion to Delta Lake Liquid Clustering. |
+| **[Azure Databricks Blueprints](https://github.com/santoshjammi29/azure-databricks-project-blueprints)** | 3 Enterprise Reference Architectures | • **Omnichannel Retail & Real-Time Fraud**: Full-scale multi-hop Lakehouse implementations applying Unity Catalog and DABs CI/CD from this handbook.<br>• **Warehouse Cutover**: Step-by-step cutover playbooks with Delta Time Travel rollback. |
+| **[Spark Experiments](https://github.com/santoshjammi29/spark-experiments)** | Empirical Skew, Salting & Spill Laboratory | • **1M+ Row Synthetic Skew Lab**: Empirical benchmarks validating the skew and shuffle spill runbooks documented in Module 05.<br>• **Physical Plan Triage**: Validating AQE Skew Join triggers under skewed key distributions. |
+| **[Banking Risk Lakehouse](https://github.com/santoshjammi29/enterprise-banking-risk-alm-lakehouse)** | Regulated Financial Lakehouse (BCBS 239 & IFRS 9) | • **Regulatory Governance**: Enterprise implementation of Unity Catalog column masking, dynamic row filters, and audit logging.<br>• **ALM Monte Carlo**: Vectorized risk computations executing over Delta Lake Gold marts. |
+| **[DataOps & CI/CD Handbook](https://github.com/santoshjammi29/dataops-cicd-handbook)** | GitOps, DABs, Airflow & Platform Engineering | • **Production DABs Automation**: Reusable GitHub Actions workflows and Terraform providers for deploying Databricks Asset Bundles.<br>• **Write-Audit-Publish (WAP)**: Circuit breakers preventing corrupt writes to production Delta tables. |
+| **[The SQL Handbook](https://github.com/santoshjammi29/sql-handbook)** | Relational Query Engines, MPP & Concurrency | • **Databricks SQL Warehouse Tuning**: Translating complex ANSI SQL queries into high-performance Serverless DBSQL workloads.<br>• **Query Profile Triage**: Resolving Cartesian products, spill metrics, and hash join bottlenecks. |
+| **[The dbt Handbook](https://github.com/santoshjammi29/dbt-handbook)** | Analytics Engineering, dbt Mesh & Contracts | • **dbt-databricks Adapter**: Materializing Lakehouse Bronze/Silver/Gold tables via dbt models with Unity Catalog contracts and unit tests.<br>• **Slim CI**: Running state:modified+ PR runs against isolated Databricks schemas. |
+| **[Streaming Handbook](https://github.com/santoshjammi29/streaming-handbook)** | Kafka KRaft, Apache Flink & Event Architecture | • **Lakeflow & Structured Streaming**: Ingesting high-throughput event logs into Bronze Delta tables using RocksDB state stores.<br>• **CDC Debezium Ingestion**: Micro-batch and continuous CDC streaming directly into Delta Lake. |
+| **[System Design Handbook](https://github.com/santoshjammi29/data-system-design-handbook)** | Distributed Storage, Table Formats & BCDR | • **Delta vs Iceberg vs Hudi**: Storage engine comparative benchmarks, catalog federation, and Delta UniForm mechanics.<br>• **Disaster Recovery (BCDR)**: Active-passive and active-active cross-region failover architectures. |
+| **[Azure Cheat Sheet](https://github.com/santoshjammi29/azure-cheat-sheet)** | Fabric OneLake, Synapse & Azure Infrastructure | • **Azure Databricks Landing Zones**: Private Endpoints, VNet Injection, and Entra ID Managed Identities.<br>• **OneLake Shortcuts**: Zero-copy federation between Azure Databricks Delta tables and Microsoft Fabric. |
+| **[Interview Handbook](https://github.com/santoshjammi29/data-engineering-interview-handbook)** | Architectural Defense Playbooks & Concepts | • **100 Databricks Defense Questions**: Level 100–400 architectural defense scenarios covering all recipes in this handbook.<br>• **20 Knowledge Pillars**: End-to-end multi-plane architectural schematics. |
+| **[Modern Data Engineer Hub](https://github.com/santoshjammi29/moderndataengineer)** | Central Edge Presentation Platform | • **Interactive Whiteboard Viewer**: Pan, zoom, and inspect all 52 blueprints at [moderndataengineer.uk/whiteboards](https://moderndataengineer.uk/whiteboards).<br>• **Interactive Code Practice**: Execute and explore the complete 20-page technical manual online. |
 
 
 ## 📄 License & Attribution
