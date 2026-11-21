@@ -27,7 +27,7 @@ flowchart LR
     Repo --> Lint --> Test --> Deploy
     Deploy -->|Target: dev| Dev
     Deploy -->|Target: staging| Staging
-    Deploy -->|Target: prod (OIDC / OAuth)| Prod
+    Deploy -->|Target: prod - OIDC or OAuth| Prod
 ```
 
 ### 📐 Visual Architectural Blueprint: Databricks Asset Bundles (DABs) Enterprise DevOps
