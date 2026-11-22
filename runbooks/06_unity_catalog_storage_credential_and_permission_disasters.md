@@ -51,7 +51,7 @@ SHOW GRANTS ON SCHEMA prod_lakehouse.silver;
 SHOW GRANTS ON TABLE prod_lakehouse.silver.orders;
 
 -- 4. Check audit logs for who revoked privileges or altered credentials
-SELECT 
+SELECT
     event_time,
     user_identity.email AS performed_by,
     action_name,
@@ -72,7 +72,7 @@ If the cloud identity (Azure Managed Identity or AWS IAM Role) was accidentally 
 1. Re-assign `Storage Blob Data Contributor` (Azure) or `s3:GetObject, s3:PutObject` (AWS) to the cloud identity.
 2. In Databricks, test credential validation:
    ```sql
-   ALTER STORAGE CREDENTIAL prod_storage_credential 
+   ALTER STORAGE CREDENTIAL prod_storage_credential
    SET COMMENT 'Re-verified production storage access credential';
    ```
 
@@ -93,7 +93,6 @@ GRANT SELECT ON TABLE prod_lakehouse.silver.orders TO `analytics_users`;
 1. **Role-Based Access via SCIM Groups**: Never grant permissions to individual user emails (`user@company.com`). Always grant to enterprise SCIM groups synchronized from Okta / Microsoft Entra ID.
 2. **Infrastructure as Code (IaC) Only**: Manage all Unity Catalog grants, storage credentials, and external locations exclusively via Databricks Asset Bundles (DABs) or Terraform to prevent unauthorized manual clicks in the UI.
 3. **Automated Credential Monitoring**: Schedule a daily test notebook via Lakeflow Jobs that reads and writes a 1-row canary table across all external locations and fires PagerDuty alerts on failure.
-
 
 ---
 

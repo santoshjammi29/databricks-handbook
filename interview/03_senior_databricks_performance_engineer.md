@@ -678,14 +678,14 @@ Running `ai_query()` across millions of rows in a batch pipeline generates subst
 ```sql
 -- Optimized batch inference with null skipping and rate limit safety
 WITH eligible_records AS (
-    SELECT 
+    SELECT
         feedback_id,
         feedback_text
     FROM customer_feedback
     -- Filter out short or empty rows to save LLM tokens
     WHERE feedback_text IS NOT NULL AND length(trim(feedback_text)) > 20
 )
-SELECT 
+SELECT
     feedback_id,
     -- Invoke serving endpoint with bounded temperature
     ai_query(

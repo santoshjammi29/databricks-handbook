@@ -3,8 +3,8 @@
   "github": "santoshjammi29/databricks-handbook",
   "name": "Databricks Handbook",
   "role": "105 Databricks production recipes, Unity Catalog governance, Delta Lake 3.x, Lakeflow, Serverless, DABs, FinOps",
-  "last_synced": "2026-11-21T04:54:58.624033Z",
-  "entry_count": 115,
+  "last_synced": "2026-11-22T07:34:24.140373Z",
+  "entry_count": 116,
   "entries": [
     {
       "id": "databricks-handbook-001_split_plane_cloud_architecture_control_plane_classic_compute_and_serverless_networking",
@@ -1152,6 +1152,16 @@
       "title": "Architecture: 04 Enterprise Devops Dabs And Lakeflow Orchestration",
       "difficulty": "L400",
       "relative_path": "architectures/04_enterprise_devops_dabs_and_lakeflow_orchestration.md",
+      "pillars": [
+        "Databricks Platform & Lakehouse"
+      ]
+    },
+    {
+      "id": "databricks-handbook-curriculum-topics",
+      "type": "curriculum_topics_catalog",
+      "title": "Topics Directory: Databricks Handbook",
+      "difficulty": "L200",
+      "relative_path": "topics/README.md",
       "pillars": [
         "Databricks Platform & Lakehouse"
       ]

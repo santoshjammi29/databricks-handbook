@@ -40,7 +40,7 @@ Execute these system queries to diagnose warehouse saturation and identify runaw
 
 ```sql
 -- 1. Identify queries with severe queuing times in the last 1 hour
-SELECT 
+SELECT
     query_id,
     executed_by,
     warehouse_id,
@@ -56,7 +56,7 @@ ORDER BY waiting_for_compute_ms DESC
 LIMIT 15;
 
 -- 2. Check cluster scaling events on the target warehouse
-SELECT 
+SELECT
     event_time,
     warehouse_name,
     cluster_count,
@@ -101,7 +101,6 @@ OPTIMIZE prod_catalog.gold.fact_sales;
 2. **Workload Separation**: Never share a single SQL warehouse between scheduled heavy reporting jobs (e.g., Tableau extract refreshes) and ad-hoc executive dashboard browsing.
 3. **Query Limits**: Enforce maximum execution timeout limits (e.g., 600 seconds) in warehouse configuration to automatically terminate accidental Cartesian products.
 
-
 ---
 
 ## 5. Mosaic AI SQL Functions Throttling & 429 Rate Limit Recovery
@@ -113,7 +112,7 @@ OPTIMIZE prod_catalog.gold.fact_sales;
 ### 5.2 Remediation & Concurrency Provisioning
 ```sql
 -- Step 1: Wrap ai_query in safe error-handling with default fallback
-SELECT 
+SELECT
     review_id,
     -- Prevent query failure on temporary 429 or timeout
     coalesce(

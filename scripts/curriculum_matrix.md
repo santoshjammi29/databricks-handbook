@@ -16,7 +16,6 @@
 
 ---
 
-
 ### 🛡️ <a id="module-01-platform-architecture-and-security"></a>01. Platform Architecture & Security (`001 – 010`)
 
 > **Focus**: Split-plane security, VNet injection, cluster types & policies, CLI v0.200+, REST API 2.1, secrets, volumes

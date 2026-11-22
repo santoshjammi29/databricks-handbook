@@ -47,7 +47,7 @@ DESCRIBE HISTORY prod_catalog.silver.orders LIMIT 10;
 SHOW TBLPROPERTIES prod_catalog.silver.orders;
 
 -- 3. Query system audit logs to find the colliding jobs and cluster IDs
-SELECT 
+SELECT
     event_time,
     user_identity.email AS triggered_by,
     request_params.table_full_name AS table_name,
