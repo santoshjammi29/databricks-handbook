@@ -85,7 +85,7 @@ In enterprise Databricks lakehouses, AI Functions for Data Engineers is an essen
 **Production Code / SQL Implementation:**
 ```sql
 -- Classify sentiment, extract entities and mask PII
-SELECT 
+SELECT
     comment_id,
     -- Classify ticket sentiment into predefined buckets
     ai_classify(comment_text, ARRAY('urgent', 'neutral', 'satisfied')) AS sentiment,

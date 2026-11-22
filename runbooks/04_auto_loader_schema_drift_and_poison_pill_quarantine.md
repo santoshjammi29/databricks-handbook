@@ -42,7 +42,7 @@ When Auto Loader detects unparseable columns or data type mismatches, the unpars
 
 ```sql
 -- 1. Identify poison pill records and failure reasons
-SELECT 
+SELECT
     _metadata.file_path AS source_file,
     _metadata.file_modification_time AS file_time,
     _rescued_data,

@@ -7,14 +7,14 @@ Unity Catalog (UC) provides centralized, unified governance across all data and 
 ```mermaid
 flowchart TD
     Metastore["Account-Level Unity Catalog Metastore (Region: us-east-1)"]
-    
+
     Metastore --> CatProd["Catalog: prod_lakehouse (Managed Storage: s3://prod-lakehouse/)"]
     Metastore --> CatDev["Catalog: dev_lakehouse (Managed Storage: s3://dev-lakehouse/)"]
     Metastore --> CatFed["Foreign Catalog: snowflake_dw (Federated Connection)"]
-    
+
     CatProd --> SchSilver["Schema: silver (Cleaned Data)"]
     CatProd --> SchGold["Schema: gold (Marts & Models)"]
-    
+
     SchSilver --> TblOrders["Table: orders (Liquid Clustered Delta Table)"]
     SchSilver --> VolLanding["Volume: raw_documents (Managed Unstructured PDF/Images)"]
     SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS Row Filter)"]
@@ -46,8 +46,8 @@ Unity Catalog enforces fine-grained data access controls declaratively using sta
 -- Define SQL function checking caller group membership
 CREATE OR REPLACE FUNCTION prod_lakehouse.silver.region_row_filter(region_code STRING)
 RETURNS BOOLEAN
-RETURN 
-  IS_ACCOUNT_GROUP_MEMBER('global_admins') OR 
+RETURN
+  IS_ACCOUNT_GROUP_MEMBER('global_admins') OR
   (IS_ACCOUNT_GROUP_MEMBER('emea_analysts') AND region_code = 'EMEA') OR
   (IS_ACCOUNT_GROUP_MEMBER('apac_analysts') AND region_code = 'APAC');
 
@@ -61,8 +61,8 @@ SET ROW FILTER prod_lakehouse.silver.region_row_filter ON (region);
 -- Define PII masking function with role-based redaction
 CREATE OR REPLACE FUNCTION prod_lakehouse.silver.ssn_mask(ssn_val STRING)
 RETURNS STRING
-RETURN 
-  CASE 
+RETURN
+  CASE
     WHEN IS_ACCOUNT_GROUP_MEMBER('hr_payroll_executives') THEN ssn_val
     ELSE CONCAT('XXX-XX-', RIGHT(ssn_val, 4))
   END;
@@ -84,16 +84,16 @@ Lakehouse Federation allows data engineers and BI analysts to query remote datab
 ```mermaid
 flowchart LR
     Client["Client Query: SELECT * FROM sf_catalog.sales.orders JOIN prod.silver.customers"]
-    
+
     subgraph UC["Unity Catalog Engine"]
         Planner["Catalyst Query Planner"]
         Pushdown["Predicate & Aggregation Pushdown Analyzer"]
     end
-    
+
     subgraph Remote["Remote External Database"]
         Snowflake["Snowflake / BigQuery / Postgres Engine"]
     end
-    
+
     subgraph Lake["Databricks Lakehouse Storage"]
         Delta["Delta Lake Parquet Files (Customers)"]
     end

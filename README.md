@@ -241,14 +241,14 @@ flowchart TB
 ```mermaid
 flowchart TD
     Metastore["Account-Level Unity Catalog Metastore (Region: us-east-1)"]
-    
+
     Metastore --> CatProd["Catalog: prod_lakehouse (Managed Storage: s3://prod-lakehouse/)"]
     Metastore --> CatDev["Catalog: dev_lakehouse (Managed Storage: s3://dev-lakehouse/)"]
     Metastore --> CatFed["Foreign Catalog: snowflake_dw (Federated Connection)"]
-    
+
     CatProd --> SchSilver["Schema: silver (Cleaned Data)"]
     CatProd --> SchGold["Schema: gold (Marts & Models)"]
-    
+
     SchSilver --> TblOrders["Table: orders (Liquid Clustered Delta Table)"]
     SchSilver --> VolLanding["Volume: raw_documents (Managed Unstructured PDF/Images)"]
     SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS Row Filter)"]
@@ -469,7 +469,6 @@ python3 scripts/run_tests.py
 | **10** | **[🚨 Incident Triage & Architecture Blueprints](#module-10-production-incidents-and-blueprints)** | `099 – 105` | 🟣<br>Principal | Driver/Executor OOM triage, OCC conflict resolution, 99% straggler salting, RocksDB state leaks, master blueprint |
 
 ---
-
 
 ### 🛡️ <a id="module-01-platform-architecture-and-security"></a>01. Platform Architecture & Security (`001 – 010`)
 
@@ -795,7 +794,6 @@ The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 14 pro
 | **[Interview Handbook](https://github.com/santoshjammi29/data-engineering-interview-handbook)** | Architectural Defense Playbooks & Concepts | • **100 Databricks Defense Questions**: Level 100–400 architectural defense scenarios covering all recipes in this handbook.<br>• **20 Knowledge Pillars**: End-to-end multi-plane architectural schematics. |
 | **[The Security Handbook](https://github.com/santoshjammi29/security-handbook)** | Enterprise Cloud Security, Zero Trust & Lakehouse Governance | • **Zero Trust Lakehouse Perimeter**: Private endpoints, NSGs, and Azure Key Vault envelope encryption.<br>• **Workload Identity Federation**: Keyless GitHub Actions OIDC and Azure Managed Identities. |
 | **[Modern Data Engineer Hub](https://github.com/santoshjammi29/moderndataengineer)** | Central Edge Presentation Platform | • **Interactive Whiteboard Viewer**: Pan, zoom, and inspect all 52 blueprints at [moderndataengineer.uk/whiteboards](https://moderndataengineer.uk/whiteboards).<br>• **Interactive Code Practice**: Execute and explore the complete 20-page technical manual online. |
-
 
 ## 📄 License & Attribution
 
