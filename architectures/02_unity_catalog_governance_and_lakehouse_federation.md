@@ -6,19 +6,19 @@ Unity Catalog (UC) provides centralized, unified governance across all data and 
 
 ```mermaid
 flowchart TD
-    Metastore["Account-Level Unity Catalog Metastore (Region: us-east-1)"]
+    Metastore["Account-Level Unity Catalog<br/>Metastore (Region: us-east-1)"]
 
-    Metastore --> CatProd["Catalog: prod_lakehouse (Managed Storage: s3://prod-lakehouse/)"]
-    Metastore --> CatDev["Catalog: dev_lakehouse (Managed Storage: s3://dev-lakehouse/)"]
-    Metastore --> CatFed["Foreign Catalog: snowflake_dw (Federated Connection)"]
+    Metastore --> CatProd["Catalog: prod_lakehouse (Managed<br/>Storage: s3://prod-lakehouse/)"]
+    Metastore --> CatDev["Catalog: dev_lakehouse (Managed<br/>Storage: s3://dev-lakehouse/)"]
+    Metastore --> CatFed["Foreign Catalog: snowflake_dw<br/>(Federated Connection)"]
 
     CatProd --> SchSilver["Schema: silver (Cleaned Data)"]
     CatProd --> SchGold["Schema: gold (Marts & Models)"]
 
-    SchSilver --> TblOrders["Table: orders (Liquid Clustered Delta Table)"]
-    SchSilver --> VolLanding["Volume: raw_documents (Managed Unstructured PDF/Images)"]
-    SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS Row Filter)"]
-    SchGold --> ModelProphet["Model: churn_predictor (MLflow Model)"]
+    SchSilver --> TblOrders["Table: orders (Liquid Clustered<br/>Delta Table)"]
+    SchSilver --> VolLanding["Volume: raw_documents (Managed<br/>Unstructured PDF/Images)"]
+    SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS<br/>Row Filter)"]
+    SchGold --> ModelProphet["Model: churn_predictor (MLflow<br/>Model)"]
 ```
 
 ### 📐 Visual Architectural Blueprint: Unity Catalog Unified Governance
@@ -83,23 +83,23 @@ Lakehouse Federation allows data engineers and BI analysts to query remote datab
 
 ```mermaid
 flowchart LR
-    Client["Client Query: SELECT * FROM sf_catalog.sales.orders JOIN prod.silver.customers"]
+    Client["Client Query: SELECT * FROM<br/>sf_catalog.sales.orders JOIN<br/>prod.silver.customers"]
 
     subgraph UC["Unity Catalog Engine"]
         Planner["Catalyst Query Planner"]
-        Pushdown["Predicate & Aggregation Pushdown Analyzer"]
+        Pushdown["Predicate & Aggregation Pushdown<br/>Analyzer"]
     end
 
     subgraph Remote["Remote External Database"]
-        Snowflake["Snowflake / BigQuery / Postgres Engine"]
+        Snowflake["Snowflake / BigQuery / Postgres<br/>Engine"]
     end
 
     subgraph Lake["Databricks Lakehouse Storage"]
-        Delta["Delta Lake Parquet Files (Customers)"]
+        Delta["Delta Lake Parquet Files<br/>(Customers)"]
     end
 
     Client --> Planner --> Pushdown
-    Pushdown -->|"Pushed SQL: SELECT order_id, amount WHERE status='PAID'"| Snowflake
+    Pushdown -->|"Pushed SQL: SELECT order_id,<br/>amount WHERE status='PAID'"| Snowflake
     Pushdown -->|"Scan Pruned Parquet"| Delta
     Snowflake & Delta -->|"In-Memory Stream Join"| Planner
 ```
@@ -124,15 +124,15 @@ flowchart TD
     end
 
     subgraph UCGovernance["Unified Open Catalog Core"]
-        Metastore["Open Source Unity Catalog (REST API)"]
-        ABAC["Attribute-Based Access Control (ABAC)"]
-        CleanRoom["Databricks Clean Rooms (Privacy Preserving)"]
-        Monitor["Lakehouse Monitoring (Data/AI Drift Profiler)"]
+        Metastore["Open Source Unity Catalog (REST<br/>API)"]
+        ABAC["Attribute-Based Access Control<br/>(ABAC)"]
+        CleanRoom["Databricks Clean Rooms (Privacy<br/>Preserving)"]
+        Monitor["Lakehouse Monitoring (Data/AI<br/>Drift Profiler)"]
     end
 
     subgraph DataAIAssets["3-Level Namespace Governed Assets"]
         Tables["Delta / Iceberg Tables (UniForm)"]
-        Volumes["UC Volumes (Unstructured Files / Models)"]
+        Volumes["UC Volumes (Unstructured Files /<br/>Models)"]
         Functions["AI Functions & Prompt Templates"]
         Vectors["Mosaic AI Vector Indexes"]
     end

@@ -7,19 +7,19 @@ Delta Lake 3.x is an open-source storage framework that brings ACID transactiona
 ```mermaid
 flowchart TD
     subgraph CommitLog["_delta_log Directory Structure"]
-        C0["000000.json (Initial Schema & Add Actions)"]
-        C1["000001.json (Append Data Files 1..4)"]
-        C2["000002.json (MERGE Update: Remove File 1, Add File 5)"]
-        CKP["000010.checkpoint.parquet (Consolidated Snapshot of Commits 0-10)"]
+        C0["000000.json (Initial Schema & Add<br/>Actions)"]
+        C1["000001.json (Append Data Files<br/>1..4)"]
+        C2["000002.json (MERGE Update: Remove<br/>File 1, Add File 5)"]
+        CKP["000010.checkpoint.parquet<br/>(Consolidated Snapshot of Commits<br/>0-10)"]
         C11["000011.json (Append Data File 6)"]
-        CRC["000011.checkpoint.parquet.crc (Integrity Checksum)"]
+        CRC["000011.checkpoint.parquet.crc<br/>(Integrity Checksum)"]
     end
 
     subgraph StorageData["Physical Parquet Data Files"]
         P1["part-00001.parquet [Active]"]
         P2["part-00002.parquet [Active]"]
         P3["part-00005.parquet [Active]"]
-        P_Old["part-00000.parquet [Tombstoned by Remove Action]"]
+        P_Old["part-00000.parquet [Tombstoned by<br/>Remove Action]"]
     end
 
     C1 --> P1 & P2
@@ -43,9 +43,9 @@ Delta Lake 3.x introduces **Deletion Vectors (DVs)**, transitioning DML operatio
 flowchart LR
     subgraph Write["1. Fast Write Path (Update / Delete)"]
         DML["UPDATE / DELETE Statement"]
-        OrigFile["part-0001.parquet (500 MB) [Untouched]"]
-        DV["Deletion Vector Bitmap (.dv file: 4 KB)"]
-        NewFile["part-0002.parquet (Small file with updated rows)"]
+        OrigFile["part-0001.parquet (500 MB)<br/>[Untouched]"]
+        DV["Deletion Vector Bitmap (.dv file:<br/>4 KB)"]
+        NewFile["part-0002.parquet (Small file with<br/>updated rows)"]
         DML --> DV
         DML --> NewFile
     end
@@ -58,8 +58,8 @@ flowchart LR
     end
 
     subgraph Purge["3. Compaction Path (Background OPTIMIZE)"]
-        Optimize["OPTIMIZE / REORG TABLE APPLY (PURGE)"]
-        Optimize -->|Physically Rewrite Clean Parquet| FinalFile["part-0003.parquet (Optimized)"]
+        Optimize["OPTIMIZE / REORG TABLE APPLY<br/>(PURGE)"]
+        Optimize -->|"Physically Rewrite Clean<br/>Parquet"| FinalFile["part-0003.parquet (Optimized)"]
     end
 
     Write ~~~ Read ~~~ Purge

@@ -15,19 +15,19 @@ flowchart LR
     subgraph CI["CI/CD Automation (GitHub Actions / GitLab CI)"]
         Lint["bundle validate (Schema Check)"]
         Test["pytest + chispa (Unit Testing)"]
-        Deploy["bundle deploy -t {env} (Asset Sync)"]
+        Deploy["bundle deploy -t {env} (Asset<br/>Sync)"]
     end
 
     subgraph Environments["Target Databricks Workspaces"]
-        Dev["Dev Workspace (Personal Sandbox: /Users/dev/.bundle)"]
-        Staging["Staging Workspace (Integration Testing: /Shared/.bundle)"]
-        Prod["Prod Workspace (Production Service Principal Deployment)"]
+        Dev["Dev Workspace (Personal Sandbox:<br/>/Users/dev/.bundle)"]
+        Staging["Staging Workspace (Integration<br/>Testing: /Shared/.bundle)"]
+        Prod["Prod Workspace (Production Service<br/>Principal Deployment)"]
     end
 
     Repo --> Lint --> Test --> Deploy
-    Deploy -->|Target: dev| Dev
-    Deploy -->|Target: staging| Staging
-    Deploy -->|Target: prod - OIDC or OAuth| Prod
+    Deploy -->|"Target: dev"| Dev
+    Deploy -->|"Target: staging"| Staging
+    Deploy -->|"Target: prod - OIDC or OAuth"| Prod
 ```
 
 ### 📐 Visual Architectural Blueprint: Databricks Asset Bundles (DABs) Enterprise DevOps
@@ -83,12 +83,12 @@ Lakeflow Jobs provide enterprise DAG orchestration with fine-grained task depend
 
 ```mermaid
 flowchart TD
-    T1["Task 1: Auto Loader Bronze Ingestion (Ephemeral Job Cluster)"] --> T2["Task 2: DLT Silver Conformance & Quality Expectations"]
-    T2 --> T3{"Conditional Task: Did Quality Pass?"}
-    T3 -- "Pass (> 99.9% clean)" --> T4["Task 4: Gold Aggregation & Liquid Clustering"]
-    T3 -- "Fail / Anomalies" --> T5["Task 5: Dead Letter Queue (DLQ) Quarantine Triage"]
-    T4 --> T6["Task 6: Mosaic AI Lakehouse Monitoring & Drift Audit"]
-    T5 --> T7["Task 7: PagerDuty On-Call Incident Notification"]
+    T1["Task 1: Auto Loader Bronze<br/>Ingestion (Ephemeral Job Cluster)"] --> T2["Task 2: DLT Silver Conformance &<br/>Quality Expectations"]
+    T2 --> T3{"Conditional Task: Did Quality<br/>Pass?"}
+    T3 -- "Pass (&gt; 99.9% clean)" --> T4["Task 4: Gold Aggregation & Liquid<br/>Clustering"]
+    T3 -- "Fail / Anomalies" --> T5["Task 5: Dead Letter Queue (DLQ)<br/>Quarantine Triage"]
+    T4 --> T6["Task 6: Mosaic AI Lakehouse<br/>Monitoring & Drift Audit"]
+    T5 --> T7["Task 7: PagerDuty On-Call Incident<br/>Notification"]
 ```
 
 ### 📐 Visual Architectural Blueprint: Lakeflow Declarative Delta Live Tables (DLT) Pipeline
@@ -108,20 +108,20 @@ The modern Databricks platform unifies data engineering with production Generati
 ```mermaid
 flowchart TD
     subgraph LakeflowSuite["Databricks Lakeflow Unified Data Engineering"]
-        Connect["Lakeflow Connect (Salesforce / Postgres / Kafka CDC)"]
-        Pipelines["Lakeflow Pipelines (Declarative DLT with Expectations)"]
-        Jobs["Lakeflow Jobs (Event-Driven Serverless DAGs)"]
+        Connect["Lakeflow Connect (Salesforce /<br/>Postgres / Kafka CDC)"]
+        Pipelines["Lakeflow Pipelines (Declarative<br/>DLT with Expectations)"]
+        Jobs["Lakeflow Jobs (Event-Driven<br/>Serverless DAGs)"]
     end
 
     subgraph MosaicAI["Mosaic AI Enterprise GenAI Platform"]
-        VectorSearch["Mosaic AI Vector Search (Delta Sync Index)"]
-        ModelServing["Mosaic AI Model Serving (Auto-scale to Zero)"]
-        Gateway["Mosaic AI Gateway (Guardrails & Rate Limits)"]
-        AgentEval["Mosaic AI Agent Evaluation (MLflow LLM-as-a-Judge)"]
+        VectorSearch["Mosaic AI Vector Search (Delta<br/>Sync Index)"]
+        ModelServing["Mosaic AI Model Serving<br/>(Auto-scale to Zero)"]
+        Gateway["Mosaic AI Gateway (Guardrails &<br/>Rate Limits)"]
+        AgentEval["Mosaic AI Agent Evaluation (MLflow<br/>LLM-as-a-Judge)"]
     end
 
     subgraph SQLInference["In-Database GenAI SQL Execution"]
-        AI_Query["ai_query('databricks-meta-llama-3-70b', prompt)"]
+        AI_Query["ai_query('databricks-meta-llama-3-70b',<br/>prompt)"]
         AI_Classify["ai_classify(text, categories)"]
         AI_Mask["ai_mask(text, ['email', 'ssn'])"]
     end

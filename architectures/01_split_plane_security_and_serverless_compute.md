@@ -6,7 +6,7 @@ The Databricks Data Intelligence Platform is engineered on a **split-plane cloud
 
 ```mermaid
 flowchart TB
-    subgraph CP["Control Plane (Databricks-Managed Cloud Tenant)"]
+    subgraph CP["Control Plane (Databricks-Managed Cloud<br/>Tenant)"]
         UI["Workspace Web UI & IDE"]
         Scheduler["Lakeflow Jobs Scheduler"]
         Metastore["Unity Catalog Metastore Service"]
@@ -14,31 +14,31 @@ flowchart TB
     end
 
     subgraph NetSec["Zero-Trust Network Perimeter"]
-        PL_Front["Front-End Private Link (User -> Workspace)"]
-        PL_Back["Back-End Private Link (Control Plane -> Compute Plane)"]
+        PL_Front["Front-End Private Link (User -><br/>Workspace)"]
+        PL_Back["Back-End Private Link (Control<br/>Plane -> Compute Plane)"]
     end
 
-    subgraph DP["Compute Plane (Classic Customer VNet or Managed Serverless)"]
+    subgraph DP["Compute Plane (Classic Customer VNet or<br/>Managed Serverless)"]
         subgraph Classic["Classic Compute (Customer Cloud VNet)"]
             Driver["Spark Driver Node"]
             Worker1["Spark Worker Node 1"]
             Worker2["Spark Worker Node 2"]
         end
-        subgraph Serverless["Serverless Compute (Pre-warmed Container Fleet)"]
+        subgraph Serverless["Serverless Compute (Pre-warmed Container<br/>Fleet)"]
             SQL_WH["Serverless SQL Warehouses"]
             Serverless_Jobs["Serverless Jobs & Notebooks"]
         end
     end
 
     subgraph Storage["Persistent Customer Cloud Storage Layer"]
-        ADLS["Azure ADLS Gen2 / AWS S3 / Google Cloud Storage"]
-        SecCred["Unity Catalog Storage Credentials (OIDC / Managed Identity)"]
+        ADLS["Azure ADLS Gen2 / AWS S3 / Google<br/>Cloud Storage"]
+        SecCred["Unity Catalog Storage Credentials<br/>(OIDC / Managed Identity)"]
     end
 
     UI --> PL_Front
     ClusterMgr --> PL_Back --> Driver
     Driver --> Worker1 & Worker2
-    Worker1 & Worker2 -->|Direct HTTPS / TLS 1.3| ADLS
+    Worker1 & Worker2 -->|"Direct HTTPS / TLS 1.3"| ADLS
     SQL_WH -->|Storage Credentials| ADLS
     Metastore -.->|Metadata Grants| Driver & SQL_WH
 ```
@@ -100,24 +100,24 @@ Databricks Serverless Compute abstracts cluster provisioning entirely into an in
 ```mermaid
 flowchart TD
     subgraph Client["Developer / CI/CD Client"]
-        CLI["Databricks CLI / IDE (Databricks Connect)"]
+        CLI["Databricks CLI / IDE (Databricks<br/>Connect)"]
         GHA["GitHub Actions (OIDC Token)"]
     end
 
     subgraph Auth["Zero-Trust Workload Identity"]
-        OIDC["OIDC Token Exchange (Azure Entra / AWS IAM)"]
-        OAuth["Short-Lived OAuth 2.0 Bearer Token (1 Hour)"]
+        OIDC["OIDC Token Exchange (Azure Entra /<br/>AWS IAM)"]
+        OAuth["Short-Lived OAuth 2.0 Bearer Token<br/>(1 Hour)"]
     end
 
     subgraph ServerlessFleet["Serverless Compute Plane"]
-        WarmPool["Auto-Warming Container Fleet (< 2s Startup)"]
-        MicroVM["Encrypted Ephemeral Micro-VM (Single Tenant Pod)"]
+        WarmPool["Auto-Warming Container Fleet (&lt;<br/>2s Startup)"]
+        MicroVM["Encrypted Ephemeral Micro-VM<br/>(Single Tenant Pod)"]
         NCC["Network Connectivity Config (NCC)"]
     end
 
     subgraph CustomerCloud["Customer Cloud Storage Plane"]
-        ADLS["ADLS Gen2 / AWS S3 (Data & Volumes)"]
-        PrivateLink["Private Endpoint / AWS Privatelink VPC"]
+        ADLS["ADLS Gen2 / AWS S3 (Data &<br/>Volumes)"]
+        PrivateLink["Private Endpoint / AWS Privatelink<br/>VPC"]
     end
 
     Client --> OIDC --> OAuth

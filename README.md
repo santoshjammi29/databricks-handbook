@@ -86,7 +86,7 @@ python3 scripts/run_tests.py
 
 ```mermaid
 flowchart TB
-    subgraph CP["Control Plane (Databricks-Managed Cloud Tenant)"]
+    subgraph CP["Control Plane (Databricks-Managed Cloud<br/>Tenant)"]
         UI["Workspace Web UI & IDE"]
         Scheduler["Lakeflow Jobs Scheduler"]
         Metastore["Unity Catalog Metastore Service"]
@@ -94,31 +94,31 @@ flowchart TB
     end
 
     subgraph NetSec["Zero-Trust Network Perimeter"]
-        PL_Front["Front-End Private Link (User -> Workspace)"]
-        PL_Back["Back-End Private Link (Control Plane -> Compute Plane)"]
+        PL_Front["Front-End Private Link (User -><br/>Workspace)"]
+        PL_Back["Back-End Private Link (Control<br/>Plane -> Compute Plane)"]
     end
 
-    subgraph DP["Compute Plane (Classic Customer VNet or Managed Serverless)"]
+    subgraph DP["Compute Plane (Classic Customer VNet or<br/>Managed Serverless)"]
         subgraph Classic["Classic Compute (Customer Cloud VNet)"]
             Driver["Spark Driver Node"]
             Worker1["Spark Worker Node 1"]
             Worker2["Spark Worker Node 2"]
         end
-        subgraph Serverless["Serverless Compute (Pre-warmed Container Fleet)"]
+        subgraph Serverless["Serverless Compute (Pre-warmed Container<br/>Fleet)"]
             SQL_WH["Serverless SQL Warehouses"]
             Serverless_Jobs["Serverless Jobs & Notebooks"]
         end
     end
 
     subgraph Storage["Persistent Customer Cloud Storage Layer"]
-        ADLS["Azure ADLS Gen2 / AWS S3 / Google Cloud Storage"]
-        SecCred["Unity Catalog Storage Credentials (OIDC / Managed Identity)"]
+        ADLS["Azure ADLS Gen2 / AWS S3 / Google<br/>Cloud Storage"]
+        SecCred["Unity Catalog Storage Credentials<br/>(OIDC / Managed Identity)"]
     end
 
     UI --> PL_Front
     ClusterMgr --> PL_Back --> Driver
     Driver --> Worker1 & Worker2
-    Worker1 & Worker2 -->|Direct HTTPS / TLS 1.3| ADLS
+    Worker1 & Worker2 -->|"Direct HTTPS / TLS 1.3"| ADLS
     SQL_WH -->|Storage Credentials| ADLS
     Metastore -.->|Metadata Grants| Driver & SQL_WH
 ```
@@ -129,19 +129,19 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    Metastore["Account-Level Unity Catalog Metastore (Region: us-east-1)"]
+    Metastore["Account-Level Unity Catalog<br/>Metastore (Region: us-east-1)"]
 
-    Metastore --> CatProd["Catalog: prod_lakehouse (Managed Storage: s3://prod-lakehouse/)"]
-    Metastore --> CatDev["Catalog: dev_lakehouse (Managed Storage: s3://dev-lakehouse/)"]
-    Metastore --> CatFed["Foreign Catalog: snowflake_dw (Federated Connection)"]
+    Metastore --> CatProd["Catalog: prod_lakehouse (Managed<br/>Storage: s3://prod-lakehouse/)"]
+    Metastore --> CatDev["Catalog: dev_lakehouse (Managed<br/>Storage: s3://dev-lakehouse/)"]
+    Metastore --> CatFed["Foreign Catalog: snowflake_dw<br/>(Federated Connection)"]
 
     CatProd --> SchSilver["Schema: silver (Cleaned Data)"]
     CatProd --> SchGold["Schema: gold (Marts & Models)"]
 
-    SchSilver --> TblOrders["Table: orders (Liquid Clustered Delta Table)"]
-    SchSilver --> VolLanding["Volume: raw_documents (Managed Unstructured PDF/Images)"]
-    SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS Row Filter)"]
-    SchGold --> ModelProphet["Model: churn_predictor (MLflow Model)"]
+    SchSilver --> TblOrders["Table: orders (Liquid Clustered<br/>Delta Table)"]
+    SchSilver --> VolLanding["Volume: raw_documents (Managed<br/>Unstructured PDF/Images)"]
+    SchGold --> ViewRevenue["View: monthly_revenue (Dynamic RLS<br/>Row Filter)"]
+    SchGold --> ModelProphet["Model: churn_predictor (MLflow<br/>Model)"]
 ```
 
 ---
