@@ -61,6 +61,8 @@ flowchart LR
         Optimize["OPTIMIZE / REORG TABLE APPLY (PURGE)"]
         Optimize -->|Physically Rewrite Clean Parquet| FinalFile["part-0003.parquet (Optimized)"]
     end
+
+    Write ~~~ Read ~~~ Purge
 ```
 
 ### Key Performance Benefits of Deletion Vectors:
