@@ -957,8 +957,6 @@ Every production workload deployed on Databricks must be cost-monitored using **
 
 </details>
 
-
-
 ## 🌐 Ecosystem Interlinking & Sister Repositories
 
 The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 14 production-grade, specialized repositories anchored by the **[Modern Data Engineer Platform (`moderndataengineer.uk`)](https://github.com/santoshjammi29/moderndataengineer)**. Every repository couples directly with its siblings for cross-domain mastery:
@@ -983,7 +981,6 @@ The Modern Data Engineering Lakehouse Ecosystem is an integrated suite of 14 pro
 
 Distributed under the **MIT License**. Author: **Santosh Jammi** (2026).  
 Contributions, feedback, and enterprise architectural discussions are welcome!
-
 
 ---
 
