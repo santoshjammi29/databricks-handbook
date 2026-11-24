@@ -6,7 +6,6 @@ Verifies that all internal links and in-page anchor fragments resolve cleanly.
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
 
 
 def github_slug(heading: str) -> str:
@@ -18,9 +17,9 @@ def github_slug(heading: str) -> str:
     return s
 
 
-def extract_anchors(content: str) -> Set[str]:
+def extract_anchors(content: str) -> set[str]:
     """Extracts all possible anchor identifiers from a markdown document."""
-    anchors: Set[str] = set()
+    anchors: set[str] = set()
 
     # Explicit HTML anchor tags: <a id="..."> or <a name="...">
     for m in re.finditer(r'<a\s+[^>]*(?:name|id)=["\']([^"\']+)["\']', content, re.I):
@@ -41,10 +40,10 @@ def extract_anchors(content: str) -> Set[str]:
 
 
 def validate_links(
-    base_dir: Optional[Path] = None,
+    base_dir: Path | None = None,
     verbose: bool = True,
     include_agents: bool = False,
-) -> Tuple[bool, List[str]]:
+) -> tuple[bool, list[str]]:
     """
     Scans markdown files in the repository for broken relative links and anchors.
     Returns (success, errors).
@@ -53,26 +52,26 @@ def validate_links(
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
 
     # Collect markdown files, excluding git, venvs, and optionally .agents
-    md_files: List[Path] = []
+    md_files: list[Path] = []
+    ignored_dirs = {".git", ".venv", ".cache", ".pytest_cache", ".ruff_cache"}
     for p in base_dir.rglob("*.md"):
         parts = p.relative_to(base_dir).parts
-        if any(part.startswith(".") for part in parts if part != ".github"):
-            if not include_agents and ".agents" in parts:
-                continue
-            if part in (".git", ".venv", ".cache", ".pytest_cache", ".ruff_cache"):
-                continue
+        if not include_agents and ".agents" in parts:
+            continue
+        if any(part in ignored_dirs for part in parts):
+            continue
         md_files.append(p)
 
-    file_anchors: Dict[Path, Set[str]] = {}
+    file_anchors: dict[Path, set[str]] = {}
     for p in md_files:
         try:
             content = p.read_text(encoding="utf-8", errors="ignore")
             file_anchors[p.resolve()] = extract_anchors(content)
-        except Exception:
+        except OSError:
             pass
 
     link_re = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
-    errors: List[str] = []
+    errors: list[str] = []
 
     for p in md_files:
         content = p.read_text(encoding="utf-8", errors="ignore")
@@ -107,13 +106,16 @@ def validate_links(
                         anchors = file_anchors[target_path]
                         if fragment not in anchors and fragment.lower() not in anchors:
                             errors.append(
-                                f"{rel_doc}:{line_num}: Broken anchor '#{fragment}' in '{target_path_str}'"
+                                f"{rel_doc}:{line_num}: "
+                                f"Broken anchor '#{fragment}' in '{target_path_str}'"
                             )
                 else:
                     if fragment:
                         own_anchors = file_anchors.get(p.resolve(), set())
                         if fragment not in own_anchors and fragment.lower() not in own_anchors:
-                            errors.append(f"{rel_doc}:{line_num}: Broken in-page anchor '#{fragment}'")
+                            errors.append(
+                                f"{rel_doc}:{line_num}: Broken in-page anchor '#{fragment}'"
+                            )
 
     if verbose:
         if errors:
@@ -123,7 +125,10 @@ def validate_links(
             if len(errors) > 25:
                 print(f"  ... and {len(errors) - 25} more")
         else:
-            print(f"✅ All relative links and anchors in {len(md_files)} markdown documents verified successfully!")
+            print(
+                f"✅ All relative links and anchors in {len(md_files)} "
+                "markdown documents verified successfully!"
+            )
 
     return len(errors) == 0, errors
 

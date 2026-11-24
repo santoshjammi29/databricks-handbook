@@ -35,7 +35,9 @@ def test_runbooks_exist(base_dir):
         content = f.read_text(encoding="utf-8")
         assert len(content) > 1000, f"{f.name} is too short ({len(content)} bytes)"
         assert "Emergency Decision Tree" in content, f"{f.name} missing Emergency Decision Tree"
-        assert "Remediation" in content or "Recovery" in content, f"{f.name} missing remediation section"
+        assert "Remediation" in content or "Recovery" in content, (
+            f"{f.name} missing remediation section"
+        )
 
 
 def test_interview_guides_exist(base_dir):

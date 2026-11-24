@@ -7,12 +7,11 @@ and that all referenced notebook paths and app components exist on disk.
 import re
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from handbook.curriculum import EXPECTED_BUNDLE_RESOURCES
 
 
-def validate_bundle(base_dir: Optional[Path] = None, verbose: bool = True) -> Tuple[bool, List[str]]:
+def validate_bundle(base_dir: Path | None = None, verbose: bool = True) -> tuple[bool, list[str]]:
     """
     Validates Databricks Asset Bundle configuration, resources, and referenced notebook paths.
     Returns (success, errors).
@@ -21,7 +20,7 @@ def validate_bundle(base_dir: Optional[Path] = None, verbose: bool = True) -> Tu
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
 
     bundle_file = base_dir / "databricks.yml"
-    errors: List[str] = []
+    errors: list[str] = []
 
     if verbose:
         print(f"Validating Databricks Asset Bundle at {base_dir}...")
@@ -49,11 +48,15 @@ def validate_bundle(base_dir: Optional[Path] = None, verbose: bool = True) -> Tu
     missing_paths = []
     for yml_file in sorted(resources_dir.glob("*.yml")):
         yml_text = yml_file.read_text(encoding="utf-8")
-        matches = re.findall(r'notebook_path:\s*["\']?\.\./(notebooks/[^\s"\']+\.py)["\']?', yml_text)
+        matches = re.findall(
+            r'notebook_path:\s*["\']?\.\./(notebooks/[^\s"\']+\.py)["\']?', yml_text
+        )
         for rel_path in matches:
             abs_path = base_dir / rel_path
             if not abs_path.exists():
-                missing_paths.append(f"{yml_file.name} references non-existent notebook: {rel_path}")
+                missing_paths.append(
+                    f"{yml_file.name} references non-existent notebook: {rel_path}"
+                )
 
     if missing_paths:
         errors.extend(missing_paths)

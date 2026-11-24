@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 CURRICULUM_FILE = Path(__file__).resolve().parent.parent / "data" / "curriculum_matrix.md"
 README_FILE = BASE_DIR / "README.md"
 
+
 def build_readme():
     curriculum_md = CURRICULUM_FILE.read_text(encoding="utf-8")
 
@@ -361,6 +362,7 @@ Contributions, feedback, and enterprise architectural discussions are welcome!
     full_readme = header + curriculum_md + footer
     README_FILE.write_text(full_readme, encoding="utf-8")
     print(f"✅ Generated master README.md at {README_FILE} ({len(full_readme)} bytes)")
+
 
 if __name__ == "__main__":
     build_readme()

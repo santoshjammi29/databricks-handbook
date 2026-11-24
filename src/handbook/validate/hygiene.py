@@ -6,7 +6,6 @@ Enforces counts, structure invariants, and Mermaid parsing rules across the repo
 import re
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from handbook.curriculum import (
     EXPECTED_MODULE_FOLDERS,
@@ -19,7 +18,7 @@ from handbook.curriculum import (
 )
 
 
-def validate_mermaid_blocks(content: str, filename: str) -> List[str]:
+def validate_mermaid_blocks(content: str, filename: str) -> list[str]:
     """Validates Mermaid syntax against parser rules in AGENTS.md."""
     errors = []
     mermaid_blocks = re.findall(r"```mermaid\n(.*?)\n```", content, re.DOTALL)
@@ -32,30 +31,36 @@ def validate_mermaid_blocks(content: str, filename: str) -> List[str]:
 
             # Rule: No unquoted parentheses in link labels -->|Label (text)|
             # Allowed: -->|"Label (text)"| or -->|Label: text|
-            unquoted_paren_match = re.search(r"-->\|([^\"\|\n]*\([^\)\|\n]*\)[^\"\|\n]*)\|", line_str)
+            unquoted_paren_match = re.search(
+                r"-->\|([^\"\|\n]*\([^\)\|\n]*\)[^\"\|\n]*)\|", line_str
+            )
             if unquoted_paren_match:
+                lbl = unquoted_paren_match.group(0)
                 errors.append(
-                    f"{filename} [mermaid {block_idx}:{line_no}]: Unquoted parentheses in link label: '{unquoted_paren_match.group(0)}'. Wrap in quotes like -->|\"Label (text)\"|"
+                    f"{filename} [mermaid {block_idx}:{line_no}]: "
+                    f"Unquoted parens in link label: '{lbl}'. Wrap like -->|\"Label\"|"
                 )
 
             # Rule: No raw comparison operators <, >, <= in link labels
             raw_comp_match = re.search(r"-->\|([^\"\|\n]*[<>][^\"\|\n]*)\|", line_str)
             if raw_comp_match:
+                comp = raw_comp_match.group(0)
                 errors.append(
-                    f"{filename} [mermaid {block_idx}:{line_no}]: Raw comparison operator in link label: '{raw_comp_match.group(0)}'. Use words ('under', 'above') or &lt;/&gt;"
+                    f"{filename} [mermaid {block_idx}:{line_no}]: "
+                    f"Raw comparison operator in link label: '{comp}'. Use words or &lt;/&gt;"
                 )
 
             # Rule: No semicolons in sequenceDiagram Notes
-            if is_sequence and line_str.startswith("Note"):
-                if ";" in line_str:
-                    errors.append(
-                        f"{filename} [mermaid {block_idx}:{line_no}]: Semicolon in sequenceDiagram Note: '{line_str}'. Use comma or colon."
-                    )
+            if is_sequence and line_str.startswith("Note") and ";" in line_str:
+                errors.append(
+                    f"{filename} [mermaid {block_idx}:{line_no}]: "
+                    f"Semicolon in sequenceDiagram Note: '{line_str}'. Use comma or colon."
+                )
 
     return errors
 
 
-def validate_hygiene(base_dir: Optional[Path] = None, verbose: bool = True) -> Tuple[bool, List[str]]:
+def validate_hygiene(base_dir: Path | None = None, verbose: bool = True) -> tuple[bool, list[str]]:
     """
     Validates repository structure invariants, content counts, and diagram integrity.
     Returns (success, errors).
@@ -63,14 +68,16 @@ def validate_hygiene(base_dir: Optional[Path] = None, verbose: bool = True) -> T
     if base_dir is None:
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
 
-    errors: List[str] = []
+    errors: list[str] = []
 
     # 1. Whiteboards count (52 .webp invariant)
     wb_dir = base_dir / "assets" / "whiteboards"
     if wb_dir.exists():
         webp_files = list(wb_dir.glob("*.webp"))
         if len(webp_files) != TOTAL_WHITEBOARDS:
-            errors.append(f"Expected {TOTAL_WHITEBOARDS} whiteboard .webp files, found {len(webp_files)}")
+            errors.append(
+                f"Expected {TOTAL_WHITEBOARDS} whiteboard .webp files, found {len(webp_files)}"
+            )
 
     # 2. Module directories and total notebooks
     nb_dir = base_dir / "notebooks"
@@ -88,7 +95,9 @@ def validate_hygiene(base_dir: Optional[Path] = None, verbose: bool = True) -> T
     if arch_dir.exists():
         arch_files = list(arch_dir.glob("*.md"))
         if len(arch_files) != TOTAL_ARCHITECTURES:
-            errors.append(f"Expected {TOTAL_ARCHITECTURES} architecture docs, found {len(arch_files)}")
+            errors.append(
+                f"Expected {TOTAL_ARCHITECTURES} architecture docs, found {len(arch_files)}"
+            )
         for af in arch_files:
             text = af.read_text(encoding="utf-8")
             errors.extend(validate_mermaid_blocks(text, af.name))
@@ -112,7 +121,9 @@ def validate_hygiene(base_dir: Optional[Path] = None, verbose: bool = True) -> T
     if interview_dir.exists():
         int_files = list(interview_dir.glob("*.md"))
         if len(int_files) != TOTAL_INTERVIEW_GUIDES:
-            errors.append(f"Expected {TOTAL_INTERVIEW_GUIDES} interview guides, found {len(int_files)}")
+            errors.append(
+                f"Expected {TOTAL_INTERVIEW_GUIDES} interview guides, found {len(int_files)}"
+            )
         flashcards_file = interview_dir / "05_flashcards_deck_50.md"
         if flashcards_file.exists():
             fc_text = flashcards_file.read_text(encoding="utf-8")

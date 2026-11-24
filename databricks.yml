@@ -24,6 +24,8 @@ variables:
   node_type_id:
     description: "Worker and driver cloud VM node type"
     default: "Standard_D4ds_v5"
+  prod_service_principal_id:
+    description: "Application ID / Client ID of the production CI/CD Service Principal (must be supplied for production deployment)"
 
 targets:
   # --------------------------------------------------------------------------
@@ -71,8 +73,8 @@ targets:
       schema: "gold_analytics"
     permissions:
       - level: CAN_MANAGE
-        service_principal_name: "4f63c679-0db8-40a2-b91a-7b3b7e7136f4"
+        service_principal_name: "${var.prod_service_principal_id}"
       - level: CAN_VIEW
         group_name: "all-users"
     run_as:
-      service_principal_name: "4f63c679-0db8-40a2-b91a-7b3b7e7136f4"
+      service_principal_name: "${var.prod_service_principal_id}"

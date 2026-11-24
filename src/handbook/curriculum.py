@@ -6,12 +6,12 @@ All validators, generators, test suites, and documentation builders import from 
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 
 @dataclass(frozen=True)
 class ModuleSpec:
     """Specification for a curriculum module."""
+
     index: int
     folder: str
     name: str
@@ -27,7 +27,7 @@ class ModuleSpec:
         return f"{self.id_start:03d}-{self.id_end:03d}"
 
 
-MODULES: Tuple[ModuleSpec, ...] = (
+MODULES: tuple[ModuleSpec, ...] = (
     ModuleSpec(
         index=1,
         folder="01_platform_architecture_and_security",
@@ -102,7 +102,7 @@ MODULES: Tuple[ModuleSpec, ...] = (
 
 TOTAL_MODULES: int = len(MODULES)
 TOTAL_NOTEBOOKS: int = sum(m.expected_count for m in MODULES)
-EXPECTED_MODULE_FOLDERS: List[str] = [m.folder for m in MODULES]
+EXPECTED_MODULE_FOLDERS: list[str] = [m.folder for m in MODULES]
 
 TOTAL_WHITEBOARDS: int = 52
 TOTAL_RUNBOOKS: int = 6
@@ -111,7 +111,10 @@ TOTAL_INTERVIEW_GUIDES: int = 5
 TOTAL_FLASHCARDS: int = 50
 TOTAL_TOPICS: int = 132
 
-EXPECTED_BUNDLE_RESOURCES: Tuple[str, ...] = (
+# Centralized fictitious placeholder Service Principal UUID used in mock generators and examples
+FICTITIOUS_SP_UUID: str = "4f63c679-0db8-40a2-b91a-7b3b7e7136f4"
+
+EXPECTED_BUNDLE_RESOURCES: tuple[str, ...] = (
     "jobs.yml",
     "dlt_pipelines.yml",
     "unity_catalog.yml",

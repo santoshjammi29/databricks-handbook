@@ -1,0 +1,14 @@
+[extend]
+# Extend default gitleaks configuration
+
+[allowlist]
+description = "Global allowlist for intentional fictitious placeholders and test tokens"
+regexes = [
+    '''4f63c679-0db8-40a2-b91a-7b3b7e7136f4''',
+]
+paths = [
+    '''\.gitleaks\.toml$''',
+    '''notebooks/.*''',
+    '''src/handbook/curriculum\.py''',
+    '''src/handbook/generators/.*''',
+]

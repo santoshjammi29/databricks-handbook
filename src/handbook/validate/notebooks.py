@@ -7,12 +7,13 @@ and that all Python code cells parse cleanly via Python AST without syntax error
 import ast
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from handbook.curriculum import TOTAL_NOTEBOOKS
 
 
-def validate_notebooks(base_dir: Optional[Path] = None, verbose: bool = True) -> Tuple[bool, List[str]]:
+def validate_notebooks(
+    base_dir: Path | None = None, verbose: bool = True
+) -> tuple[bool, list[str]]:
     """
     Validates all notebooks in base_dir/notebooks against Databricks formatting and AST syntax.
     Returns (success, errors).
@@ -25,14 +26,14 @@ def validate_notebooks(base_dir: Optional[Path] = None, verbose: bool = True) ->
     if verbose:
         print(f"Validating {len(nb_files)} Databricks notebooks at {base_dir / 'notebooks'}...")
 
-    errors: List[str] = []
+    errors: list[str] = []
 
     if len(nb_files) != TOTAL_NOTEBOOKS:
         errors.append(f"Expected exactly {TOTAL_NOTEBOOKS} notebooks, found {len(nb_files)}")
         return False, errors
 
-    format_errors: List[str] = []
-    syntax_errors: List[str] = []
+    format_errors: list[str] = []
+    syntax_errors: list[str] = []
 
     for nb in nb_files:
         content = nb.read_text(encoding="utf-8")
@@ -49,7 +50,11 @@ def validate_notebooks(base_dir: Optional[Path] = None, verbose: bool = True) ->
         commands = content.split("# COMMAND ----------")
         for idx, cmd in enumerate(commands):
             cmd_stripped = cmd.strip()
-            if not cmd_stripped or "# MAGIC %md" in cmd_stripped or cmd_stripped.startswith("# MAGIC"):
+            if (
+                not cmd_stripped
+                or "# MAGIC %md" in cmd_stripped
+                or cmd_stripped.startswith("# MAGIC")
+            ):
                 continue
 
             code_lines = [

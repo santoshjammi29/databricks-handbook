@@ -25,7 +25,7 @@ from handbook.validate.notebooks import validate_notebooks
 def find_repo_root() -> Path:
     """Finds repo root by searching upward for databricks.yml or pyproject.toml."""
     cur = Path.cwd()
-    for parent in [cur] + list(cur.parents):
+    for parent in [cur, *list(cur.parents)]:
         if (parent / "databricks.yml").exists() and (parent / "pyproject.toml").exists():
             return parent
     return cur
@@ -41,7 +41,9 @@ def cmd_build(args, base_dir: Path) -> int:
                 print(f"  - {d}")
             print("\nRun 'handbook build' to regenerate notebooks from source generators.")
             return 1
-        print(f"✅ All {TOTAL_NOTEBOOKS} notebooks are in sync with source generators (zero drift).")
+        print(
+            f"✅ All {TOTAL_NOTEBOOKS} notebooks are in sync with source generators (zero drift)."
+        )
         return 0
     else:
         generate_all(base_dir)
@@ -86,10 +88,8 @@ def cmd_explore(args, base_dir: Path) -> int:
     # Forward any remaining args to explorer
     orig_argv = sys.argv
     try:
-        sys.argv = ["handbook explore"] + getattr(args, "explore_args", [])
-        if not getattr(args, "explore_args", []):
-            explorer.list_all()
-        elif args.explore_args[0] == "--list":
+        sys.argv = ["handbook explore", *getattr(args, "explore_args", [])]
+        if not getattr(args, "explore_args", []) or args.explore_args[0] == "--list":
             explorer.list_all()
         elif args.explore_args[0] == "--runbooks":
             explorer.list_runbooks()
@@ -122,7 +122,9 @@ def main(argv=None):
     )
 
     # validate
-    parser_val = subparsers.add_parser("validate", help="Run repository integrity validation suites")
+    parser_val = subparsers.add_parser(
+        "validate", help="Run repository integrity validation suites"
+    )
     parser_val.add_argument(
         "--target",
         choices=["all", "notebooks", "bundle", "links", "hygiene"],
@@ -139,10 +141,14 @@ def main(argv=None):
     subparsers.add_parser("readme", help="Rebuild / update README markdown blocks")
 
     # export-ipynb
-    subparsers.add_parser("export-ipynb", help="Export all Databricks source notebooks to standard .ipynb")
+    subparsers.add_parser(
+        "export-ipynb", help="Export all Databricks source notebooks to standard .ipynb"
+    )
 
     # explore
-    parser_explore = subparsers.add_parser("explore", help="Explore catalog, runbooks, architectures, and recipes")
+    parser_explore = subparsers.add_parser(
+        "explore", help="Explore catalog, runbooks, architectures, and recipes"
+    )
     parser_explore.add_argument("explore_args", nargs="*", help="Arguments for catalog explorer")
 
     args = parser.parse_args(argv)
