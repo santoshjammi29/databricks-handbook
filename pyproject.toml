@@ -40,7 +40,7 @@ spark = [
 connect = [
     # MUTUALLY EXCLUSIVE WITH SPARK: Databricks Connect replaces pyspark.
     # Do NOT install both into the same virtualenv.
-    "databricks-connect>=15.4.0,<15.5.0",
+    "databricks-connect>=15.4.0,<16.2.0",
     "databricks-sdk>=0.28.0",
 ]
 app = [
