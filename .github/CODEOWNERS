@@ -1,0 +1,14 @@
+# Databricks Handbook Codeowners
+# Global default
+* @santoshjammi29
+
+# Workflows and CI/CD
+/.github/ @santoshjammi29
+
+# Tooling and Package Code
+/src/ @santoshjammi29
+
+# Databricks Asset Bundle and Apps
+/databricks.yml @santoshjammi29
+/resources/ @santoshjammi29
+/apps/ @santoshjammi29

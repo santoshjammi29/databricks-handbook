@@ -1,0 +1,53 @@
+name: Content Error or Inaccuracy Report
+description: Report an error, outdated documentation, or technical inaccuracy in a notebook or guide.
+title: "[Content Error]: "
+labels: ["triage", "content-error"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve the **Databricks Handbook**! Please report inaccuracies, API deprecations, or errors below.
+  - type: input
+    id: recipe_id
+    attributes:
+      label: Affected Module / Recipe ID
+      description: e.g., Module 04 / 042_delta_live_tables_expectations_quarantine.py, or architectures/01_...
+      placeholder: "e.g. 042_delta_live_tables_expectations_quarantine.py"
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Databricks Runtime / Environment
+      description: What runtime or compute environment did you observe this in?
+      options:
+        - "Databricks Runtime 15.4 LTS"
+        - "Databricks Runtime 14.3 LTS"
+        - "Serverless Compute / Serverless SQL Warehouse"
+        - "Local PySpark / Spark Connect"
+        - "Documentation / Architectural Text Only"
+    validations:
+      required: true
+  - type: textarea
+    id: error_description
+    attributes:
+      label: Description of the Inaccuracy or Error
+      description: Explain what is incorrect, why it is incorrect, and reference official Databricks/Spark documentation if available.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested_correction
+    attributes:
+      label: Suggested Correction or Code Diff
+      description: If you have a proposed fix or corrected code, please share it here.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have verified this against current Databricks documentation or runtime behavior.
+          required: true
+        - label: I understand that notebooks are generated from `src/handbook/generators/` and cannot be hand-edited in `notebooks/`.
+          required: true

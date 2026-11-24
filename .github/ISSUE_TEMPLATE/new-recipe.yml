@@ -1,0 +1,56 @@
+name: New Recipe / Exercise Proposal
+description: Propose a new production Databricks recipe, drill, or incident scenario.
+title: "[New Recipe]: "
+labels: ["enhancement", "new-recipe"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose a new recipe for the **Databricks Handbook**. All recipes must satisfy the **Code-Test-Doc Triad**.
+  - type: dropdown
+    id: target_module
+    attributes:
+      label: Target Module
+      options:
+        - "Module 01: Platform Architecture & Security"
+        - "Module 02: Unity Catalog & Governance"
+        - "Module 03: Delta Lake Storage Engine"
+        - "Module 04: Lakeflow Ingestion & DLT"
+        - "Module 05: Lakeflow Jobs & Orchestration"
+        - "Module 06: Databricks SQL & Photon"
+        - "Module 07: Enterprise DevOps & DABs"
+        - "Module 08: Databricks Apps & Mosaic AI"
+        - "Module 09: FinOps & System Tables"
+        - "Module 10: Production Incidents & Blueprints"
+    validations:
+      required: true
+  - type: input
+    id: recipe_title
+    attributes:
+      label: Proposed Recipe Title
+      placeholder: "e.g. Liquid Clustering vs Partitioning on High-Cardinality Timestamp Keys"
+    validations:
+      required: true
+  - type: textarea
+    id: production_motivation
+    attributes:
+      label: Production Motivation & Real-World Failure Scenario
+      description: What real-world production challenge does this solve? What happens if done wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: triad_plan
+    attributes:
+      label: Code-Test-Doc Triad Implementation Plan
+      description: Describe the theory/mental model, executable code pattern, and automated test assertion.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Contributor Agreement
+      options:
+        - label: I will implement the generator code in `src/handbook/generators/modNN.py` following deterministic generator invariants.
+          required: true
+        - label: I will provide a Bad vs Good comparison with explicit operational consequences.
+          required: true
