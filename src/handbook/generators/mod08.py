@@ -3,7 +3,7 @@ Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG) (Notebooks 07
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "08_databricks_apps_and_mosaic_ai"
 MODULE_NAME = "Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)"

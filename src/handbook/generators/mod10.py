@@ -3,7 +3,7 @@ Module 10: Production Incidents, Triage & Architecture Blueprints (Notebooks 099
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "10_production_incidents_and_blueprints"
 MODULE_NAME = "Module 10: Production Incidents, Triage & Architecture Blueprints"

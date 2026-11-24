@@ -16,7 +16,7 @@ Usage:
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 CONTENT_DIR = BASE_DIR / "notebooks"
 RUNBOOKS_DIR = BASE_DIR / "runbooks"
 ARCH_DIR = BASE_DIR / "architectures"

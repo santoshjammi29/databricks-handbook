@@ -18,6 +18,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
+[project.scripts]
+handbook = "handbook.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

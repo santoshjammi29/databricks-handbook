@@ -3,7 +3,7 @@ Module 02: Unity Catalog — Governance, Security & Federation (Notebooks 011 - 
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "02_unity_catalog_and_governance"
 MODULE_NAME = "Module 02: Unity Catalog — Governance, Security & Federation"

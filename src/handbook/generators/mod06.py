@@ -3,7 +3,7 @@ Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer (Notebooks 055 - 065)
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "06_databricks_sql_and_photon"
 MODULE_NAME = "Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer"

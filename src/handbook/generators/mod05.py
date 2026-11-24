@@ -3,7 +3,7 @@ Module 05: Lakeflow Jobs, Workflows & Orchestration (Notebooks 044 - 054)
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "05_lakeflow_jobs_and_orchestration"
 MODULE_NAME = "Module 05: Lakeflow Jobs, Workflows & Orchestration"

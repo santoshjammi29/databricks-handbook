@@ -6,8 +6,9 @@ Generates the Curriculum Matrix and Track Overview for The Databricks Handbook R
 from pathlib import Path
 import re
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 NOTEBOOKS_DIR = BASE_DIR / "notebooks"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 MODULE_CONFIG = {
     "01_platform_architecture_and_security": {
@@ -178,7 +179,7 @@ def generate_markdown() -> str:
 
 def main():
     curriculum_md = generate_markdown()
-    out_file = BASE_DIR / "scripts" / "curriculum_matrix.md"
+    out_file = DATA_DIR / "curriculum_matrix.md"
     out_file.write_text(curriculum_md, encoding="utf-8")
     print(f"✅ Generated curriculum matrix at {out_file} ({len(curriculum_md)} bytes)")
 

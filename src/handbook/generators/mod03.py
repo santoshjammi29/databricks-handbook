@@ -3,7 +3,7 @@ Module 03: Delta Lake 3.x Deep Dive — Storage Engine & UniForm (Notebooks 022 
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "03_delta_lake_storage_engine"
 MODULE_NAME = "Module 03: Delta Lake 3.x Deep Dive — Storage Engine & UniForm"

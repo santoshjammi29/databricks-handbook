@@ -3,7 +3,7 @@ Module 04: Lakeflow Ingestion, Auto Loader & Declarative Pipelines (DLT) (Notebo
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "04_lakeflow_ingestion_and_dlt"
 MODULE_NAME = "Module 04: Lakeflow Ingestion, Auto Loader & Declarative Pipelines (DLT)"

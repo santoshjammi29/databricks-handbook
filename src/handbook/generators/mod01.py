@@ -3,7 +3,7 @@ Module 01: Platform Architecture, Workspaces & Control Plane (Notebooks 001 - 01
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "01_platform_architecture_and_security"
 MODULE_NAME = "Module 01: Platform Architecture, Workspaces & Control Plane"

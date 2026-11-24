@@ -5,8 +5,8 @@ Builds the flagship README.md for The Databricks Handbook.
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-CURRICULUM_FILE = BASE_DIR / "scripts" / "curriculum_matrix.md"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+CURRICULUM_FILE = Path(__file__).resolve().parent.parent / "data" / "curriculum_matrix.md"
 README_FILE = BASE_DIR / "README.md"
 
 def build_readme():

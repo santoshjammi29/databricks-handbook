@@ -66,8 +66,9 @@ def convert_databricks_py_to_ipynb(py_path: Path, out_path: Path):
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(nb_json, indent=2), encoding="utf-8")
 
-def export_all():
-    base_dir = Path(__file__).parent.parent
+def export_all(base_dir: Path = None):
+    if base_dir is None:
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent
     py_files = sorted(list((base_dir / "notebooks").glob("*/*.py")))
     out_dir = base_dir / "ipynb_export"
     out_dir.mkdir(parents=True, exist_ok=True)

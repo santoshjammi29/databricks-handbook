@@ -1,9 +1,10 @@
 """
-Test Suite: Databricks Asset Bundle (DAB) Integrity & Resource Verification
+Test Suite: Databricks Asset Bundle (DAB) Integrity & Resource Verification.
 """
 
 import re
-from pathlib import Path
+from handbook.curriculum import EXPECTED_BUNDLE_RESOURCES
+
 
 def test_bundle_config_exists(base_dir):
     bundle_file = base_dir / "databricks.yml"
@@ -15,21 +16,15 @@ def test_bundle_config_exists(base_dir):
     assert "staging:" in content
     assert "prod:" in content
 
+
 def test_bundle_resources_exist(base_dir):
     resources_dir = base_dir / "resources"
     assert resources_dir.exists() and resources_dir.is_dir()
-    
-    expected_resources = [
-        "jobs.yml",
-        "dlt_pipelines.yml",
-        "unity_catalog.yml",
-        "model_serving.yml",
-        "apps.yml",
-        "dashboards.yml"
-    ]
-    for res in expected_resources:
+
+    for res in EXPECTED_BUNDLE_RESOURCES:
         file_path = resources_dir / res
         assert file_path.exists(), f"Expected bundle resource missing: {res}"
+
 
 def test_notebook_paths_in_resources_exist(base_dir):
     resources_dir = base_dir / "resources"
@@ -40,12 +35,14 @@ def test_notebook_paths_in_resources_exist(base_dir):
             nb_abs_path = base_dir / nb_rel_path
             assert nb_abs_path.exists(), f"{yml_file.name} references non-existent notebook: {nb_rel_path}"
 
+
 def test_databricks_app_integrity(base_dir):
     app_dir = base_dir / "apps" / "lakehouse_finops_monitor"
     assert app_dir.exists(), "apps/lakehouse_finops_monitor directory is missing"
     assert (app_dir / "app.py").exists(), "app.py is missing in apps/lakehouse_finops_monitor"
     assert (app_dir / "app.yaml").exists(), "app.yaml manifest is missing in apps/lakehouse_finops_monitor"
     assert (app_dir / "requirements.txt").exists(), "requirements.txt is missing in apps/lakehouse_finops_monitor"
+
 
 def test_github_actions_ci_workflow_exists(base_dir):
     workflow_file = base_dir / ".github" / "workflows" / "ci.yml"

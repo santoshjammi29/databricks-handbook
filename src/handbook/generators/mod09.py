@@ -3,7 +3,7 @@ Module 09: FinOps, Observability & System Tables Masterclass (Notebooks 088 - 09
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "09_finops_and_system_tables"
 MODULE_NAME = "Module 09: FinOps, Observability & System Tables Masterclass"

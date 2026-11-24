@@ -3,7 +3,7 @@ Module 07: Enterprise DevOps — DABs, CI/CD & Testing (Notebooks 066 - 076)
 """
 
 from pathlib import Path
-from notebook_builder import build_notebook, write_notebook
+from handbook.notebooks.builder import build_notebook, write_notebook
 
 MODULE_FOLDER = "07_enterprise_devops_and_dabs"
 MODULE_NAME = "Module 07: Enterprise DevOps — DABs, CI/CD & Testing"
