@@ -574,13 +574,13 @@ requires-dist = [
     { name = "delta-spark", marker = "extra == 'spark'", specifier = ">=3.2.0,<3.3.0" },
     { name = "mlflow", marker = "extra == 'ml'", specifier = ">=2.15.0" },
     { name = "pandas", marker = "extra == 'app'", specifier = ">=2.0.0" },
-    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5.0" },
+    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.10.1" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.7.0" },
     { name = "pyspark", marker = "extra == 'spark'", specifier = ">=3.5.0,<3.6.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.2.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.17.6" },
     { name = "streamlit", marker = "extra == 'app'", specifier = ">=1.35.0" },
 ]
 provides-extras = ["dev", "spark", "connect", "app", "ml"]
