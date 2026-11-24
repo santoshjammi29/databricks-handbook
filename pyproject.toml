@@ -33,7 +33,7 @@ dev = [
     "pip-audit>=2.7.0",
 ]
 spark = [
-    "pyspark>=3.5.0,<3.6.0",
+    "pyspark>=3.5.0,<4.4.0",
     "delta-spark>=3.2.0,<3.3.0",
     "chispa>=0.9.4",
 ]
