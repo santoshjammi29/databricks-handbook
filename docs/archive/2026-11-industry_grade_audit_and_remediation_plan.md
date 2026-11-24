@@ -1,4 +1,8 @@
 # 🏛️ Enterprise Repository Audit & Structural Remediation Plan
+
+> [!NOTE]
+> **Archival Notice**: This historical document was imported during initial cross-repository consolidation and contains audit findings for the web platform (`lakehouse-architect`). For the authoritative Databricks Handbook repository audit and architecture standards, see [`../audits/2026-11-structure-audit.md`](../audits/2026-11-structure-audit.md).
+
 **Target System**: `lakehouse-architect` (`moderndataengineer.uk`)  
 **Evaluation Scope**: Structural Fragmentation, Visual Presentation, Code Integrity, and Technical Debt  
 **Target Architecture**: Cloudflare OpenNext / Workers + Next.js 16 App Router + R2 Sharded Asset Tier  

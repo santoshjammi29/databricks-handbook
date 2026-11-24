@@ -51,7 +51,7 @@ def validate_links(
     if base_dir is None:
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
 
-    # Collect markdown files, excluding git, venvs, and optionally .agents
+    # Collect markdown files, excluding git, venvs, package data, and optionally .agents
     md_files: list[Path] = []
     ignored_dirs = {".git", ".venv", ".cache", ".pytest_cache", ".ruff_cache"}
     for p in base_dir.rglob("*.md"):
@@ -59,6 +59,9 @@ def validate_links(
         if not include_agents and ".agents" in parts:
             continue
         if any(part in ignored_dirs for part in parts):
+            continue
+        # Exclude internal package data templates
+        if "src" in parts and "data" in parts:
             continue
         md_files.append(p)
 

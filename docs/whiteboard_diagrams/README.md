@@ -4,8 +4,29 @@
 >
 > 📘 **Complete Handbook Blueprints (20 Pillars & 8 Playbooks)**: See [`handbook_whiteboard_blueprints.md`](./handbook_whiteboard_blueprints.md) for the end-to-end Dual-Plane & 3-Panel Mermaid whiteboard diagrams covering all 20 Knowledge Pillars and 8 Playbooks from the [Data Engineering Interview Handbook](https://github.com/santoshjammi29/data-engineering-interview-handbook).
 
-All visual blueprint files are available in this repository under [`assets/whiteboards/`](../../assets/whiteboards) and [`public/diagrams/`](../../public/diagrams).
+All visual blueprint files are available in this repository under [`assets/whiteboards/`](../../assets/whiteboards).
 They can also be interactively inspected with pan/zoom and theme controls on the live website at [/whiteboards](https://moderndataengineer.uk/whiteboards).
+
+
+<a id="fabric-power-bi"></a>
+<a id="data-pipelines-ingestion"></a>
+<a id="platform-landscape"></a>
+<a id="governance-security"></a>
+<a id="storage-engine"></a>
+<a id="compute-optimization"></a>
+<a id="data-modeling-architecture"></a>
+<a id="databricks-platform-master"></a>
+<a id="databricks-medallion-pipeline"></a>
+<a id="unity-catalog-governance"></a>
+<a id="delta-lake-under-the-hood"></a>
+<a id="delta-vs-iceberg-architecture"></a>
+<a id="lakehouse-acid-concurrency"></a>
+<a id="delta-live-tables-pipeline"></a>
+<a id="databricks-dabs-devops-pipeline"></a>
+<a id="spark-catalyst-photon-engine"></a>
+<a id="photon-engine-vs-jvm"></a>
+<a id="spark-memory-management-spill"></a>
+<a id="lakehouse-finops-cost-optimization"></a>
 
 ## Domain Table of Contents
 
