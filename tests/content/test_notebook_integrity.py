@@ -62,3 +62,34 @@ def test_notebook_python_ast_syntax(base_dir):
     assert not syntax_errors, (
         f"Detected {len(syntax_errors)} Python AST syntax errors:\n" + "\n".join(syntax_errors)
     )
+
+
+def test_notebook_triad_and_asserts(base_dir):
+    """Asserts that every notebook conforms to the Code-Test-Doc Triad standards."""
+    nb_files = sorted(list((base_dir / "notebooks").glob("*/*.py")))
+    missing_scenario = []
+    missing_objective = []
+    missing_arch = []
+    missing_assert = []
+
+    # Two architectural/incident forensic overview notebooks are declarative documentation patterns
+    exempt_from_assert = {
+        "033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py",
+        "099_production_incident_01_driver_and_executor_oom_forensic_triage.py",
+    }
+
+    for nb in nb_files:
+        content = nb.read_text(encoding="utf-8")
+        if "Enterprise Business Scenario" not in content:
+            missing_scenario.append(nb.name)
+        if "Engineering Objective" not in content:
+            missing_objective.append(nb.name)
+        if "Architectural Context" not in content:
+            missing_arch.append(nb.name)
+        if "assert " not in content and nb.name not in exempt_from_assert:
+            missing_assert.append(nb.name)
+
+    assert not missing_scenario, f"Missing Enterprise Business Scenario: {missing_scenario}"
+    assert not missing_objective, f"Missing Engineering Objective: {missing_objective}"
+    assert not missing_arch, f"Missing Architectural Context: {missing_arch}"
+    assert not missing_assert, f"Missing automated assertions in code: {missing_assert}"

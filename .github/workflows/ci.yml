@@ -1,34 +1,150 @@
-name: CI Databricks Integrity & Test Suite
+name: CI Quality Gate
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  validate:
+  lint:
+    name: Lint & Code Style
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887d94cf343a4e69b5635f79a9ef1c9b369c0d3f # v4.2.0
+        with:
+          enable-cache: true
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@0b93645e9fb717ef6b1d4a858d4d1dee3ac30aaf # v5.3.0
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version-file: ".python-version"
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest
+      - name: Install Dev Tooling
+        run: uv sync --extra dev
 
-      - name: Validate Repository Integrity
-        run: |
-          handbook validate --fast
+      - name: Run Ruff Linter
+        run: uv run ruff check src tests apps
 
-      - name: Run Integrity Test Suite
+      - name: Run Ruff Format Check
+        run: uv run ruff format --check src tests apps
+
+  build-drift:
+    name: Deterministic Build & Drift Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887d94cf343a4e69b5635f79a9ef1c9b369c0d3f # v4.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fb717ef6b1d4a858d4d1dee3ac30aaf # v5.3.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Package
+        run: uv sync --extra dev
+
+      - name: Verify Generator vs Notebook Disk Drift
+        run: uv run python -m handbook.cli build --check
+
+  validate:
+    name: Artifact & Bundle Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887d94cf343a4e69b5635f79a9ef1c9b369c0d3f # v4.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fb717ef6b1d4a858d4d1dee3ac30aaf # v5.3.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Package
+        run: uv sync --extra dev
+
+      - name: Validate Databricks Notebooks Formatting & AST
+        run: uv run python -m handbook.cli validate --target notebooks
+
+      - name: Validate DAB Bundle Configuration & Resources
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          pytest tests/ -v
+          if [ -n "$DATABRICKS_HOST" ] && [ -n "$DATABRICKS_TOKEN" ]; then
+            echo "Running online Databricks bundle validate..."
+            curl -fsSL https://raw.githubusercontent.com/databricks/cli/main/install.sh | sh
+            databricks bundle validate -t dev
+          else
+            echo "Running offline bundle schema and resource path validation..."
+            uv run python -m handbook.cli validate --target bundle
+          fi
+
+      - name: Validate Repository Hygiene & Architectural Invariants
+        run: uv run python -m handbook.cli validate --target hygiene
+
+  test:
+    name: Test Suite & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887d94cf343a4e69b5635f79a9ef1c9b369c0d3f # v4.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fb717ef6b1d4a858d4d1dee3ac30aaf # v5.3.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Package & Test Dependencies
+        run: uv sync --extra dev
+
+      - name: Run Test Suite with Coverage
+        run: uv run pytest --cov=handbook tests/ -v
+
+  links:
+    name: Markdown Link & Anchor Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887d94cf343a4e69b5635f79a9ef1c9b369c0d3f # v4.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fb717ef6b1d4a858d4d1dee3ac30aaf # v5.3.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Package
+        run: uv sync --extra dev
+
+      - name: Validate Internal Relative Links & Anchors
+        run: uv run python -m handbook.cli validate --target links

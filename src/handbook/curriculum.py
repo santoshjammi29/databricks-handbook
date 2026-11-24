@@ -114,6 +114,15 @@ TOTAL_TOPICS: int = 132
 # Centralized fictitious placeholder Service Principal UUID used in mock generators and examples
 FICTITIOUS_SP_UUID: str = "4f63c679-0db8-40a2-b91a-7b3b7e7136f4"
 
+# Set of all registered, benign mock/example UUIDs permitted in educational notebooks and configs
+REGISTERED_MOCK_UUIDS: frozenset[str] = frozenset(
+    {
+        FICTITIOUS_SP_UUID,
+        "a1b2c3d4-e5f6-7890-abcd-ef1234567890",  # Example account_id in 005
+        "99a8b7c6-1234-5678-abcd-ef0123456789",  # Example metastore_id in 019
+    }
+)
+
 EXPECTED_BUNDLE_RESOURCES: tuple[str, ...] = (
     "jobs.yml",
     "dlt_pipelines.yml",
