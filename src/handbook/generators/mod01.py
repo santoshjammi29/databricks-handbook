@@ -440,6 +440,8 @@ assert cicd_sp["token_type"] == "OAuth M2M"
             "title": "Workspace Audit Logging & Security Event Ingestion via Diagnostic Settings",
             "filename": "010_workspace_audit_logging_and_security_event_ingestion_via_diagnostic_settings.py",
             "difficulty": "Advanced",
+            "verify": "T2",
+            "imports": ["from pyspark.sql import functions as F"],
             "business_scenario": "A cyber-security operations center (SOC) requires real-time alerting on unauthorized notebook exports, permissions escalation, and unexpected secret reads across all Databricks workspaces.",
             "problem_statement": "Develop a PySpark pipeline ingesting raw cloud diagnostic audit logs (Azure Monitor / AWS CloudWatch) into a Delta Lake security audit table with automated intrusion detection rules.",
             "architectural_notes": "Databricks generates comprehensive JSON audit logs for every workspace action (notebook commands, login attempts, secret reads, cluster changes). These stream to cloud storage and can be queried directly via `system.access.audit` or custom Bronze audit tables.",

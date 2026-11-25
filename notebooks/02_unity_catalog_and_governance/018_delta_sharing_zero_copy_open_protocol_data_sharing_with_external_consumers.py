@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 018. Delta Sharing: Zero-Copy Open Protocol Data Sharing with External Consumers
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Delta Sharing is the industry's first open source protocol for secure, real-time data exchange across platforms. External recipients query data directly using Python, Pandas, Power BI, Apache Spark, or DuckDB without running Databricks compute.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -67,4 +51,4 @@ assert len(share_spec["tables"]) == 1
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Delta Sharing differ from cloud-specific data sharing solutions like Snowflake Data Sharing?
-# MAGIC 1. How does the Delta Sharing protocol ensure security when returning cloud storage pre-signed URLs to recipients?
+# MAGIC 2. How does the Delta Sharing protocol ensure security when returning cloud storage pre-signed URLs to recipients?

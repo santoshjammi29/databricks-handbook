@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 064. DBSQL Alerts, Automated Refresh Schedules & SLA-Driven Slack Notifications
 # MAGIC **Module**: Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC DBSQL Alerts execute a query on a recurring schedule. When the returned result crosses a predefined threshold, Databricks automatically fires notifications to configured destinations (Slack, Teams, PagerDuty, Webhooks).
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -75,4 +59,4 @@ assert triggered is True
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do DBSQL Alerts evaluate conditions across single-value versus multi-row query results?
-# MAGIC 1. What is the difference between 'Trigger Once' and 'Trigger Each Time' in Databricks SQL Alerts?
+# MAGIC 2. What is the difference between 'Trigger Once' and 'Trigger Each Time' in Databricks SQL Alerts?

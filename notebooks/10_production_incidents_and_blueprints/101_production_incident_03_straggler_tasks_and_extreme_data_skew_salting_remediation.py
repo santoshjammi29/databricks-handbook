@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 101. Production Incident 03: Straggler Tasks & Extreme Data Skew Salting Remediation
 # MAGIC **Module**: Module 10: Production Incidents, Triage & Architecture Blueprints
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T2 Local-executable`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -19,20 +19,7 @@
 # MAGIC When one key has millions of records while other keys have hundreds, standard hash partitioning routes all millions of records to a single worker core. Key salting appends a pseudo-random suffix to the skewed key, distributing it across $N$ worker buckets.
 # COMMAND ----------
 
-import os
-import sys
-from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -74,4 +61,4 @@ assert df_joined.count() == 3
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Adaptive Query Execution (AQE) detect and resolve join skew at runtime?
-# MAGIC 1. What is the mathematical principle behind key salting in distributed hash joins?
+# MAGIC 2. What is the mathematical principle behind key salting in distributed hash joins?

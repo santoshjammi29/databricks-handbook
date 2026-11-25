@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 048. Cluster Allocation Strategy: Ephemeral Job Clusters vs. Shared Compute Pools
 # MAGIC **Module**: Module 05: Lakeflow Jobs, Workflows & Orchestration
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC In a multi-task job, tasks can share a single **Job Cluster** (`job_cluster_key`), eliminating VM spinup time for downstream tasks while maintaining the lower Job DBU pricing tier. Pre-warmed Instance Pools reduce VM provisioning latency to under 45 seconds.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -77,4 +61,4 @@ assert "Shared driver/worker" in cluster_strategies["Shared_Job_Cluster"]["isola
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What is the difference between sharing a Job Cluster across tasks in a workflow vs. using an All-Purpose cluster?
-# MAGIC 1. How do Instance Pools reduce cluster startup latency?
+# MAGIC 2. How do Instance Pools reduce cluster startup latency?

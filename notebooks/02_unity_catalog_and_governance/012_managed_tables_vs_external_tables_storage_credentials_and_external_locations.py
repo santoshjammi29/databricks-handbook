@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 012. Managed Tables vs. External Tables: Storage Credentials & External Locations
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Managed tables have their file lifecycle controlled by Unity Catalog; dropping a managed table deletes both metadata and Parquet data. External tables use an External Location and Storage Credential; dropping an external table removes only catalog metadata, leaving underlying cloud files intact.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -74,4 +58,4 @@ assert "DELETES metadata AND underlying Parquet" in table_specs["managed_table"]
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What happens to the physical data on cloud object storage when a user drops an External Table versus a Managed Table?
-# MAGIC 1. How does Unity Catalog authenticate to cloud storage for External Tables?
+# MAGIC 2. How does Unity Catalog authenticate to cloud storage for External Tables?

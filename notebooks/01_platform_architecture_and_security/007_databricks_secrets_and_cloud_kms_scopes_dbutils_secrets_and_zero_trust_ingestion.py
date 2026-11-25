@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 007. Databricks Secrets & Cloud KMS Scopes: dbutils.secrets & Zero-Trust Ingestion
 # MAGIC **Module**: Module 01: Platform Architecture, Workspaces & Control Plane
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Databricks Secret Scopes store encrypted key-value pairs. They can be Databricks-backed (encrypted in Control Plane) or Cloud-KMS-backed (Azure Key Vault / AWS Secrets Manager). The Spark engine automatically intercepts secret strings and replaces them with `[REDACTED]` in notebook logs.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -72,4 +56,4 @@ print("Masked in production logs: [REDACTED]")
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Databricks prevent secrets from being printed in notebook outputs?
-# MAGIC 1. What is the difference between an Azure Key Vault-backed secret scope and a Databricks-backed secret scope?
+# MAGIC 2. What is the difference between an Azure Key Vault-backed secret scope and a Databricks-backed secret scope?

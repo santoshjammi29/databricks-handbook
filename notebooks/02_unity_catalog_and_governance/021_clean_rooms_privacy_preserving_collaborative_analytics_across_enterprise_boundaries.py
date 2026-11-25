@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 021. Clean Rooms: Privacy-Preserving Collaborative Analytics Across Enterprise Boundaries
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Architect`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Architect` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Databricks Clean Rooms provide a secure environment where two or more parties share and analyze data without exposing raw underlying records. Participants write queries that can return only approved aggregations.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -72,4 +56,4 @@ assert not clean_room_contract["privacy_rules"]["allow_raw_row_export"]
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do Databricks Clean Rooms prevent collaborative participants from reconstructing private individual records?
-# MAGIC 1. What is the underlying technology that powers Clean Rooms in Unity Catalog?
+# MAGIC 2. What is the underlying technology that powers Clean Rooms in Unity Catalog?

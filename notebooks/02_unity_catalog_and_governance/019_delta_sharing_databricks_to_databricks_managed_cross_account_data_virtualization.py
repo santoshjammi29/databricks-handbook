@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 019. Delta Sharing Databricks-to-Databricks: Managed Cross-Account Data Virtualization
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC When both provider and recipient use Databricks with Unity Catalog, Delta Sharing is fully managed. The provider shares data directly using the recipient's global metastore ID (`cloud:region:metastore-id`), completely eliminating manual credential files and token rotation.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -66,4 +50,4 @@ assert recipient_spec["automatic_lineage"] is True
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What is the difference between Open Delta Sharing and Databricks-to-Databricks Delta Sharing?
-# MAGIC 1. How is data lineage maintained across two separate Databricks accounts in managed Delta Sharing?
+# MAGIC 2. How is data lineage maintained across two separate Databricks accounts in managed Delta Sharing?

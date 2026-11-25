@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 091. Cost Breakdown Analysis: Interactive vs. Job vs. DBSQL vs. Serverless vs. DLT
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC The `sku_name` attribute in `system.billing.usage` identifies the exact compute engine. Classifying SKUs enables architectural FinOps analysis to track migration from expensive interactive VMs to cost-optimized serverless engines.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -76,4 +60,4 @@ assert "dbu_share_pct" in sql_workload_breakdown
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What is considered a healthy ratio of Interactive vs. Automated Job DBU consumption in an enterprise?
-# MAGIC 1. How can you identify scheduled batch workloads incorrectly running under an `ALL_PURPOSE` SKU?
+# MAGIC 2. How can you identify scheduled batch workloads incorrectly running under an `ALL_PURPOSE` SKU?

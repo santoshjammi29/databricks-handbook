@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 097. Aggressive Auto-Stop Policies & Cold Compute Idle Reduction Strategies
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Idle compute is the single largest source of cloud waste in analytics platforms. Enforcing aggressive auto-stop policies and transitioning users to Serverless compute (which spins up in seconds) eliminates the developer friction of waiting for clusters.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -69,4 +53,4 @@ assert savings["annual_savings_usd"] > 50000
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. Why do developers resist short auto-stop timeouts, and how does Serverless compute resolve that friction?
-# MAGIC 1. How can you audit which clusters frequently hit their auto-termination limit?
+# MAGIC 2. How can you audit which clusters frequently hit their auto-termination limit?

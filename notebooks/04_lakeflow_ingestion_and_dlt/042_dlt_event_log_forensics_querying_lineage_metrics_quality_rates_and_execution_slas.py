@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 042. DLT Event Log Forensics: Querying Lineage, Metrics, Quality Rates & Execution SLAs
 # MAGIC **Module**: Module 04: Lakeflow Ingestion, Auto Loader & Declarative Pipelines (DLT)
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC DLT records all pipeline telemetry (cluster events, data flow metrics, expectation evaluations, lineage relationships) in a Delta table located at the pipeline's storage root (`storage_location/system/events`).
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -70,4 +54,4 @@ assert "event_log(" in sql_event_log_query
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do you query the Delta Live Tables event log to find which expectations had the highest failure rates?
-# MAGIC 1. What information is captured in `details:flow_progress` within the DLT event log?
+# MAGIC 2. What information is captured in `details:flow_progress` within the DLT event log?

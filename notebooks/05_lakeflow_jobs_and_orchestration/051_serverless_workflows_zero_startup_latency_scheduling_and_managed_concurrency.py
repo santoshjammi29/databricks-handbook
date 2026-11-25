@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 051. Serverless Workflows: Zero-Startup-Latency Scheduling & Managed Concurrency
 # MAGIC **Module**: Module 05: Lakeflow Jobs, Workflows & Orchestration
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Serverless compute for Lakeflow Jobs provisions pre-warmed container micro-VMs in seconds. It scales worker capacity dynamically to match workload demand and scales to zero immediately upon job completion.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -70,4 +54,4 @@ assert savings["serverless_hours"] < savings["classic_hours"] / 4
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Serverless compute for Workflows eliminate VM provisioning latency?
-# MAGIC 1. What are the networking and storage access prerequisites for enabling Serverless Workflows?
+# MAGIC 2. What are the networking and storage access prerequisites for enabling Serverless Workflows?

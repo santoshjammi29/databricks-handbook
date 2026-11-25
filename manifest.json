@@ -2,7 +2,7 @@
   "repo": "databricks-handbook",
   "github": "santoshjammi29/databricks-handbook",
   "name": "Databricks Handbook",
-  "role": "105 Databricks production recipes, Unity Catalog governance, Delta Lake 3.x, Lakeflow, Serverless, DABs, FinOps",
+  "role": "105 Databricks recipes across verification tiers T0-T3, Unity Catalog governance, Delta Lake 3.x, Lakeflow, Serverless, DABs, FinOps",
   "last_synced": "2026-11-24T09:03:01.318908Z",
   "entry_count": 116,
   "entries": [

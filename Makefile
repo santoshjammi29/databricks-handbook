@@ -2,7 +2,7 @@
 # The Databricks Handbook - Automation & Quality Gate Makefile
 # ==============================================================================
 
-.PHONY: help install build build-check lint lint-fix test validate validate-fast docs readme-check schema smoke clean check
+.PHONY: help install build build-check lint lint-fix test validate validate-fast docs readme-check audit-check schema smoke clean check
 
 PYTHON ?= python3
 UV ?= uv
@@ -19,10 +19,11 @@ help:
 	@echo "  validate-fast - Run fast validators (skips deep link checking)"
 	@echo "  docs          - Regenerate README dynamic blocks"
 	@echo "  readme-check  - Verify README dynamic blocks exist and have zero drift"
+	@echo "  audit-check   - Verify docs/verification.md and notebook tiers have zero drift"
 	@echo "  schema        - Refresh Databricks bundle JSON schema from Databricks CLI"
 	@echo "  smoke         - Run smoke test suite against Spark runtime"
 	@echo "  clean         - Clean temporary build caches and virtualenv artifacts"
-	@echo "  check         - Run full CI quality gate (lint + build-check + readme-check + validate-fast + test)"
+	@echo "  check         - Run full CI quality gate (lint + build-check + readme-check + audit-check + validate-fast + test)"
 
 install:
 	$(UV) sync --locked --extra dev
@@ -56,6 +57,9 @@ docs:
 readme-check:
 	$(UV) run handbook readme --check
 
+audit-check:
+	$(UV) run handbook audit-content --check
+
 schema:
 	databricks bundle schema > src/handbook/data/bundle.schema.json
 	databricks --version | head -n 1 > src/handbook/data/bundle.schema.version
@@ -67,4 +71,4 @@ clean:
 	rm -rf .pytest_cache .ruff_cache build dist src/*.egg-info *.egg-info htmlcov .coverage
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
-check: lint build-check readme-check validate-fast test
+check: lint build-check readme-check audit-check validate-fast test

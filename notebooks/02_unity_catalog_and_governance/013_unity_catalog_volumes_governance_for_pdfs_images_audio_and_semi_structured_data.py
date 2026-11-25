@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 013. Unity Catalog Volumes: Governance for PDFs, Images, Audio & Semi-Structured Data
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Volumes represent governed storage objects in Unity Catalog that provide POSIX-compatible filesystem access to unstructured files, machine learning models, and raw data files. Managed Volumes reside in schema storage; External Volumes point to customer cloud buckets.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -64,4 +48,4 @@ assert sample_file.startswith("/Volumes/"), "Volume path must conform to /Volume
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do Unity Catalog Volumes differ from traditional relational tables in Databricks?
-# MAGIC 1. Can machine learning libraries like PyTorch or HuggingFace load model checkpoints directly from Volumes?
+# MAGIC 2. Can machine learning libraries like PyTorch or HuggingFace load model checkpoints directly from Volumes?

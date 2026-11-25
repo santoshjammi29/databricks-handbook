@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 034. Auto Loader Schema Inference, addNewColumns Evolution & _rescued_data Quarantine
 # MAGIC **Module**: Module 04: Lakeflow Ingestion, Auto Loader & Declarative Pipelines (DLT)
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T2 Local-executable`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -19,20 +19,7 @@
 # MAGIC Auto Loader stores the active schema contract in `cloudFiles.schemaLocation`. When a new column appears, `addNewColumns` updates the Delta table schema and restarts the stream. If a data type conflicts, the original payload is captured safely in `_rescued_data`.
 # COMMAND ----------
 
-import os
-import sys
-from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -67,4 +54,4 @@ assert df_corrupt.count() == 1
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What happens under the hood when Auto Loader encounters a new column with `schemaEvolutionMode = addNewColumns`?
-# MAGIC 1. How does the `_rescued_data` column capture schema collisions and unparseable JSON tokens?
+# MAGIC 2. How does the `_rescued_data` column capture schema collisions and unparseable JSON tokens?

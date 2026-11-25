@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 082. Mosaic AI Model Serving: Serverless Real-Time Endpoints & Provisioned Concurrency
 # MAGIC **Module**: Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Mosaic AI Model Serving deploys machine learning models, custom Python code, and LLMs as highly available, serverless microservice REST APIs. It supports automatic scale-to-zero and provisioned concurrency for guaranteed latency.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -77,4 +61,4 @@ assert entity["scale_to_zero_enabled"] is True
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Mosaic AI Model Serving achieve scale-to-zero while minimizing cold start latency?
-# MAGIC 1. How do you implement a blue/green or canary rollout on a Model Serving endpoint?
+# MAGIC 2. How do you implement a blue/green or canary rollout on a Model Serving endpoint?

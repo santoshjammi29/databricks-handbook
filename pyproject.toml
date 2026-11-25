@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "databricks-handbook"
 version = "1.1.0"
-description = "The Databricks Handbook: 105 Production Databricks Data Intelligence Platform Recipes, Unity Catalog, Delta Lake 3.x, Lakeflow, Photon, DABs, and Incident Runbooks"
+description = "The Databricks Handbook: 105 Databricks Recipes across Verification Tiers T0-T3 (Unity Catalog, Delta Lake 3.x, Lakeflow, Photon, DABs, and Incident Runbooks)"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 authors = [

@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 076. Blue/Green Pipeline Deployment & Zero-Downtime Bundle Rollouts
 # MAGIC **Module**: Module 07: Enterprise DevOps — DABs, CI/CD & Testing
-# MAGIC **Mastery Level**: `Architect`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Architect` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Blue/Green deployment maintains two identical production environments (Blue and Green). The active reporting view points to Blue (`prod.gold.sales -> sales_blue`). When Green completes deployment and verification, the view definition is atomically updated to point to Green.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -71,4 +55,4 @@ assert "fact_sales_green" in blue_green_cutover_sql
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does an atomic view redirection enable zero-downtime upgrades in a lakehouse architecture?
-# MAGIC 1. What is the rollback procedure if a newly cutover Green pipeline encounters corrupted data?
+# MAGIC 2. What is the rollback procedure if a newly cutover Green pipeline encounters corrupted data?

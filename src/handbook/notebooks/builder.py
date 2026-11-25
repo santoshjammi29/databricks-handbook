@@ -2,11 +2,18 @@
 Notebook Builder Utility
 Constructs Databricks native Python source notebook (.py) files
 with clean '# Databricks notebook source', '# COMMAND ----------', and '# MAGIC %md' blocks.
-Optimized for Databricks Repos / Git Folders, local PySpark, and CI/CD test runners.
+Optimized for Databricks Repos / Git Folders, local PySpark (`handbook run-local`), and CI/CD.
 """
 
 import re
 from pathlib import Path
+
+TIER_BADGES: dict[str, str] = {
+    "T0": "T0 Reference",
+    "T1": "T1 Simulated",
+    "T2": "T2 Local-executable",
+    "T3": "T3 Workspace-executable",
+}
 
 
 def clean_text_spacing(text: str) -> str:
@@ -52,6 +59,8 @@ def build_notebook(
     module_folder: str = "",
     module_name: str = "",
     difficulty: str = "Intermediate",
+    verify: str = "T1",
+    imports: list[str] | None = None,
     business_scenario: str = "",
     problem_statement: str = "",
     architectural_notes: str = "",
@@ -62,10 +71,10 @@ def build_notebook(
 ) -> str:
     """
     Assembles a complete Databricks source notebook in .py format.
-    Ensures standard header, markdown documentation, executable code cells,
-    and cell separator delimiters.
+    Renders only the imports actually used by the recipe (no unused SparkSession boilerplate).
     """
     cells = []
+    tier_label = TIER_BADGES.get(verify, "T1 Simulated")
 
     # Header cell
     cells.append("# Databricks notebook source")
@@ -73,8 +82,8 @@ def build_notebook(
     # Cell 1: Overview & Metadata (%md)
     intro_md = f"""# {nb_id}. {title}
 **Module**: {module_name}  
-**Mastery Level**: `{difficulty}`  
-**Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+**Mastery Level**: `{difficulty}` | **Verification Tier**: `{tier_label}`  
+**Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 
 ---
 
@@ -88,22 +97,9 @@ def build_notebook(
 {architectural_notes}"""
     cells.append(format_markdown_cell(intro_md))
 
-    # Cell 2: Imports & Session Initialization (Python)
-    setup_code = """import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \\
-    .appName("DatabricksHandbook") \\
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \\
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \\
-    .config("spark.sql.adaptive.enabled", "true") \\
-    .getOrCreate()"""
-    cells.append(clean_code_cell(setup_code))
+    # Optional Imports Cell (only emitted when the recipe actually needs explicit imports)
+    if imports:
+        cells.append(clean_code_cell("\n".join(imports)))
 
     # Implementation Sections
     if sections:
@@ -112,11 +108,9 @@ spark = SparkSession.builder \\
             sec_desc = sec.get("explanation", "")
             sec_code = sec.get("code", "")
 
-            # Markdown header for section
             sec_md = f"### {sec_title}\n\n{sec_desc}"
             cells.append(format_markdown_cell(sec_md))
 
-            # Code block for section
             if sec_code:
                 cells.append(clean_code_cell(sec_code))
 
@@ -134,12 +128,11 @@ spark = SparkSession.builder \\
 
     if interview_questions:
         summary_md += "\n---\n\n### 🎓 Architect Interview Questions & Defense\n\n"
-        for q in interview_questions:
-            summary_md += f"1. {q}\n"
+        for q_idx, q in enumerate(interview_questions, 1):
+            summary_md += f"{q_idx}. {q}\n"
 
     cells.append(format_markdown_cell(summary_md))
 
-    # Join with standard Databricks cell delimiter
     notebook_content = "\n# COMMAND ----------\n\n".join(cells)
     return notebook_content + "\n"
 

@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 083. Enterprise RAG Architecture: Semantic Chunking, Dense Vector + Sparse BM25 Search
 # MAGIC **Module**: Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)
-# MAGIC **Mastery Level**: `Architect`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Architect` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Hybrid search combines dense vector embeddings (which capture conceptual meaning) with sparse lexical keywords like BM25 (which capture exact terms, acronyms, and product IDs). A re-ranker model then scores the combined candidates.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -72,4 +56,4 @@ assert score_doc2 > score_doc1, "Hybrid search correctly elevated exact legal cl
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. Why does pure vector embedding search often fail on domain-specific acronyms and part numbers?
-# MAGIC 1. How does Reciprocal Rank Fusion (RRF) combine dense and sparse search rankings?
+# MAGIC 2. How does Reciprocal Rank Fusion (RRF) combine dense and sparse search rankings?

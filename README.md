@@ -1,6 +1,6 @@
 # ⚡ The Databricks Handbook
 
-**105 Production Coding Recipes, Unity Catalog Governance, Delta Lake 3.x, Lakeflow, Photon & Incident Runbooks**
+**105 Databricks Recipes across Four Verification Tiers (T0–T3), Unity Catalog Governance, Delta Lake 3.x, Lakeflow, Photon & Incident Runbooks**
 
 [![CI Quality Gate](https://github.com/santoshjammi29/databricks-handbook/actions/workflows/ci.yml/badge.svg)](https://github.com/santoshjammi29/databricks-handbook/actions)
 [![Databricks Runtime](https://img.shields.io/badge/Databricks-Runtime_15.4%2B_LTS-FF3621?style=flat-square&logo=databricks&logoColor=white)](https://www.databricks.com/)
@@ -12,16 +12,26 @@
 [![DABs](https://img.shields.io/badge/Deploy-Databricks_Asset_Bundles-008080?style=flat-square&logo=databricks&logoColor=white)](databricks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-*The definitive enterprise reference repository of 105 battle-tested Databricks Data Intelligence Platform recipes, architectural blueprints, and disaster recovery incident runbooks.*  
+*An enterprise reference repository of 105 Databricks Data Intelligence Platform recipes (tracked by automated execution tier in [Verification Tiers](docs/verification.md)), architectural blueprints, and disaster recovery incident runbooks.*  
 *Structured in the official **Databricks Source Notebook format (`.py`)** for seamless 1-click sync with **Databricks Repos / Git Folders**, **Databricks Asset Bundles (DABs)**, **VS Code / Databricks Connect v2**, and automated CI/CD quality gates.*
 
-[Quickstart](#quickstart) • [What's Inside](#whats-inside) • [Whiteboard Blueprints](#whiteboard-blueprints) • [Incident Runbooks](#incident-runbooks) • [Interview Matrix](#interview-matrix) • [DABs Deployment](#dabs-deployment) • [Developer CLI](#developer-cli)
+[Quickstart](#quickstart) • [Verification Tiers](#verification-tiers) • [What's Inside](#whats-inside) • [Whiteboard Blueprints](#whiteboard-blueprints) • [Incident Runbooks](#incident-runbooks) • [Interview Matrix](#interview-matrix) • [DABs Deployment](#dabs-deployment) • [Developer CLI](#developer-cli)
 
 ---
 
 ## 🎯 Value Proposition
 
-The Databricks Handbook delivers production-tested, deterministic coding blueprints for architects and platform engineers building on the Databricks Data Intelligence Platform. Every recipe strictly implements the **Code-Test-Doc Triad**: real-world enterprise business scenarios, clean idiomatic PySpark/SQL, and automated unit test assertions. It replaces scattered blog posts and toy demos with hardened reference patterns spanning Unity Catalog governance, Delta Lake 3.x storage mechanics, Lakeflow pipelines, Photon optimization, and real-time incident triage.
+The Databricks Handbook provides deterministic coding blueprints and architectural guides for engineers building on the Databricks Data Intelligence Platform. Every recipe is tagged with an explicit **Verification Tier (`T0`–`T3`)** checked by `uv run handbook audit-content` and documented in [**Verification Matrix**](docs/verification.md), so readers know immediately which notebooks execute locally against Apache Spark + Delta Lake, which simulate cloud control-plane specs, and which require a live Databricks workspace.
+
+<a id="verification-tiers"></a>
+### Verification Tier Legend (`T0`–`T3`)
+
+| Tier | Classification | What Is Verified Automatically |
+|:---:|:---|:---|
+| **`T2`** | **Local-executable** | Creates real data/tables and runs PySpark + Delta Lake 3.2 locally with assertions on computed outputs (`uv run handbook run-local --tier T2`) |
+| **`T3`** | **Workspace-executable** | Targets Databricks-managed services (Unity Catalog, System Tables, DLT, Vector Search, Apps); requires a live workspace |
+| **`T1`** | **Simulated** | Runs pure Python configurations, DSLs, or mock objects with assertions over literal/string specs |
+| **`T0`** | **Reference** | Architecture or conceptual patterns verified for Databricks format and Python AST syntax |
 
 ---
 
@@ -72,9 +82,9 @@ uv run handbook export-ipynb
 ---
 
 <a id="whats-inside"></a>
-## 📚 What's Inside: 10 Core Modules (105 Production Recipes)
+## 📚 What's Inside: 10 Core Modules (105 Recipes)
 
-Explore the complete curriculum breakdown in the [**Full Curriculum Catalog**](docs/curriculum/index.md) and concept definitions in the [**132 Topics Directory**](docs/curriculum/topics.md).
+Explore the complete curriculum breakdown in the [**Full Curriculum Catalog**](docs/curriculum/index.md), per-notebook verification tiers in the [**Verification Matrix**](docs/verification.md), and concept definitions in the [**132 Topics Directory**](docs/curriculum/topics.md).
 
 <!-- BEGIN GENERATED:modules -->
 | Track | Module Name | Range | Level | Domain Focus & Core Capabilities | Directory |

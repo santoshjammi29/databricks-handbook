@@ -93,7 +93,7 @@ MODULE_CONFIG = {
     "08_databricks_apps_and_mosaic_ai": {
         "icon": "🤖",
         "title": "08. Databricks Apps & Mosaic AI",
-        "anchor": "module-08-databricks-apps-and-mosaic_ai",
+        "anchor": "module-08-databricks-apps-and-mosaic-ai",
         "range": f"077 {_EN_DASH} 087",
         "level": "🟣<br>Expert",
         "desc": (
@@ -156,9 +156,12 @@ def extract_notebook_meta(nb_path: Path) -> dict[str, str]:
         nb_id = nb_path.name[:3]
         title = nb_path.stem[4:].replace("_", " ").title()
 
-    # Extract Level
+    # Extract Level and Verification Tier
     m_level = re.search(r"# MAGIC \*\*Mastery Level\*\*:\s*`([^`]+)`", content)
     level = m_level.group(1).strip() if m_level else "Intermediate"
+
+    m_tier = re.search(r"\*\*Verification Tier\*\*:\s*`(T[0-3])[^`]*`", content)
+    tier = m_tier.group(1).strip() if m_tier else "T1"
 
     # Extract Objective
     m_obj = re.search(r"# MAGIC ### 🎯 Engineering Objective\s*# MAGIC (.+)", content)
@@ -171,13 +174,14 @@ def extract_notebook_meta(nb_path: Path) -> dict[str, str]:
         "id": nb_id,
         "title": title,
         "level": level,
+        "tier": tier,
         "objective": clean_for_table(objective),
         "filename": nb_path.name,
         "rel_path": f"notebooks/{nb_path.parent.name}/{nb_path.name}",
     }
 
 
-def generate_markdown() -> str:
+def generate_markdown(path_prefix: str = "") -> str:
     lines = [
         '<a id="curriculum-overview"></a>',
         "## 🗺️ Curriculum Overview & Track Architecture\n",
@@ -206,10 +210,10 @@ def generate_markdown() -> str:
         )
         lines.append(f"> **Focus**: {cfg['desc']}\n")
         lines.append(
-            "| # | Databricks Notebook Recipe | Level | "
+            "| # | Databricks Notebook Recipe | Level | Tier | "
             "Core Engineering Objective & Production Invariant | Source File (.py) |"
         )
-        lines.append("| :---: | :--- | :---: | :--- | :--- |")
+        lines.append("| :---: | :--- | :---: | :---: | :--- | :--- |")
 
         for nb in nb_files:
             meta = extract_notebook_meta(nb)
@@ -223,10 +227,11 @@ def generate_markdown() -> str:
                 )
             )
             wrappable_name = make_wrappable(meta["filename"])
+            link_path = f"{path_prefix}{meta['rel_path']}"
             lines.append(
-                f"| **{meta['id']}** | [**{meta['title']}**]({meta['rel_path']}) "
-                f"| {lvl_icon}<br>`{meta['level']}` | {meta['objective']} "
-                f"| [<code>{wrappable_name}</code>]({meta['rel_path']}) |"
+                f"| **{meta['id']}** | [**{meta['title']}**]({link_path}) "
+                f"| {lvl_icon}<br>`{meta['level']}` | `{meta['tier']}` | {meta['objective']} "
+                f"| [<code>{wrappable_name}</code>]({link_path}) |"
             )
 
         lines.append("\n[↑ Back to Curriculum Overview](#curriculum-overview)\n")
@@ -235,11 +240,34 @@ def generate_markdown() -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_curriculum_catalog(base_dir: Path | None = None) -> None:
+    """Updates both src/handbook/data/curriculum_matrix.md and docs/curriculum/index.md."""
+    root = base_dir if base_dir is not None else BASE_DIR
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    matrix_md = generate_markdown()
+    (root / "src" / "handbook" / "data" / "curriculum_matrix.md").write_text(
+        matrix_md, encoding="utf-8"
+    )
+
+    header = (
+        "# 📚 The Databricks Handbook Curriculum Catalog\n\n"
+        "> **105 Databricks Recipes across 10 Modules and Verification Tiers "
+        f"`T0`{_EN_DASH}`T3`**  \n"
+        "> See [**Verification Tiers**](../verification.md) for measured AST and local Spark "
+        "execution coverage across every recipe.\n"
+        ">\n"
+        "> 🧠 **Comprehensive Concept Taxonomy**: See "
+        "[132 Curriculum Concepts & Topics Directory](topics.md) for deep-dive architectural "
+        "definitions.\n\n"
+        "---\n\n"
+    )
+    catalog_body = generate_markdown(path_prefix="../../")
+    (root / "docs" / "curriculum" / "index.md").write_text(header + catalog_body, encoding="utf-8")
+
+
 def main() -> None:
-    curriculum_md = generate_markdown()
-    out_file = DATA_DIR / "curriculum_matrix.md"
-    out_file.write_text(curriculum_md, encoding="utf-8")
-    print(f"✅ Generated curriculum matrix at {out_file} ({len(curriculum_md)} bytes)")
+    build_curriculum_catalog()
+    print("✅ Generated curriculum matrix and docs/curriculum/index.md")
 
 
 if __name__ == "__main__":

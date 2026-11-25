@@ -18,6 +18,7 @@ def generate(base_dir: Path):
             "title": "Auto Loader (cloudFiles): Incremental Lexical Directory Listing vs. File Notifications",
             "filename": "033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py",
             "difficulty": "Intermediate",
+            "verify": "T0",
             "business_scenario": "A logistics enterprise ingests IoT telematics files landing in cloud storage from 50,000 delivery vehicles. Ingestion must scale smoothly as file volume grows from thousands to millions of files per day without missing files.",
             "problem_statement": "Implement and compare Databricks Auto Loader (`cloudFiles`) using (1) Incremental Directory Listing and (2) File Notification mode (AWS SQS / Azure Event Grid), explaining scaling thresholds and cost trade-offs.",
             "architectural_notes": "Auto Loader uses Structured Streaming to discover new files incrementally. Directory listing uses lexical scans and timestamp bounds. File notification mode provisions cloud event queues (Event Grid/SNS) to push file events, avoiding slow directory listings at petabyte scale.",
@@ -58,6 +59,8 @@ print("Auto Loader stream generator configured.")
             "title": "Auto Loader Schema Inference, addNewColumns Evolution & _rescued_data Quarantine",
             "filename": "034_auto_loader_schema_inference_addnewcolumns_evolution_and_rescued_data_quarantine.py",
             "difficulty": "Intermediate",
+            "verify": "T2",
+            "imports": ["from pyspark.sql import functions as F"],
             "business_scenario": "Third-party vendors frequently change JSON schemas by adding new promotional fields or sending numeric strings instead of floats. The ingestion pipeline must never drop records or crash.",
             "problem_statement": "Configure Auto Loader with `schemaEvolutionMode = addNewColumns` and `rescuedDataColumn = _rescued_data`, proving that new fields evolve the schema while corrupt payloads are quarantined.",
             "architectural_notes": "Auto Loader stores the active schema contract in `cloudFiles.schemaLocation`. When a new column appears, `addNewColumns` updates the Delta table schema and restarts the stream. If a data type conflicts, the original payload is captured safely in `_rescued_data`.",
@@ -192,7 +195,7 @@ assert "@dlt.expect_or_drop" in dlt_pipeline_code
                     "explanation": "Evaluate how DLT handles each expectation level upon detecting invalid data.",
                     "code": """expectations_matrix = {
     "warn_only": {
-        "decorator": "@dlt.expect('valid_email', 'email LIKE %domain%')",
+        "decorator": '@dlt.expect("valid_email", "email LIKE \\\'%@%\\\'")',
         "action": "Records metric in event log; row continues downstream"
     },
     "drop_record": {

@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 068. DABs Multi-Environment Targeting: dev, staging, and prod Promotion Topologies
 # MAGIC **Module**: Module 07: Enterprise DevOps — DABs, CI/CD & Testing
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Target environments ensure clean separation: `dev` deploys to personal developer folders with paused schedules; `staging` runs integration tests; `prod` enforces Service Principal ownership and active cron triggers.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -66,4 +50,4 @@ assert promotion_matrix["prod"]["schedules"] == "UNPAUSED"
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What changes automatically when a bundle target is switched from `mode: development` to `mode: production`?
-# MAGIC 1. How do you prevent a developer from deploying a local bundle directly into the production target?
+# MAGIC 2. How do you prevent a developer from deploying a local bundle directly into the production target?

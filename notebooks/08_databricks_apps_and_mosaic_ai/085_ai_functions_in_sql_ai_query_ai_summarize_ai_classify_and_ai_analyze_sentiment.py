@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 085. AI Functions in SQL: ai_query, ai_summarize, ai_classify & ai_analyze_sentiment
 # MAGIC **Module**: Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Databricks SQL provides built-in AI functions that invoke foundation models directly from `SELECT` statements. These execute on serverless compute with automatic batching, rate-limiting, and error handling.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -76,4 +60,4 @@ assert "ai_query(" in sql_ai_functions
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does `ai_query()` differ from specialized functions like `ai_classify()` in Databricks SQL?
-# MAGIC 1. How does Databricks SQL optimize throughput and handle rate limits when executing `ai_query()` over millions of rows?
+# MAGIC 2. How does Databricks SQL optimize throughput and handle rate limits when executing `ai_query()` over millions of rows?

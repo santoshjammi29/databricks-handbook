@@ -156,10 +156,8 @@ def test_mutation_readme_count_mismatch_fails_hygiene(base_dir: Path, tmp_path: 
     repo = _stage_repo_subset(base_dir, tmp_path)
     readme = repo / "README.md"
     text = readme.read_text(encoding="utf-8")
-    assert "105 Production Recipes" in text
-    readme.write_text(
-        text.replace("105 Production Recipes", "99 Production Recipes"), encoding="utf-8"
-    )
+    assert "105 Recipes" in text
+    readme.write_text(text.replace("105 Recipes", "99 Recipes"), encoding="utf-8")
 
     ok, errors = validate_hygiene(repo, verbose=False)
     assert not ok, (
@@ -233,3 +231,14 @@ def test_mutation_whiteboard_domain_omission_fails_hygiene(base_dir: Path, tmp_p
     ok, errors = validate_hygiene(repo, verbose=False)
     assert not ok, "validate_hygiene passed despite missing whiteboard domain link in README!"
     assert any("07_data_modeling_architecture.md" in e or "sum to" in e for e in errors)
+
+
+def test_mutation_verification_doc_drift_fails_audit_check(
+    base_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    repo = _stage_repo_subset(base_dir, tmp_path)
+    ver_doc = repo / "docs" / "verification.md"
+    ver_doc.write_text("# stale\n", encoding="utf-8")
+
+    monkeypatch.chdir(repo)
+    assert cli_main(["audit-content", "--check"]) == 1

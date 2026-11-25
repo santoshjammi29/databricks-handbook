@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 092. Audit & Security Analytics: Investigating Access Logs with system.access.audit
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC `system.access.audit` provides unified, immutable audit logs across all workspaces in an account. It records authentication events, notebook executions, table reads/writes, cluster modifications, and secret access.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -75,4 +59,4 @@ assert "user_identity.email" in sql_forensic_audit
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What specific user actions are tracked in `system.access.audit`?
-# MAGIC 1. How can you detect anomalous large data downloads or notebook exports using audit telemetry?
+# MAGIC 2. How can you detect anomalous large data downloads or notebook exports using audit telemetry?

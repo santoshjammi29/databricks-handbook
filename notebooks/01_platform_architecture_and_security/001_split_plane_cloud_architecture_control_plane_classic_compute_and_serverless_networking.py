@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 001. Split-Plane Cloud Architecture: Control Plane, Classic Compute & Serverless Networking
 # MAGIC **Module**: Module 01: Platform Architecture, Workspaces & Control Plane
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Databricks decouples the Control Plane (web UI, notebook orchestration, Unity Catalog metastore) from the Compute Plane. In Classic compute, Spark driver and worker VMs run in customer VNets/VPCs. In Serverless compute, hardened container micro-VMs run in a Databricks-managed cloud tenant connecting to storage via private endpoints.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -85,4 +69,4 @@ assert network_conf["enableNoPublicIp"] is True, "Security Invariant Violated: P
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Databricks ensure customer data privacy across the Control Plane and Compute Plane boundary?
-# MAGIC 1. What is the function of the Secure Cluster Connectivity (SCC) relay in a customer VNet injection architecture?
+# MAGIC 2. What is the function of the Secure Cluster Connectivity (SCC) relay in a customer VNet injection architecture?

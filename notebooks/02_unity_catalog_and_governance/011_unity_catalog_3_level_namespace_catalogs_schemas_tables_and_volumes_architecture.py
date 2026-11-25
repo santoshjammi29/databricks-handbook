@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 011. Unity Catalog 3-Level Namespace: Catalogs, Schemas, Tables & Volumes Architecture
 # MAGIC **Module**: Module 02: Unity Catalog — Governance, Security & Federation
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Unity Catalog introduces a 3-tier namespace: Catalog (logical container or environment) -> Schema (database or domain) -> Table/View/Volume/Model (physical or virtual asset). It eliminates table collisions and provides cross-workspace data access from a central metastore.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -70,4 +54,4 @@ print(f"Catalog: {catalog} | Schema: {schema} | Table: {table}")
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does Unity Catalog's 3-level namespace improve multi-tenant data governance over the legacy Hive metastore?
-# MAGIC 1. Can a table in Catalog A join a table in Catalog B in a single query?
+# MAGIC 2. Can a table in Catalog A join a table in Catalog B in a single query?

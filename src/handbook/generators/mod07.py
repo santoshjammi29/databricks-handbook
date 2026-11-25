@@ -184,7 +184,7 @@ assert "bundle deploy" in cli_lifecycle_commands[1]
             "sections": [
                 {
                     "title": "1. GitHub Actions CI/CD Workflow Template",
-                    "explanation": "Define workflow steps for pull request validation and production rollout.",
+                    "explanation": "Define workflow steps for pull request validation and production rollout. Note: `pip install -r requirements.txt` below is a generic teaching example; this repository uses `uv sync --locked`.",
                     "code": """github_workflow_yaml = \"\"\"
 name: CI/CD Databricks Asset Bundle Rollout
 
@@ -353,6 +353,8 @@ assert "from databricks.connect import DatabricksSession" in connect_script
             "title": "Unit Testing Databricks Data Pipelines with pytest, chispa & Mock DataFrames",
             "filename": "074_unit_testing_databricks_data_pipelines_with_pytest_chispa_and_mock_dataframes.py",
             "difficulty": "Intermediate",
+            "verify": "T2",
+            "imports": ["from pyspark.sql import functions as F"],
             "business_scenario": "A team experiences pipeline regressions when code changes accidentally alter decimal rounding logic. Data transformations must be validated by automated unit test suites before deployment.",
             "problem_statement": "Develop modular unit test suites using pytest and `chispa`, creating mock DataFrames, asserting schema matches, and verifying exact numerical results.",
             "architectural_notes": "`chispa` provides fast, clean assertion helpers (`assert_df_equality`) for PySpark DataFrames, highlighting column, schema, and row discrepancies in test output without boilerplate loops.",

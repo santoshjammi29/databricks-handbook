@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 029. Shallow Clones vs. Deep Clones: Zero-Copy Sandboxes, Testing & Disaster Recovery
 # MAGIC **Module**: Module 03: Delta Lake 3.x Deep Dive — Storage Engine & UniForm
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC A Shallow Clone copies only transaction log metadata, referencing the original Parquet files in place. It is created instantaneously regardless of table size. A Deep Clone copies both metadata and physical Parquet files, creating a fully decoupled duplicate.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -74,4 +58,4 @@ assert "SHALLOW CLONE" in clone_comparison["Shallow_Clone"]["command"]
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What happens to a Shallow Clone if someone runs `VACUUM` on the source parent table?
-# MAGIC 1. Can you clone a specific historical version of a Delta table using Time Travel syntax?
+# MAGIC 2. Can you clone a specific historical version of a Delta table using Time Travel syntax?

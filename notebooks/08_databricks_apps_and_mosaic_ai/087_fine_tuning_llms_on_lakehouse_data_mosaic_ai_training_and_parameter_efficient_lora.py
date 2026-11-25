@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 087. Fine-Tuning LLMs on Lakehouse Data: Mosaic AI Training & Parameter-Efficient LoRA
 # MAGIC **Module**: Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)
-# MAGIC **Mastery Level**: `Architect`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Architect` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Mosaic AI Model Training provides managed, multi-node GPU training for foundation models. It supports Parameter-Efficient Fine-Tuning (PEFT/LoRA) and full fine-tuning directly on Delta Lake data, saving checkpoints to Unity Catalog Volumes.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -74,4 +58,4 @@ assert fine_tuning_spec["training_method"] == "LORA"
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. What are the benefits of LoRA (Low-Rank Adaptation) for fine-tuning LLMs on enterprise data?
-# MAGIC 1. How does Mosaic AI Training stream datasets from Delta Lake during distributed GPU training?
+# MAGIC 2. How does Mosaic AI Training stream datasets from Delta Lake during distributed GPU training?

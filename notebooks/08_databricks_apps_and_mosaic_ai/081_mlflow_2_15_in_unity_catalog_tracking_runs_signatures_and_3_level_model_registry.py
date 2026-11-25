@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 081. MLflow 2.15+ in Unity Catalog: Tracking Runs, Signatures & 3-Level Model Registry
 # MAGIC **Module**: Module 08: Databricks Apps & Mosaic AI (GenAI, Vector Search, RAG)
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC MLflow in Unity Catalog replaces the legacy workspace-scoped Model Registry. Models are governed as first-class Unity Catalog assets with 3-level naming, fine-grained access grants, and end-to-end data lineage from training Delta tables.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -69,4 +53,4 @@ assert len(parts) == 3, "Model name must follow catalog.schema.model in Unity Ca
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How does the Unity Catalog Model Registry differ from the legacy workspace-scoped MLflow Model Registry?
-# MAGIC 1. What is a Model Signature in MLflow and why is it critical for production model serving?
+# MAGIC 2. What is a Model Signature in MLflow and why is it critical for production model serving?

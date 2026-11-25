@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 096. Spot Instance Fleet Optimization & AWS Graviton / Azure ARM VM Migrations
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Spot instances offer up to 70-80% discounts on cloud VM costs. Databricks handles Spot evictions gracefully in batch jobs. Migrating from x86 to ARM instances (e.g., `m6g` in AWS, `Dpsv5` in Azure) delivers 25-40% better price-performance.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -65,4 +49,4 @@ assert fleet_economics["ARM_Graviton_Spot"]["hourly_vm_cost"] < 0.10
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. Why must the driver node always be provisioned as On-Demand even when worker nodes use Spot instances?
-# MAGIC 1. What performance advantages does the Photon engine realize on ARM-based cloud VMs?
+# MAGIC 2. What performance advantages does the Photon engine realize on ARM-based cloud VMs?

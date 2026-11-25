@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 024. Deletion Vectors (MoR): Bitmap Invalidation vs. Copy-on-Write Rewrite Overhead
 # MAGIC **Module**: Module 03: Delta Lake 3.x Deep Dive — Storage Engine & UniForm
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Deletion Vectors (DVs) convert Delta Lake DML from Copy-on-Write (CoW) to Merge-on-Read (MoR). In MoR, deleted rows are recorded in a lightweight roaring bitmap (`.dv` file) without touching the original Parquet data file. The physical data is rewritten only during scheduled compaction.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -71,4 +55,4 @@ assert cow_result["bytes_written"] > mor_result["bytes_written"] * 1000
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do Deletion Vectors work at the read engine level in Photon and Apache Spark?
-# MAGIC 1. When should you run `REORG TABLE ... APPLY (PURGE)` on a table with Deletion Vectors enabled?
+# MAGIC 2. When should you run `REORG TABLE ... APPLY (PURGE)` on a table with Deletion Vectors enabled?

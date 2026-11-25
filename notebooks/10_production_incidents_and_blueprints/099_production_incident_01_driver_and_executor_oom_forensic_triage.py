@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 099. Production Incident 01: Driver & Executor OutOfMemory (OOM) Forensic Triage
 # MAGIC **Module**: Module 10: Production Incidents, Triage & Architecture Blueprints
-# MAGIC **Mastery Level**: `Advanced`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T0 Reference`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC Driver OOM occurs when data partitions exceed the physical RAM of the single Spark driver JVM. Calling `df.collect()`, `df.toPandas()`, or broadcasting large DataFrames triggers driver heap exhaustion. Executor OOMs occur when a single worker partition exceeds Tungsten limits or suffers extreme GC pauses.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -63,4 +47,4 @@ print("Memory-safe export pattern verified: Driver heap protected.")
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do you determine from Spark UI and cluster logs whether an OOM occurred on the driver or an executor?
-# MAGIC 1. What Spark configuration settings govern driver maximum result sizes?
+# MAGIC 2. What Spark configuration settings govern driver maximum result sizes?

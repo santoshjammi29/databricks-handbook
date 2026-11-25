@@ -66,6 +66,9 @@ jobs:
       - name: Verify README Generated Block Drift
         run: uv run handbook readme --check
 
+      - name: Verify Content Verification Tier Drift
+        run: uv run handbook audit-content --check
+
   validate:
     name: Artifact & Bundle Validation
     runs-on: ubuntu-latest

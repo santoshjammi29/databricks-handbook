@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 070. GitHub Actions CI/CD Pipeline: Automated Bundle Linting, Testing & Validation
 # MAGIC **Module**: Module 07: Enterprise DevOps — DABs, CI/CD & Testing
-# MAGIC **Mastery Level**: `Intermediate`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -19,26 +19,10 @@
 # MAGIC GitHub Actions CI/CD executes jobs on Ubuntu runners. The workflow checks out the repository, installs the Databricks CLI, runs `bundle validate`, executes unit tests with pytest/chispa, and deploys to target workspaces.
 # COMMAND ----------
 
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ### 1. GitHub Actions CI/CD Workflow Template
 # MAGIC
-# MAGIC Define workflow steps for pull request validation and production rollout.
+# MAGIC Define workflow steps for pull request validation and production rollout. Note: `pip install -r requirements.txt` below is a generic teaching example; this repository uses `uv sync --locked`.
 # COMMAND ----------
 
 github_workflow_yaml = """
@@ -79,4 +63,4 @@ assert "databricks/setup-cli" in github_workflow_yaml
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. How do you design a GitHub Actions pipeline for Databricks that supports dev branch validation and prod deployment?
-# MAGIC 1. What is the best way to handle branch protection rules with Databricks Asset Bundles?
+# MAGIC 2. What is the best way to handle branch protection rules with Databricks Asset Bundles?

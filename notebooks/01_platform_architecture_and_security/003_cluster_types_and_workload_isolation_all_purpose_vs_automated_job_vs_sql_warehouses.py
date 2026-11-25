@@ -4,8 +4,8 @@
 # MAGIC %md
 # MAGIC # 003. Cluster Types & Workload Isolation: All-Purpose vs. Automated Job vs. SQL Warehouses
 # MAGIC **Module**: Module 01: Platform Architecture, Workspaces & Control Plane
-# MAGIC **Mastery Level**: `Foundational`
-# MAGIC **Databricks Runtime Baseline**: DBR 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
 # MAGIC
@@ -17,22 +17,6 @@
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
 # MAGIC All-Purpose compute is priced higher for developer interactivity. Job compute runs automated ephemeral clusters that terminate immediately on job completion. SQL Warehouses feature Photon C++ engines and Intelligent Workload Management for BI.
-# COMMAND ----------
-
-import os
-import sys
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.window import Window
-
-# Initialize or obtain active SparkSession with Delta Lake & Unity Catalog support
-spark = SparkSession.builder \
-    .appName("DatabricksHandbook") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.sql.adaptive.enabled", "true") \
-    .getOrCreate()
 # COMMAND ----------
 
 # MAGIC %md
@@ -84,4 +68,4 @@ print(f"Recommended Compute: {rec['type']} | Cost Factor: {rec['dbu_multiplier']
 # MAGIC ### 🎓 Architect Interview Questions & Defense
 # MAGIC
 # MAGIC 1. Why is Job Compute significantly cheaper than All-Purpose Compute?
-# MAGIC 1. When should you choose a Serverless SQL Warehouse over an All-Purpose cluster for query workloads?
+# MAGIC 2. When should you choose a Serverless SQL Warehouse over an All-Purpose cluster for query workloads?

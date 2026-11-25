@@ -141,7 +141,7 @@ def validate_hygiene(base_dir: Path | None = None, verbose: bool = True) -> tupl
     if readme_file.exists():
         readme_text = readme_file.read_text(encoding="utf-8")
         expected_claims = [
-            f"{TOTAL_MODULES} Core Modules ({TOTAL_NOTEBOOKS} Production Recipes)",
+            f"{TOTAL_MODULES} Core Modules ({TOTAL_NOTEBOOKS} Recipes)",
             f"{TOTAL_WHITEBOARDS} Whiteboard Architecture Blueprints",
             f"{TOTAL_FLASHCARDS} Architect Flashcards Deck",
             f"{TOTAL_TOPICS} Topics Directory",

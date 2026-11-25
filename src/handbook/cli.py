@@ -119,6 +119,53 @@ def cmd_explore(args, base_dir: Path) -> int:
     return 0
 
 
+def cmd_audit_content(args, base_dir: Path) -> int:
+    from handbook.audit import audit_content
+
+    check_only = getattr(args, "check", False)
+    ok, counts, errors = audit_content(base_dir=base_dir, write=not check_only, check=check_only)
+    summary = ", ".join(f"{k}={v}" for k, v in counts.items())
+    if not ok:
+        print("❌ Content verification audit failed:")
+        for err in errors:
+            print(f"  - {err}")
+        return 1
+    if check_only:
+        print(f"✅ Content verification report in sync ({summary}).")
+    else:
+        print(f"✅ Generated docs/verification.md ({summary}).")
+    return 0
+
+
+def cmd_run_local(args, base_dir: Path) -> int:
+    from handbook.runner import resolve_notebook_by_id, run_notebook_local, run_tier_local
+
+    tier = getattr(args, "tier", None)
+    target = getattr(args, "target", None)
+    if tier:
+        ok, errors = run_tier_local(base_dir=base_dir, tier=tier, verbose=True)
+        if not ok:
+            print(f"❌ Local execution failed for {len(errors)} {tier} notebook(s).")
+            return 1
+        print(f"✅ All {tier} notebooks executed successfully under local Spark + Delta!")
+        return 0
+
+    if not target:
+        print("❌ Provide a notebook ID (e.g. '022') or '--tier T2'.")
+        return 1
+
+    nb_path = resolve_notebook_by_id(base_dir, target)
+    if not nb_path:
+        print(f"❌ No notebook found matching ID '{target}'.")
+        return 1
+    ok, err = run_notebook_local(nb_path)
+    if not ok:
+        print(f"❌ Execution failed: {err}")
+        return 1
+    print(f"✅ Executed {nb_path.name} cleanly under local Spark + Delta!")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="handbook",
@@ -178,6 +225,27 @@ def main(argv=None):
         "--ecosystem", action="store_true", help="Show ecosystem cross-navigation"
     )
 
+    # audit-content
+    parser_audit = subparsers.add_parser(
+        "audit-content", help="Audit notebook verification tiers and build docs/verification.md"
+    )
+    parser_audit.add_argument(
+        "--check",
+        action="store_true",
+        help="Verify docs/verification.md and tier metadata have zero drift",
+    )
+
+    # run-local
+    parser_run = subparsers.add_parser(
+        "run-local", help="Execute notebooks locally under Delta-enabled Apache Spark"
+    )
+    parser_run.add_argument("target", nargs="?", help="Notebook ID (e.g. 022)")
+    parser_run.add_argument(
+        "--tier",
+        choices=["T0", "T1", "T2", "T3"],
+        help="Execute all notebooks in a verification tier",
+    )
+
     args = parser.parse_args(argv)
     if not args.command:
         parser.print_help()
@@ -195,6 +263,10 @@ def main(argv=None):
         return cmd_export_ipynb(args, base_dir)
     elif args.command == "explore":
         return cmd_explore(args, base_dir)
+    elif args.command == "audit-content":
+        return cmd_audit_content(args, base_dir)
+    elif args.command == "run-local":
+        return cmd_run_local(args, base_dir)
 
     parser.print_help()
     return 0
