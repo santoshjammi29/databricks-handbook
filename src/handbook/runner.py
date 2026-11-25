@@ -16,8 +16,23 @@ from typing import Any
 from handbook.audit import collect_audit_records
 
 
+def _ensure_java_home() -> None:
+    """Sets JAVA_HOME to Homebrew OpenJDK 17 on macOS when unset."""
+    if os.environ.get("JAVA_HOME"):
+        return
+    for candidate in (
+        Path("/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"),
+        Path("/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"),
+    ):
+        if (candidate / "bin" / "java").exists():
+            os.environ["JAVA_HOME"] = str(candidate)
+            os.environ["PATH"] = f"{candidate / 'bin'}:{os.environ.get('PATH', '')}"
+            return
+
+
 def create_local_spark(tmp_root: Path) -> Any:
     """Creates a local Delta Lake 3.2 enabled SparkSession isolated inside tmp_root."""
+    _ensure_java_home()
     from delta import configure_spark_with_delta_pip
     from pyspark.sql import SparkSession
 

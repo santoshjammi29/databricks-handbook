@@ -43,7 +43,7 @@ lint-fix:
 	$(UV) run ruff format src tests apps
 
 test:
-	$(UV) run pytest -q
+	$(UV) run pytest -m "not spark" -q
 
 validate:
 	$(UV) run handbook validate

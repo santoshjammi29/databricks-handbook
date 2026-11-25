@@ -42,8 +42,8 @@ The Databricks Handbook provides deterministic coding blueprints and architectur
 
 - **Recommended (Databricks Workspace)**: In your Databricks workspace, open **Workspace -> Create -> Git folder** and paste `https://github.com/santoshjammi29/databricks-handbook.git`. Attach a **DBR 15.4+ LTS** cluster (or **Serverless compute**) to run recipes interactively.
 - **Which recipes run where**:
-  - **Local-friendly (`[spark]` extra)**: Core Spark/Delta DataFrame mechanics, testing, and triage simulations (Modules 03, 07 partial, 10 partial) can run locally via `uv sync --locked --extra spark`.
-  - **Databricks Workspace required**: Unity Catalog (`catalog.schema.table`), System Tables (`system.billing.usage`, `system.access.audit`), Lakeflow Declarative Pipelines (DLT), Databricks Apps, and Mosaic AI Vector Search / Model Serving (Modules 01–02, 04–06, 08–09).
+  - **Local-executable (`T2`, `[spark]` extra)**: `46` notebooks across Apache Spark 3.5 + Delta Lake 3.2 run end-to-end locally (`Modules 03 [all 11]` and `10 [all 7]`, plus streaming, testing, RAG/monitoring, SQL/metric, and FinOps recipes in `Modules 01, 04, 06, 07, 08, 09`) via `uv sync --locked --extra spark` and `uv run pytest -m spark -v`.
+  - **Databricks Workspace (`T1` / `T3` specs)**: Unity Catalog ACLs (`catalog.schema.table`), Lakehouse Federation, System Tables control-plane setup, Lakeflow Declarative Pipelines (DLT), Databricks Apps, and Mosaic AI Model Serving (`Modules 01–02, 04–09`) include simulated local validation specs (`58 T1`, `1 T0` reference) alongside live Databricks Runtime examples.
 - **Cloud Cost & Cleanup Warning**: Deploying `databricks.yml` or running SQL Warehouses, DLT pipelines, and Vector Search endpoints incurs cloud VM and DBU charges. Always deploy to `dev` first, enforce auto-termination (10–15 min), and run `databricks bundle destroy -t dev` when finished.
 
 ### 2. Contribute & Verify Locally

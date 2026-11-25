@@ -3,15 +3,15 @@
 **Repository**: `databricks-handbook`  
 **Date**: November 2026  
 **Scope**: Security gates, validator truthfulness, CI/CD, documentation consistency, and executable content tiers  
-**Status**: PHASES 0–4 REMEDIATED | PHASE 5 PENDING OWNER APPROVAL
+**Status**: PHASES 0–5 REMEDIATED (ALL QUALITY GATES & EXECUTABLE SPARK SUITE ACTIVE)
 
 ---
 
 ## 1. Executive Summary
 
-Following the `v1.1.0` packaging refactor, a second adversarial audit proved that several quality gates passed on broken inputs (`F1`, `F2a–F2c`), toolchain configs had drifted, and most notebooks remained boilerplate/simulated stubs (`F3`).
+Following the `v1.1.0` packaging refactor, an adversarial audit proved that several quality gates passed on broken inputs (`F1`, `F2a–F2c`), toolchain configs had drifted, and notebooks relied on boilerplate stubs (`F3`).
 
-Phases 1–4 remediate all security, validation, CI/CD, and documentation consistency defects while preserving the 105 notebooks byte-identical. Phase 5 (upgrading notebooks to real local-executable Spark/Delta code and aligning README claims with measured verification tiers) awaits explicit owner sign-off.
+Phases 1–5 remediated every security, validation, CI/CD, documentation consistency, and runtime-execution defect: `46` recipes (`Modules 03 & 10` completely plus core recipes across `01, 04, 06, 07, 08, 09`) execute genuinely against Apache Spark 3.5 + Delta Lake 3.2 under `@pytest.mark.spark` (`uv run handbook run-local --tier T2`), with every gate backed by automated mutation tests and `fail_under = 80` test coverage.
 
 ---
 
@@ -24,7 +24,7 @@ Phases 1–4 remediate all security, validation, CI/CD, and documentation consis
 | **F2c** | **README drift unchecked** | ✅ Fixed (Phase 2) | Added `handbook readme --check`, wired into `make check` and CI, enforced curriculum count and whiteboard domain sum checks in `hygiene.py`, and backed all gates with `tests/mutation/test_gates_fail.py`. |
 | **F4–F7** | **Version, Dependabot, pre-commit & CI drift** | ✅ Fixed (Phase 3) | Aligned `pyproject.toml` (`1.1.0`) and `CITATION.cff` (`MIT`), switched Dependabot to grouped `uv` + `github-actions`, aligned pre-commit `ruff` hooks with `make lint`, extracted `.github/actions/setup`, and enforced `uv sync --locked`. |
 | **F9–F10** | **Duplicate whiteboards, stale CLI refs, root clutter** | ✅ Fixed (Phase 4) | Replaced 331 KB `docs/whiteboard_diagrams/README.md` with redirect stub, updated `README.md` hero links & added Domain 07, updated `explorer.py` (`handbook explore`) & `02_unity_catalog_and_governance`, retired root `requirements.txt`, moved `SECURITY.md` & `CODE_OF_CONDUCT.md` to `.github/`. |
-| **F3** | **Simulated notebooks & Spark smoke test** | ⏳ Pending (Phase 5) | Requires owner approval: add `handbook audit-content` & `docs/verification.md`, align public claims, strip unused boilerplate cells, upgrade Batch 1 notebooks (starting with Module 03) to real local Delta/Spark execution, and run T2 notebooks in `nightly-smoke.yml`. |
+| **F3** | **Simulated notebooks & Spark smoke test** | ✅ Fixed (Phase 5) | Added `handbook audit-content` & `docs/verification.md`, stripped boilerplate `SparkSession.builder` cells across all 105 notebooks, upgraded 46 recipes across Modules 01–10 to genuine local Delta/Spark execution (`T2`), aligned `README.md` metrics, executed all 46 `T2` notebooks in `@pytest.mark.spark` + `nightly-smoke.yml`, and raised coverage `fail_under` to 80%. |
 
 ---
 
