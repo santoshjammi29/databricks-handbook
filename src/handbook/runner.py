@@ -34,6 +34,7 @@ def create_local_spark(tmp_root: Path) -> Any:
             "spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog"
         )
         .config("spark.sql.adaptive.enabled", "true")
+        .config("spark.sql.shuffle.partitions", "4")
         .config("spark.sql.warehouse.dir", str(warehouse_dir))
         .config("spark.ui.enabled", "false")
         .config("spark.driver.extraJavaOptions", f"-Dderby.system.home={derby_dir}")

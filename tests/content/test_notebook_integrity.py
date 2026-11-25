@@ -72,10 +72,9 @@ def test_notebook_triad_and_asserts(base_dir):
     missing_arch = []
     missing_assert = []
 
-    # Two architectural/incident forensic overview notebooks are declarative documentation patterns
+    # Architectural CloudFiles pattern overview without local runtime assertions
     exempt_from_assert = {
         "033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py",
-        "099_production_incident_01_driver_and_executor_oom_forensic_triage.py",
     }
 
     for nb in nb_files:

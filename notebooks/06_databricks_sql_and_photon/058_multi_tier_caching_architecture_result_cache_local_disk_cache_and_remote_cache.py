@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 058. Multi-Tier Caching Architecture: Result Cache, Local Disk Cache & Remote Cache
 # MAGIC **Module**: Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer
-# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,48 +13,50 @@
 # MAGIC A dashboard with 50 visual tiles is refreshed by 500 business users throughout the day. Executing 25,000 queries directly against cloud object storage costs thousands in repeated scanning.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Analyze and optimize the three caching layers in Databricks SQL: (1) Query Result Cache, (2) Local SSD Disk Cache (Delta Cache), and (3) Remote Storage Metadata Cache.
+# MAGIC Verify live Delta commit cache coherency vs. manual Spark `CACHE TABLE` refresh behavior locally, demonstrating why Delta transaction log awareness prevents stale BI reads.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC Databricks SQL implements multi-tier caching: Result Cache serves identical queries in milliseconds from UI memory. Local Disk Cache stores decompressed columnar Parquet data on worker NVMe SSDs. Remote Cache stores metadata.
+# MAGIC Databricks SQL Result Cache and NVMe Disk Cache track underlying Delta `_delta_log` commits automatically—invalidating cached blocks the millisecond a DML commit alters referenced files. In open-source Spark, caching a DataFrame/View via `CACHE TABLE` pins executors' memory until `REFRESH TABLE` / `UNCACHE TABLE`.
+# COMMAND ----------
+
+import tempfile
+from pathlib import Path
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Multi-Tier Caching Hierarchy Analysis
+# MAGIC ### 1. Cache Coherency Test: Manual Spark Cache vs. Delta Live Snapshot Commits
 # MAGIC
-# MAGIC Inspect latency, location, and invalidation rules across caching layers.
+# MAGIC Materialize a Delta table, cache a read view with `CACHE TABLE`, append a new Delta commit, and confirm Spark catalog state + refreshed live read totals.
 # COMMAND ----------
 
-caching_tiers = {
-    "Tier_1_Result_Cache": {
-        "location": "Control Plane / UI Memory",
-        "latency": "< 10 milliseconds",
-        "invalidation": "Automatic when underlying Delta table receives a commit (`add` / `remove`)"
-    },
-    "Tier_2_Local_Disk_Cache": {
-        "location": "Worker Node NVMe SSDs (Delta Cache)",
-        "latency": "10 - 50 milliseconds",
-        "invalidation": "Automatic file-level tracking; cached Parquet columns read directly from local NVMe"
-    },
-    "Tier_3_Cloud_Storage": {
-        "location": "ADLS Gen2 / AWS S3 / GCS",
-        "latency": "100 - 1000 milliseconds",
-        "invalidation": "Persistent authoritative source of truth"
-    }
-}
+lab_dir = Path(tempfile.mkdtemp(prefix="hb_058_", dir=globals().get("HANDBOOK_TMP_DIR")))
+tbl_path = str(lab_dir / "cached_sales")
 
-for tier, meta in caching_tiers.items():
-    print(f"[{tier}] Latency: {meta['latency']} | Invalidation: {meta['invalidation']}")
+spark.createDataFrame([(1, 100.0), (2, 200.0)], ["order_id", "amount"]).write.format("delta").save(tbl_path)
+spark.sql(f"CREATE TABLE t058_sales USING DELTA LOCATION '{tbl_path}'")
+spark.sql("CACHE TABLE t058_sales")
+assert spark.catalog.isCached("t058_sales") is True
 
-assert "< 10 milliseconds" in caching_tiers["Tier_1_Result_Cache"]["latency"]
+initial_total = spark.sql("SELECT SUM(amount) FROM t058_sales").first()[0]
+
+# New Delta commit adds +500.0; refresh/uncache aligns cached executors with latest _delta_log
+spark.createDataFrame([(3, 500.0)], ["order_id", "amount"]).write.format("delta").mode("append").save(tbl_path)
+spark.sql("REFRESH TABLE t058_sales")
+refreshed_total = spark.sql("SELECT SUM(amount) FROM t058_sales").first()[0]
+
+spark.sql("UNCACHE TABLE t058_sales")
+assert spark.catalog.isCached("t058_sales") is False
+
+print(f"Cached initial={initial_total}, post-commit refreshed={refreshed_total}")
+assert initial_total == 300.0 and refreshed_total == 800.0
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Deterministic Invalidation**: Cached results are automatically invalidated the moment the Delta table commits a new version.
-# MAGIC - **Zero Stale Data**: You never need to manually flush caches after a DML update.
-# MAGIC - **SSD Performance**: Delta Cache on local NVMe SSDs accelerates scans by up to 10x over remote cloud storage.
+# MAGIC - **Deterministic Invalidation**: DBSQL Result Cache & Disk Cache automatically invalidate when Delta `_delta_log` commits a new version.
+# MAGIC - **Explicit Spark Cache Lifecycle**: In open Spark clusters, remember `REFRESH TABLE` / `UNCACHE TABLE` to keep executor memory aligned.
+# MAGIC - **NVMe Delta Cache Advantage**: Persists hot Parquet columns natively on local SSDs without consuming JVM executor heap.
 # MAGIC
 # MAGIC ---
 # MAGIC

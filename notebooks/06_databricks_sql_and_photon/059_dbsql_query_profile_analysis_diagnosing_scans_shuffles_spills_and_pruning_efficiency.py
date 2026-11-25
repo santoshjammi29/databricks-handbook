@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 059. DBSQL Query Profile Analysis: Diagnosing Scans, Shuffles, Spills & Pruning Efficiency
 # MAGIC **Module**: Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer
-# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,51 +13,61 @@
 # MAGIC An executive dashboard query takes 85 seconds to run. The business demands sub-5-second performance. The engineer must use Query Profile to identify whether the bottleneck is scanning, spilling, or shuffling.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Inspect and parse a Databricks SQL Query Profile, calculate data skipping efficiency (`Files Read` vs. `Files Pruned`), and eliminate disk spill bottlenecks.
+# MAGIC Prove how non-sargable filter expressions (`CAST(order_date AS STRING) LIKE ...`) defeat Delta partition pruning, then inspect Catalyst's physical plan & `inputFiles()` before vs. after rewriting to a sargable equality predicate.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC Query Profile visualizes the physical execution tree in DBSQL. Key metrics include: Scan Time, Files Pruned (partition/clustering efficiency), Shuffle Exchange Rows, and Memory Spill to Disk.
+# MAGIC Wrapping a partition or clustering column inside a function/cast blocks partition pushdown and Z-Cube/file min-max pruning, triggering a full table scan (`0% files pruned`). Rewriting predicates on bare indexed columns unlocks instant partition elimination.
+# COMMAND ----------
+
+import tempfile
+from pathlib import Path
+from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Query Profile Metric Extraction & Bottleneck Triage
+# MAGIC ### 1. Bad (Broken Data Skipping Full Scan) vs. Good (Pruned Scan via Bare Indexed Column)
 # MAGIC
-# MAGIC Analyze simulated query profile metrics to pinpoint performance regressions.
+# MAGIC Write 4 ordered batches (`1..50`, `51..100`, `101..150`, `151..200`) into Delta so `_delta_log` min/max stats span disjoint ranges, then prove `CAST(order_id AS STRING)` forces scanning all 4 files while `order_id = 125` prunes 75% to 1 file.
 # COMMAND ----------
 
-query_profile_metrics = {
-    "query_id": "01ef-5544-aa33",
-    "total_duration_ms": 85000,
-    "stages": {
-        "scan_orders": {
-            "total_files": 12500,
-            "files_read": 12500,
-            "files_pruned": 0, # ZERO PRUNING!
-            "bytes_read": "850 GB",
-            "time_ms": 62000
-        },
-        "hash_join": {
-            "spill_to_disk_bytes": "45 GB", # DISK SPILL!
-            "time_ms": 18000
-        }
-    }
-}
+lab_dir = Path(tempfile.mkdtemp(prefix="hb_059_", dir=globals().get("HANDBOOK_TMP_DIR")))
+pruned_path = str(lab_dir / "orders_sorted_delta")
 
-scan = query_profile_metrics["stages"]["scan_orders"]
-prune_pct = (scan["files_pruned"] / scan["total_files"]) * 100
-print(f"Total Scan Time: {scan['time_ms'] / 1000:.1f}s")
-print(f"File Pruning Efficiency: {prune_pct:.1f}%")
-print(f"Memory Spilled to Disk: {query_profile_metrics['stages']['hash_join']['spill_to_disk_bytes']}")
+for start_id in (1, 51, 101, 151):
+    (
+        spark.range(start_id, start_id + 50)
+        .withColumnRenamed("id", "order_id")
+        .withColumn("amount", (F.col("order_id") * 10).cast("double"))
+        .coalesce(1)
+        .write.format("delta")
+        .mode("append")
+        .save(pruned_path)
+    )
+spark.sql(f"CREATE TABLE t059_orders USING DELTA LOCATION '{pruned_path}'")
 
-assert scan["files_pruned"] == 0, "Diagnostic Alert: Query performed full table scan!"
+# BAD PATTERN: Implicit/explicit cast prevents Delta min/max file skipping & Parquet PushedFilters
+bad_df = spark.sql("SELECT * FROM t059_orders WHERE CAST(order_id AS STRING) = '125'")
+bad_plan = bad_df._jdf.queryExecution().executedPlan().toString()
+bad_files = len(bad_df.inputFiles())
+
+# GOOD PATTERN: Direct filter on bare numeric column enables file-level data skipping
+good_df = spark.sql("SELECT * FROM t059_orders WHERE order_id = 125")
+good_plan = good_df._jdf.queryExecution().executedPlan().toString()
+good_files = len(good_df.inputFiles())
+
+print(f"Bad files read (CAST breaks skipping): {bad_files}")
+print(f"Good files read (Delta stats pruned) : {good_files}")
+assert bad_files == 4 and good_files == 1
+assert "PushedFilters" in good_plan and "EqualTo(order_id,125)" in good_plan
+assert good_df.count() == bad_df.count() == 1
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Zero Pruning Flag**: If `files_pruned == 0`, the query is doing a full table scan; apply Liquid Clustering.
-# MAGIC - **Spill Detection**: High `spill_to_disk_bytes` indicates cluster RAM is undersized or join keys are skewed.
-# MAGIC - **Scan Bottlenecks**: Scans taking > 70% of query time indicate missing partition/clustering filters.
+# MAGIC - **Never Wrap Filter Columns**: Functions like `SUBSTRING(col)`, `YEAR(col)`, or implicit type casts block partition & data-skipping pruning.
+# MAGIC - **Verify Query Profile**: Check `PartitionFilters` and `PushedFilters` / `Files Pruned` ratios after SQL rewrites.
+# MAGIC - **Eliminate Spills**: Smaller pruned scans drastically reduce shuffle sort/hash memory footprint.
 # MAGIC
 # MAGIC ---
 # MAGIC

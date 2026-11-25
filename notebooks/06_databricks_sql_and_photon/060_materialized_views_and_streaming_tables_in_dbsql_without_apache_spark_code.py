@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 060. Materialized Views & Streaming Tables in DBSQL without Apache Spark Code
 # MAGIC **Module**: Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer
-# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,50 +13,77 @@
 # MAGIC SQL analysts and analytics engineers without Python skills need to build automated incremental pipelines that ingest files and maintain aggregated summary marts.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Deploy Streaming Tables and Materialized Views in Databricks SQL using pure ANSI SQL (`CREATE STREAMING TABLE` and `CREATE MATERIALIZED VIEW`), managing automatic refresh schedules.
+# MAGIC Demonstrate the Databricks SQL `CREATE STREAMING TABLE` and `CREATE MATERIALIZED VIEW` execution semantics locally by streaming JSON landing events incrementally into Delta Bronze and materializing Gold page-view rollups via SQL.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC Databricks SQL supports declarative Streaming Tables and Materialized Views natively. Under the hood, these leverage the DLT engine with serverless compute, bringing incremental pipeline engineering to pure SQL users.
+# MAGIC Databricks SQL Streaming Tables and Materialized Views run on serverless DLT infrastructure using pure ANSI SQL (`STREAM read_files()`). Locally we mirror this exact incremental ingestion -> SQL rollup pattern cleanly in Spark + Delta.
+# COMMAND ----------
+
+import tempfile
+from pathlib import Path
+from pyspark.sql import functions as F
+from pyspark.sql.types import StringType, StructField, StructType
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Pure ANSI SQL Declarative Pipeline DDL
+# MAGIC ### 1. Streaming Bronze Ingestion + SQL Materialized Gold Rollup
 # MAGIC
-# MAGIC Create streaming tables and materialized views with refresh schedules in SQL.
+# MAGIC Stream raw web JSON events with `trigger(availableNow=True)` into Delta `bronze_web_logs` and refresh an aggregated SQL summary table `gold_daily_page_views`.
 # COMMAND ----------
 
-ddl_sql_pipelines = """
--- 1. Create Streaming Table ingesting files via cloud_files() in SQL
-CREATE OR REPLACE STREAMING TABLE prod_lakehouse.bronze.web_logs
-SCHEDULE EVERY 1 HOUR
-AS SELECT * FROM STREAM read_files(
-    '/Volumes/prod_lakehouse/raw/web_logs/',
-    format => 'json'
-);
+lab_dir = Path(tempfile.mkdtemp(prefix="hb_060_", dir=globals().get("HANDBOOK_TMP_DIR")))
+raw_dir = lab_dir / "web_logs_json"
+raw_dir.mkdir(parents=True)
+bronze_path = str(lab_dir / "bronze_web_logs")
+gold_path = str(lab_dir / "gold_daily_page_views")
+ckpt = str(lab_dir / "ckpt_web_logs")
 
--- 2. Create Materialized View pre-aggregating metrics
-CREATE OR REPLACE MATERIALIZED VIEW prod_lakehouse.gold.daily_page_views
-SCHEDULE EVERY 1 DAY
-AS SELECT
-    CAST(event_time AS DATE) AS log_date,
-    page_url,
-    COUNT(*) AS total_hits,
-    COUNT(DISTINCT visitor_id) AS unique_visitors
-FROM prod_lakehouse.bronze.web_logs
-GROUP BY 1, 2;
-"""
+log_events = [
+    '{"log_date": "2026-11-20", "page_url": "/pricing", "visitor_id": "v1"}',
+    '{"log_date": "2026-11-20", "page_url": "/pricing", "visitor_id": "v2"}',
+    '{"log_date": "2026-11-20", "page_url": "/pricing", "visitor_id": "v1"}',
+    '{"log_date": "2026-11-20", "page_url": "/docs", "visitor_id": "v3"}',
+]
+(raw_dir / "events_01.json").write_text("\n".join(log_events) + "\n", encoding="utf-8")
 
-print("Pure SQL Streaming Table & Materialized View DDL verified.")
-assert "CREATE OR REPLACE STREAMING TABLE" in ddl_sql_pipelines
-assert "CREATE OR REPLACE MATERIALIZED VIEW" in ddl_sql_pipelines
+schema = StructType(
+    [
+        StructField("log_date", StringType(), False),
+        StructField("page_url", StringType(), False),
+        StructField("visitor_id", StringType(), False),
+    ]
+)
+
+q = (
+    spark.readStream.format("json")
+    .schema(schema)
+    .load(str(raw_dir))
+    .writeStream.format("delta")
+    .option("checkpointLocation", ckpt)
+    .trigger(availableNow=True)
+    .start(bronze_path)
+)
+q.awaitTermination()
+
+spark.sql(f"CREATE TABLE t060_bronze USING DELTA LOCATION '{bronze_path}'")
+gold_df = spark.sql("""
+    SELECT log_date, page_url, COUNT(*) AS total_hits, COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM t060_bronze
+    GROUP BY log_date, page_url
+""")
+gold_df.write.format("delta").mode("overwrite").save(gold_path)
+
+pricing = spark.read.format("delta").load(gold_path).filter("page_url = '/pricing'").first()
+print(f"/pricing rollup -> hits={pricing['total_hits']}, unique_visitors={pricing['unique_visitors']}")
+assert pricing["total_hits"] == 3 and pricing["unique_visitors"] == 2
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Zero Python Required**: SQL analysts can build robust streaming pipelines using pure ANSI SQL.
-# MAGIC - **Automated Incremental Refresh**: Materialized views recompute only what has changed upstream.
-# MAGIC - **Unified Serverless Compute**: Refreshes execute on serverless SQL warehouses automatically.
+# MAGIC - **Zero Python Required in DBSQL**: Analysts declare Streaming Tables & Materialized Views cleanly in ANSI SQL.
+# MAGIC - **Incremental State Management**: Databricks tracks ingested files cleanly via checkpoints.
+# MAGIC - **Consistent Aggregations**: Exact distinct & rollup metrics stay aligned with Bronze tables.
 # MAGIC
 # MAGIC ---
 # MAGIC

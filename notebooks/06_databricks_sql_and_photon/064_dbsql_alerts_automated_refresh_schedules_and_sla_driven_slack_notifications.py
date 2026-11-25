@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 064. DBSQL Alerts, Automated Refresh Schedules & SLA-Driven Slack Notifications
 # MAGIC **Module**: Module 06: Databricks SQL (DBSQL), Photon & Semantic Layer
-# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Foundational` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,46 +13,55 @@
 # MAGIC A payments platform must be alerted within 5 minutes if failed credit card transactions exceed 2% of total volume over any rolling 15-minute window.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Configure automated Databricks SQL Alerts on scheduled queries, evaluate threshold triggers (`>` or `<`), and configure webhook destinations for Slack and PagerDuty.
+# MAGIC Execute rolling threshold SQL alert queries over Delta payment telemetry (`failure_rate_pct > 2.0%`), separating healthy windows from SLA-breaching alert windows.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC DBSQL Alerts execute a query on a recurring schedule. When the returned result crosses a predefined threshold, Databricks automatically fires notifications to configured destinations (Slack, Teams, PagerDuty, Webhooks).
+# MAGIC DBSQL Alerts evaluate scheduled SQL queries and dispatch Slack/PagerDuty webhooks whenever returned aggregate metrics violate numeric predicates.
+# COMMAND ----------
+
+import tempfile
+from pathlib import Path
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. SQL Alert Definition & Threshold Evaluation
+# MAGIC ### 1. Rolling Window SQL Alert Query & SLA Breach Trigger
 # MAGIC
-# MAGIC Define an alert query and trigger condition.
+# MAGIC Persist healthy and degraded 15-minute payment authorization windows in Delta Lake, run the DBSQL alert evaluation query, and assert only the incident window triggers.
 # COMMAND ----------
 
-alert_definition = {
-    "name": "High Payment Failure Rate Alert",
-    "query": "SELECT failure_rate_pct FROM prod_lakehouse.gold.payment_kpis WHERE window_start >= NOW() - INTERVAL 15 MIN",
-    "condition": {
-        "column": "failure_rate_pct",
-        "operator": ">",
-        "threshold": 2.0
-    },
-    "schedule": "EVERY 5 MINUTES",
-    "notification_destination": "slack-data-alerts-channel"
-}
+lab_dir = Path(tempfile.mkdtemp(prefix="hb_064_", dir=globals().get("HANDBOOK_TMP_DIR")))
+pay_path = str(lab_dir / "payment_events")
 
-# Simulate threshold check
-current_failure_rate = 3.4
-triggered = current_failure_rate > alert_definition["condition"]["threshold"]
+rows = [("w1_healthy", "OK") for _ in range(99)] + [("w1_healthy", "FAILED")]
+rows += [("w2_incident", "OK") for _ in range(90)] + [("w2_incident", "FAILED") for _ in range(10)]
+spark.createDataFrame(rows, ["window_id", "tx_status"]).write.format("delta").save(pay_path)
+spark.sql(f"CREATE TABLE t064_payments USING DELTA LOCATION '{pay_path}'")
 
-print(f"Alert: {alert_definition['name']}")
-print(f"Current Value: {current_failure_rate}% | Threshold: {alert_definition['condition']['threshold']}%")
-print(f"Alert Fired to Slack: {triggered}")
-assert triggered is True
+alert_df = spark.sql("""
+    WITH window_kpis AS (
+        SELECT
+            window_id,
+            ROUND(SUM(CASE WHEN tx_status = 'FAILED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS failure_rate_pct
+        FROM t064_payments
+        GROUP BY window_id
+    )
+    SELECT window_id, failure_rate_pct, failure_rate_pct > 2.0 AS trigger_slack_alert
+    FROM window_kpis
+    ORDER BY window_id
+""")
+
+alerts = {r["window_id"]: (r["failure_rate_pct"], r["trigger_slack_alert"]) for r in alert_df.collect()}
+print(f"DBSQL Alert Evaluation: {alerts}")
+assert alerts["w1_healthy"] == (1.0, False)
+assert alerts["w2_incident"] == (10.0, True)
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Proactive Alerting**: Catch operational anomalies before business users notice.
-# MAGIC - **Multi-Channel**: Send alerts to Slack channels, PagerDuty on-call services, or custom webhooks.
-# MAGIC - **State Tracking**: Alerts can trigger 'Just Once' when passing threshold or 'Each Time' evaluated.
+# MAGIC - **Proactive Alerting**: Detect SLA regressions cleanly in SQL before customers report outages.
+# MAGIC - **Multi-Channel Destinations**: Dispatch DBSQL Alerts to Slack, PagerDuty, or HTTP webhooks.
+# MAGIC - **Trigger Semantics**: Choose `Trigger Once` vs. `Each Time` to avoid pager fatigue.
 # MAGIC
 # MAGIC ---
 # MAGIC

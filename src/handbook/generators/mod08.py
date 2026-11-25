@@ -137,46 +137,65 @@ assert vector_index_spec["index_type"] == "DELTA_SYNC"
             "title": "Foundation Model APIs & Embeddings: bge-large, text-embedding-3 & Serving",
             "filename": "080_embedding_models_and_foundation_model_apis_bge_large_text_embedding_3_and_serving.py",
             "difficulty": "Intermediate",
+            "verify": "T2",
+            "imports": [
+                "import tempfile",
+                "from pathlib import Path",
+            ],
             "business_scenario": "A natural language search system must convert text documents into high-dimensional numerical vectors (1024 dimensions) using state-of-the-art embedding models with predictable throughput and low cost.",
-            "problem_statement": "Query Databricks Foundation Model APIs (e.g. `databricks-bge-large-en`), generate dense vector embeddings from text batches, and measure similarity using cosine distance.",
-            "architectural_notes": "Databricks Foundation Model APIs provide pay-per-token access to top-tier open models (`bge-large`, `dbrx-instruct`, `llama-3`) hosted securely on serverless Databricks infrastructure. Data never leaves the workspace perimeter.",
+            "problem_statement": "Store document vector embeddings inside a Delta table (`ARRAY<DOUBLE>`) and compute scalable cosine similarity across catalog records directly in Spark SQL using built-in higher-order array functions (`arrays_zip`, `aggregate`).",
+            "architectural_notes": "While Databricks Foundation Model APIs generate dense embeddings serverlessly (`databricks-bge-large-en`), downstream similarity scoring and evaluation over Delta tables scale effortlessly via distributed Spark SQL higher-order functions without Python UDF serialization.",
             "sections": [
                 {
-                    "title": "1. Vector Embedding Generation & Cosine Similarity Verification",
-                    "explanation": "Generate vector arrays and compute mathematical cosine similarity.",
-                    "code": """import math
+                    "title": "1. Distributed Cosine Similarity over Delta Embeddings via Spark SQL",
+                    "explanation": "Persist vector arrays in a Delta table and rank document matches against a query embedding vector using pure vectorized Spark SQL expressions.",
+                    "code": """lab_dir = Path(tempfile.mkdtemp(prefix="hb_080_", dir=globals().get("HANDBOOK_TMP_DIR")))
+vec_path = str(lab_dir / "product_embeddings")
 
-# Vector cosine similarity function
-def cosine_similarity(v1: list, v2: list) -> float:
-    dot = sum(a * b for a, b in zip(v1, v2))
-    norm1 = math.sqrt(sum(a * a for a in v1))
-    norm2 = math.sqrt(sum(b * b for b in v2))
-    return dot / (norm1 * norm2)
+docs = [
+    ("doc_match", "Enterprise Delta Lake ACID Storage", [0.84, 0.15, 0.44, 0.25]),
+    ("doc_partial", "Databricks Workflows Job Retries", [0.55, 0.45, 0.30, 0.20]),
+    ("doc_unrelated", "SAML Single Sign-On Identity Groups", [0.05, 0.92, 0.11, 0.38]),
+]
+spark.createDataFrame(docs, ["doc_id", "title", "embedding"]).write.format("delta").save(vec_path)
+spark.sql(f"CREATE TABLE t080_vectors USING DELTA LOCATION '{vec_path}'")
 
-# Simulated 4-dimensional normalized embeddings
-query_vec = [0.85, 0.12, 0.45, 0.22]
-doc_match_vec = [0.84, 0.15, 0.44, 0.25] # Highly similar document
-doc_unrelated_vec = [0.05, 0.92, 0.11, 0.38] # Unrelated document
+ranked_df = spark.sql(\"\"\"
+    WITH q AS (
+        SELECT array(0.85, 0.12, 0.45, 0.22) AS query_vec
+    ),
+    scored AS (
+        SELECT
+            v.doc_id,
+            v.title,
+            aggregate(arrays_zip(q.query_vec, v.embedding), 0.0D, (acc, x) -> acc + x.query_vec * x.embedding) AS dot_prod,
+            sqrt(aggregate(q.query_vec, 0.0D, (acc, x) -> acc + x * x)) AS norm_q,
+            sqrt(aggregate(v.embedding, 0.0D, (acc, x) -> acc + x * x)) AS norm_v
+        FROM t080_vectors v
+        CROSS JOIN q
+    )
+    SELECT doc_id, title, ROUND(dot_prod / (norm_q * norm_v), 4) AS cosine_similarity
+    FROM scored
+    ORDER BY cosine_similarity DESC
+\"\"\")
 
-sim_match = cosine_similarity(query_vec, doc_match_vec)
-sim_unrelated = cosine_similarity(query_vec, doc_unrelated_vec)
-
-print(f"Similarity (Target Document): {sim_match:.4f}")
-print(f"Similarity (Unrelated Document): {sim_unrelated:.4f}")
-assert sim_match > 0.95
-assert sim_unrelated < 0.60
-"""
+scores = {r["doc_id"]: r["cosine_similarity"] for r in ranked_df.collect()}
+top_id = ranked_df.first()["doc_id"]
+print(f"Cosine Similarity Ranking: {scores} (top={top_id})")
+assert top_id == "doc_match"
+assert scores["doc_match"] > 0.99 and scores["doc_unrelated"] < 0.60
+""",
                 }
             ],
             "key_takeaways": [
-                "Pay-per-Token Model: Foundation Model APIs eliminate the cost of keeping dedicated GPU clusters running.",
-                "Zero Data Egress: Prompts and embeddings are not logged by external vendors or used for model training.",
-                "Standard API: Fully compatible with OpenAI client format (`openai.OpenAI(base_url=...)`)."
+                "Pay-per-Token Model: Foundation Model APIs generate embeddings without dedicated GPU cluster costs.",
+                "Vectorized Spark Scoring: Native `aggregate` / `arrays_zip` evaluates similarity cleanly inside Catalyst without slow Python UDFs.",
+                "Zero Data Egress: Embeddings stored directly in Delta tables inherit full Unity Catalog governance.",
             ],
             "interview_questions": [
                 "What is the difference between Pay-per-token Foundation Model APIs and Provisioned Throughput Model Serving?",
-                "How do you configure the OpenAI Python SDK to query Databricks-hosted foundation models?"
-            ]
+                "How do you configure the OpenAI Python SDK to query Databricks-hosted foundation models?",
+            ],
         },
         {
             "nb_id": "081",
@@ -269,42 +288,62 @@ assert entity["scale_to_zero_enabled"] is True
             "title": "Enterprise RAG Architecture: Semantic Chunking, Dense Vector + Sparse BM25 Search",
             "filename": "083_enterprise_rag_architecture_semantic_chunking_dense_vector_sparse_bm25_search.py",
             "difficulty": "Architect",
+            "verify": "T2",
+            "imports": [
+                "import tempfile",
+                "from pathlib import Path",
+            ],
             "business_scenario": "A legal firm builds an AI research assistant over 500,000 regulatory documents. Semantic vector search alone fails to match exact legal clause codes, requiring hybrid search with BM25 keyword matching.",
-            "problem_statement": "Architect an enterprise Retrieval-Augmented Generation (RAG) pipeline incorporating semantic text chunking, hybrid search (dense embeddings + sparse BM25), and cross-encoder re-ranking.",
-            "architectural_notes": "Hybrid search combines dense vector embeddings (which capture conceptual meaning) with sparse lexical keywords like BM25 (which capture exact terms, acronyms, and product IDs). A re-ranker model then scores the combined candidates.",
+            "problem_statement": "Execute hybrid retrieval scoring (`alpha * dense_cosine + (1 - alpha) * sparse_keyword`) over a Delta chunk store in Spark SQL and prove exact legal identifiers (`Clause 409-B`) outrank generic semantic matches.",
+            "architectural_notes": "Pure dense vector search captures meaning but can dilute exact part numbers, SKUs, or legal clause identifiers. Blending dense cosine similarity with sparse keyword scoring ensures exact identifiers rank #1 before cross-encoder reranking.",
             "sections": [
                 {
-                    "title": "1. Hybrid Retrieval Scoring Model",
-                    "explanation": "Simulate combining dense semantic scores with sparse lexical scores.",
-                    "code": """def hybrid_score(dense_sim: float, sparse_bm25_norm: float, alpha: float = 0.7) -> float:
-    # Alpha balances dense semantic weight vs sparse lexical weight
-    return (alpha * dense_sim) + ((1.0 - alpha) * sparse_bm25_norm)
+                    "title": "1. Hybrid Retrieval Scoring (Dense Cosine + Sparse Lexical Term) in Spark SQL",
+                    "explanation": "Store document chunks + normalized embeddings in Delta, score a user query (`Clause 409-B termination penalty`) via Spark SQL hybrid fusion, and assert exact clause match wins.",
+                    "code": """lab_dir = Path(tempfile.mkdtemp(prefix="hb_083_", dir=globals().get("HANDBOOK_TMP_DIR")))
+rag_path = str(lab_dir / "legal_rag_chunks")
 
-# Document 1: Good conceptual match, but lacks exact clause ID
-doc1_dense = 0.92
-doc1_sparse = 0.20
-score_doc1 = hybrid_score(doc1_dense, doc1_sparse, alpha=0.6)
+chunks = [
+    ("chunk_1_conceptual", "General overview of enterprise contract termination penalties.", [0.92, 0.39]),
+    ("chunk_2_exact", "Mandatory SLA breach liability under Clause 409-B governing early exit.", [0.78, 0.62]),
+]
+spark.createDataFrame(chunks, ["chunk_id", "content", "dense_vec"]).write.format("delta").save(rag_path)
+spark.sql(f"CREATE TABLE t083_chunks USING DELTA LOCATION '{rag_path}'")
 
-# Document 2: Moderate semantic match, but has EXACT legal clause ID
-doc2_dense = 0.78
-doc2_sparse = 0.95
-score_doc2 = hybrid_score(doc2_dense, doc2_sparse, alpha=0.6)
+ranked_df = spark.sql(\"\"\"
+    WITH scored AS (
+        SELECT
+            chunk_id,
+            ROUND((0.99 * element_at(dense_vec, 1) + 0.14 * element_at(dense_vec, 2)), 4) AS dense_score,
+            CASE WHEN content LIKE '%Clause 409-B%' THEN 0.95 ELSE 0.20 END AS sparse_score
+        FROM t083_chunks
+    )
+    SELECT
+        chunk_id,
+        dense_score,
+        sparse_score,
+        ROUND(0.6 * dense_score + 0.4 * sparse_score, 4) AS hybrid_score
+    FROM scored
+    ORDER BY hybrid_score DESC
+\"\"\")
 
-print(f"Hybrid Score Doc 1: {score_doc1:.4f}")
-print(f"Hybrid Score Doc 2 (Exact Keyword): {score_doc2:.4f}")
-assert score_doc2 > score_doc1, "Hybrid search correctly elevated exact legal clause match!"
-"""
+results = {r["chunk_id"]: r["hybrid_score"] for r in ranked_df.collect()}
+winner = ranked_df.first()["chunk_id"]
+print(f"Hybrid RAG Ranking: {results} (top={winner})")
+assert winner == "chunk_2_exact"
+assert results["chunk_2_exact"] > results["chunk_1_conceptual"]
+""",
                 }
             ],
             "key_takeaways": [
-                "Hybrid Search Standard: Combine dense vector search with sparse keyword search for robust enterprise RAG.",
-                "Semantic Chunking: Chunk documents on structural boundaries (headers, paragraphs) rather than raw token counts.",
-                "Re-ranking Stage: Run top 50 hybrid candidates through a cross-encoder to select the final top 5 context chunks."
+                "Hybrid Search Standard: Blend dense embeddings with sparse lexical scores to preserve exact identifiers.",
+                "Semantic Chunking: Preserve header and clause boundaries instead of fixed character slices.",
+                "Reranking Pipeline: Filter top hybrid candidates cleanly before invoking cross-encoders or LLMs.",
             ],
             "interview_questions": [
                 "Why does pure vector embedding search often fail on domain-specific acronyms and part numbers?",
-                "How does Reciprocal Rank Fusion (RRF) combine dense and sparse search rankings?"
-            ]
+                "How does Reciprocal Rank Fusion (RRF) combine dense and sparse search rankings?",
+            ],
         },
         {
             "nb_id": "084",
@@ -406,38 +445,69 @@ assert "ai_query(" in sql_ai_functions
             "title": "Lakehouse Monitoring: Automated Drift Detection, Quality Metrics & Alerting Tables",
             "filename": "086_lakehouse_monitoring_automated_drift_detection_quality_metrics_and_alerting_tables.py",
             "difficulty": "Advanced",
+            "verify": "T2",
+            "imports": [
+                "import tempfile",
+                "from pathlib import Path",
+                "from pyspark.sql import functions as F",
+            ],
             "business_scenario": "A production credit card fraud model is experiencing degraded accuracy because customer spending behavior changed during holiday shopping. Engineers need automated alerts on statistical feature drift.",
-            "problem_statement": "Deploy a Databricks Lakehouse Monitor on a Delta table, analyzing automated profile and drift metric tables (`_profile_metrics`, `_drift_metrics`), tracking Kolmogorov-Smirnov and Jensen-Shannon divergence.",
-            "architectural_notes": "Lakehouse Monitoring automatically profiles Delta tables and model inference logs. It tracks data quality, schema drift, statistical distribution drift (KS test, Wasserstein distance), and writes metrics directly to Unity Catalog metric tables.",
+            "problem_statement": "Compute real Delta feature-profile shifts and two-sample Kolmogorov-Smirnov (KS) empirical CDF divergence across baseline vs. drifted transaction windows using Spark SQL.",
+            "architectural_notes": "Lakehouse Monitoring automatically computes `_profile_metrics` and `_drift_metrics` over Delta tables in Databricks. Computing empirical CDF buckets and mean-shift deltas in Spark SQL demonstrates the exact mathematics behind KS feature drift alerts.",
             "sections": [
                 {
-                    "title": "1. Lakehouse Monitor Metric Table Schema Inspection",
-                    "explanation": "Simulate and verify statistical drift metrics tracked by Lakehouse Monitoring.",
-                    "code": """drift_metrics_sample = {
-    "column_name": "transaction_amount",
-    "time_window": "2026-11-17",
-    "baseline_mean": 142.50,
-    "current_mean": 218.40,
-    "ks_test_p_value": 0.002, # Highly significant distribution shift!
-    "drift_detected": True
-}
+                    "title": "1. Profile Mean Shift & Empirical Two-Sample KS Drift Statistic in Spark SQL",
+                    "explanation": "Compare a baseline vs. shifted spending window stored in Delta Lake, compute profile means + max CDF separation (`ks_stat`), and raise `DRIFT_DETECTED`.",
+                    "code": """lab_dir = Path(tempfile.mkdtemp(prefix="hb_086_", dir=globals().get("HANDBOOK_TMP_DIR")))
+base_path = str(lab_dir / "tx_baseline")
+curr_path = str(lab_dir / "tx_current")
 
-print(f"Monitored Feature: {drift_metrics_sample['column_name']}")
-print(f"Mean Shift: ${drift_metrics_sample['baseline_mean']} -> ${drift_metrics_sample['current_mean']}")
-print(f"Statistical Significance (KS p-value): {drift_metrics_sample['ks_test_p_value']}")
-assert drift_metrics_sample["drift_detected"] is True
-"""
+spark.range(0, 200).select((50.0 + (F.col("id") % 50)).alias("tx_amount")).write.format("delta").save(base_path)
+spark.range(0, 200).select((180.0 + (F.col("id") % 50)).alias("tx_amount")).write.format("delta").save(curr_path)
+
+spark.sql(f"CREATE TABLE t086_baseline USING DELTA LOCATION '{base_path}'")
+spark.sql(f"CREATE TABLE t086_current USING DELTA LOCATION '{curr_path}'")
+
+profile_df = spark.sql(\"\"\"
+    SELECT 'baseline' AS window_name, ROUND(AVG(tx_amount), 2) AS mean_amt, ROUND(STDDEV(tx_amount), 2) AS std_amt FROM t086_baseline
+    UNION ALL
+    SELECT 'current'  AS window_name, ROUND(AVG(tx_amount), 2) AS mean_amt, ROUND(STDDEV(tx_amount), 2) AS std_amt FROM t086_current
+\"\"\")
+profiles = {r["window_name"]: r for r in profile_df.collect()}
+
+# Empirical two-sample KS statistic = MAX |CDF_baseline(x) - CDF_current(x)| over threshold buckets
+ks_df = spark.sql(\"\"\"
+    WITH buckets AS (
+        SELECT explode(array(75.0, 100.0, 150.0, 200.0, 225.0)) AS cutoff
+    ),
+    cdf_b AS (
+        SELECT b.cutoff, AVG(CASE WHEN t.tx_amount <= b.cutoff THEN 1.0 ELSE 0.0 END) AS fb
+        FROM buckets b CROSS JOIN t086_baseline t GROUP BY b.cutoff
+    ),
+    cdf_c AS (
+        SELECT b.cutoff, AVG(CASE WHEN t.tx_amount <= b.cutoff THEN 1.0 ELSE 0.0 END) AS fc
+        FROM buckets b CROSS JOIN t086_current t GROUP BY b.cutoff
+    )
+    SELECT ROUND(MAX(ABS(cdf_b.fb - cdf_c.fc)), 3) AS ks_stat
+    FROM cdf_b JOIN cdf_c ON cdf_b.cutoff = cdf_c.cutoff
+\"\"\")
+
+ks_stat = ks_df.first()["ks_stat"]
+mean_delta = round(profiles["current"]["mean_amt"] - profiles["baseline"]["mean_amt"], 2)
+print(f"Baseline mean=${profiles['baseline']['mean_amt']}, Current mean=${profiles['current']['mean_amt']} (delta=${mean_delta}, KS={ks_stat})")
+assert mean_delta > 100.0 and ks_stat >= 0.9
+""",
                 }
             ],
             "key_takeaways": [
-                "Zero Pipeline Overhead: Monitors run asynchronously without impacting production write jobs.",
-                "Statistical Tests Built-in: Automatically computes Kolmogorov-Smirnov and Chi-square drift statistics.",
-                "Dashboard Out-of-the-Box: Automatically generates an AI/BI dashboard visualizing table trends."
+                "Zero Pipeline Overhead: Lakehouse Monitors run asynchronously over Delta `_delta_log` telemetry.",
+                "Distribution Drift Detection: Track mean shifts alongside non-parametric Kolmogorov-Smirnov (KS) CDF divergence.",
+                "Unified Metrics Tables: Write profile & drift history directly into Unity Catalog Delta tables.",
             ],
             "interview_questions": [
                 "What is the difference between Profile Metrics and Drift Metrics in Databricks Lakehouse Monitoring?",
-                "How does Lakehouse Monitoring detect concept drift in deployed machine learning models?"
-            ]
+                "How does Lakehouse Monitoring detect concept drift in deployed machine learning models?",
+            ],
         },
         {
             "nb_id": "087",
