@@ -1,137 +1,15 @@
-name: CI Quality Gate
+name: Handbook CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-
-permissions:
-  contents: read
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint & Code Style
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Run Ruff Linter
-        run: uv run ruff check src tests apps
-
-      - name: Run Ruff Format Check
-        run: uv run ruff format --check src tests apps
-
-  pre-commit:
-    name: Pre-Commit Hooks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install Pinned Gitleaks Binary (v8.21.2)
-        run: |
-          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
-          echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  /tmp/gitleaks.tar.gz" | sha256sum -c -
-          sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Run Pre-Commit Hooks Across Repository
-        run: uv run pre-commit run --all-files
-
-  build-drift:
-    name: Deterministic Build & Drift Gate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Verify Generator vs Notebook Disk Drift
-        run: uv run handbook build --check
-
-      - name: Verify README Generated Block Drift
-        run: uv run handbook readme --check
-
-      - name: Verify Content Verification Tier Drift
-        run: uv run handbook audit-content --check
-
-  validate:
-    name: Artifact & Bundle Validation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Validate Databricks Notebooks Formatting & AST
-        run: uv run handbook validate --target notebooks
-
-      - name: Validate DAB Bundle Configuration & Resources
-        run: |
-          echo "Running offline bundle YAML, schema, and path validation..."
-          uv run handbook validate --target bundle
-
-      - name: Install Databricks CLI (when workspace secrets configured)
-        if: env.DATABRICKS_HOST != '' && env.DATABRICKS_TOKEN != ''
-        uses: databricks/setup-cli@e1dad86b08f6ea07707aea128ec4bfa76af8db55 # v1.28.0
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-
-      - name: Online Databricks Bundle Validate (when workspace secrets configured)
-        if: env.DATABRICKS_HOST != '' && env.DATABRICKS_TOKEN != ''
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle validate -t dev
-
-      - name: Validate Repository Hygiene & Architectural Invariants
-        run: uv run handbook validate --target hygiene
-
-  test:
-    name: Test Suite & Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install Pinned Gitleaks Binary (v8.21.2)
-        run: |
-          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
-          echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  /tmp/gitleaks.tar.gz" | sha256sum -c -
-          sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Run Test Suite with Coverage
-        run: uv run pytest --cov=handbook tests/ -v
-
-  links:
-    name: Markdown Link & Anchor Integrity
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup
-
-      - name: Validate Internal Relative Links & Anchors
-        run: uv run handbook validate --target links
+  ci:
+    uses: santoshjammi29/.github/.github/workflows/handbook-ci.yml@v1
