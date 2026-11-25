@@ -512,7 +512,7 @@ wheels = [
 
 [[package]]
 name = "databricks-connect"
-version = "15.4.27"
+version = "16.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "databricks-sdk" },
@@ -528,7 +528,7 @@ dependencies = [
     { name = "six" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/83/057506a956298c89f2cbaf397c42c87aa75076278ecf3f4df652c93fe8df/databricks_connect-15.4.27-py2.py3-none-any.whl", hash = "sha256:f194a65d3c9f940665952e85ff49cfbf40e56c036bd872ad542afd4d3183bf94", size = 2318577, upload-time = "2026-11-13T22:01:57.031Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/5d/ae8c59de242ca6ef1631e66fdf7fc413bc0d51d2521c4e1cb90104dd62d9/databricks_connect-16.1.7-py2.py3-none-any.whl", hash = "sha256:ddc7ddb8bcfb7910db67e8c4ef5ab2f938c55cf1a1b2e066ff56d2db68b13cb5", size = 2393078, upload-time = "2025-10-28T14:25:02.265Z" },
 ]
 
 [[package]]
@@ -571,7 +571,7 @@ spark = [
 requires-dist = [
     { name = "altair", marker = "extra == 'app'", specifier = ">=5.0.0" },
     { name = "chispa", marker = "extra == 'spark'", specifier = ">=0.9.4" },
-    { name = "databricks-connect", marker = "extra == 'connect'", specifier = ">=15.4.0,<15.5.0" },
+    { name = "databricks-connect", marker = "extra == 'connect'", specifier = ">=15.4.0,<16.2.0" },
     { name = "databricks-sdk", marker = "extra == 'connect'", specifier = ">=0.28.0" },
     { name = "delta-spark", marker = "extra == 'spark'", specifier = ">=3.2.0,<3.3.0" },
     { name = "jsonschema", specifier = ">=4.23.0" },
