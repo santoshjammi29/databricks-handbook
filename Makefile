@@ -28,10 +28,10 @@ install:
 	$(UV) sync --locked --extra dev
 
 build:
-	$(UV) run python -m handbook.cli build
+	$(UV) run handbook build
 
 build-check:
-	$(UV) run python -m handbook.cli build --check
+	$(UV) run handbook build --check
 
 lint:
 	$(UV) run ruff check src tests apps
@@ -45,16 +45,16 @@ test:
 	$(UV) run pytest -q
 
 validate:
-	$(UV) run python -m handbook.cli validate
+	$(UV) run handbook validate
 
 validate-fast:
-	$(UV) run python -m handbook.cli validate --fast
+	$(UV) run handbook validate --fast
 
 docs:
-	$(UV) run python -m handbook.cli readme
+	$(UV) run handbook readme
 
 readme-check:
-	$(UV) run python -m handbook.cli readme --check
+	$(UV) run handbook readme --check
 
 schema:
 	databricks bundle schema > src/handbook/data/bundle.schema.json

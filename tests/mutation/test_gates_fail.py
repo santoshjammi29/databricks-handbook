@@ -220,3 +220,16 @@ def test_mutation_version_mismatch_fails_hygiene(base_dir: Path, tmp_path: Path)
     ok, errors = validate_hygiene(repo, verbose=False)
     assert not ok, "validate_hygiene passed despite CITATION.cff version mismatch!"
     assert any("Version mismatch" in e for e in errors)
+
+
+def test_mutation_whiteboard_domain_omission_fails_hygiene(base_dir: Path, tmp_path: Path):
+    repo = _stage_repo_subset(base_dir, tmp_path)
+    readme = repo / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    readme.write_text(
+        text.replace("07_data_modeling_architecture.md", "removed.md"), encoding="utf-8"
+    )
+
+    ok, errors = validate_hygiene(repo, verbose=False)
+    assert not ok, "validate_hygiene passed despite missing whiteboard domain link in README!"
+    assert any("07_data_modeling_architecture.md" in e or "sum to" in e for e in errors)

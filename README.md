@@ -28,6 +28,16 @@ The Databricks Handbook delivers production-tested, deterministic coding bluepri
 <a id="quickstart"></a>
 ## ⚡ Quickstart
 
+### 1. Use the Handbook (Databricks Workspace or Local)
+
+- **Recommended (Databricks Workspace)**: In your Databricks workspace, open **Workspace -> Create -> Git folder** and paste `https://github.com/santoshjammi29/databricks-handbook.git`. Attach a **DBR 15.4+ LTS** cluster (or **Serverless compute**) to run recipes interactively.
+- **Which recipes run where**:
+  - **Local-friendly (`[spark]` extra)**: Core Spark/Delta DataFrame mechanics, testing, and triage simulations (Modules 03, 07 partial, 10 partial) can run locally via `uv sync --locked --extra spark`.
+  - **Databricks Workspace required**: Unity Catalog (`catalog.schema.table`), System Tables (`system.billing.usage`, `system.access.audit`), Lakeflow Declarative Pipelines (DLT), Databricks Apps, and Mosaic AI Vector Search / Model Serving (Modules 01–02, 04–06, 08–09).
+- **Cloud Cost & Cleanup Warning**: Deploying `databricks.yml` or running SQL Warehouses, DLT pipelines, and Vector Search endpoints incurs cloud VM and DBU charges. Always deploy to `dev` first, enforce auto-termination (10–15 min), and run `databricks bundle destroy -t dev` when finished.
+
+### 2. Contribute & Verify Locally
+
 Get up and running locally in under 2 minutes with [`uv`](https://docs.astral.sh/uv/):
 
 ```bash
@@ -35,18 +45,29 @@ Get up and running locally in under 2 minutes with [`uv`](https://docs.astral.sh
 git clone https://github.com/santoshjammi29/databricks-handbook.git
 cd databricks-handbook
 
-# 2. Synchronize virtual environment with dev extras
+# 2. Synchronize locked virtual environment with dev extras
 make install
 
-# 3. Execute pre-flight verification gate (lint + build drift + bundle schema + tests)
+# 3. Execute pre-flight verification gate (lint + build-check + readme-check + validate-fast + tests)
 make check
 
 # 4. Explore recipes interactively via CLI
-uv run python -m handbook.cli explore 025
+uv run handbook explore 025
 
 # 5. Export notebooks to standard Jupyter format (.ipynb)
-uv run python -m handbook.cli export-ipynb
+uv run handbook export-ipynb
 ```
+
+---
+
+### 🧭 Suggested Learning Paths by Role
+
+| Role / Goal | Recommended Modules | Supporting Docs & Guides |
+|:---|:---|:---|
+| **Platform & Security Engineer** | Modules `01`, `02`, `07` | [Split-Plane Architecture](architectures/01_split_plane_security_and_serverless_compute.md) · [UC Governance](architectures/02_unity_catalog_governance_and_lakehouse_federation.md) · [Credential Runbook](runbooks/06_unity_catalog_storage_credential_and_permission_disasters.md) |
+| **Data & Lakehouse Engineer** | Modules `03`, `04`, `05` | [Delta 3.x Engine](architectures/03_delta_lake_3x_storage_engine_and_liquid_clustering.md) · [DevOps & DABs](architectures/04_enterprise_devops_dabs_and_lakeflow_orchestration.md) · [OCC & Skew Runbooks](runbooks/02_delta_concurrent_modification_conflicts.md) |
+| **FinOps & DBSQL Owner** | Modules `06`, `09` | [Warehouse Queue Runbook](runbooks/05_serverless_sql_warehouse_queueing_and_spill_tuning.md) · [FinOps App](apps/lakehouse_finops_monitor/app.py) |
+| **Interview & On-Call Prep** | Module `10` + Flashcards | [Level 100–400 Guides](interview/01_junior_and_associate_databricks_engineer.md) · [50 Flashcards](interview/05_flashcards_deck_50.md) · [OOM Triage Runbook](runbooks/01_driver_and_executor_oom_triage.md) |
 
 ---
 
@@ -75,16 +96,16 @@ Explore the complete curriculum breakdown in the [**Full Curriculum Catalog**](d
 <a id="whiteboard-blueprints"></a>
 ## 📐 52 Whiteboard Architecture Blueprints
 
-The repository provides **52 hand-drawn digital whiteboard blueprints** mirrored under [`assets/whiteboards/`](assets/whiteboards). Explore the [**Whiteboards Catalog**](docs/whiteboards/index.md) and [**Master Blueprints Index**](docs/whiteboard_diagrams/README.md).
+The repository provides **52 hand-drawn digital whiteboard blueprints** mirrored under [`assets/whiteboards/`](assets/whiteboards) (alongside 3 reference cheatsheets). Explore the [**Whiteboards Catalog**](docs/whiteboards/index.md).
 
 | Platform & Lakehouse Master | Unity Catalog Governance | Delta Lake 3.x Storage Engine |
 |:---:|:---:|:---:|
-| [![Platform Architecture](assets/whiteboards/databricks_ecosystem_landscape.webp)](docs/whiteboard_diagrams/README.md#databricks-platform-master) | [![Unity Catalog](assets/whiteboards/unity_catalog_architecture.webp)](docs/whiteboard_diagrams/README.md#unity-catalog-governance) | [![Delta Lake Storage](assets/whiteboards/delta_lake_mechanism.webp)](docs/whiteboard_diagrams/README.md#delta-lake-under-the-hood) |
+| [![Platform Architecture](assets/whiteboards/databricks_ecosystem_landscape.webp)](docs/whiteboards/03_platform_landscape.md#databricks-platform-master) | [![Unity Catalog](assets/whiteboards/unity_catalog_architecture.webp)](docs/whiteboards/04_governance_security.md#unity-catalog-governance) | [![Delta Lake Storage](assets/whiteboards/delta_lake_mechanism.webp)](docs/whiteboards/05_storage_engine.md#delta-lake-under-the-hood) |
 | **Delta Live Tables Pipeline** | **Catalyst & Photon C++ SIMD** | **FinOps & Cost Optimization** |
-| [![DLT Pipeline](assets/whiteboards/databricks_dlt_pipeline.webp)](docs/whiteboard_diagrams/README.md#delta-live-tables-pipeline) | [![Photon Engine](assets/whiteboards/catalyst_photon_engine.webp)](docs/whiteboard_diagrams/README.md#spark-catalyst-photon-engine) | [![FinOps Optimization](assets/whiteboards/lakehouse_finops_cost_optimization.webp)](docs/whiteboard_diagrams/README.md#lakehouse-finops-cost-optimization) |
+| [![DLT Pipeline](assets/whiteboards/databricks_dlt_pipeline.webp)](docs/whiteboards/02_data_pipelines_ingestion.md#delta-live-tables-pipeline) | [![Photon Engine](assets/whiteboards/catalyst_photon_engine.webp)](docs/whiteboards/06_compute_optimization.md#spark-catalyst-photon-engine) | [![FinOps Optimization](assets/whiteboards/lakehouse_finops_cost_optimization.webp)](docs/whiteboards/03_platform_landscape.md#lakehouse-finops-cost-optimization) |
 
 - 📊 [**Fabric & Power BI (4 Blueprints)**](docs/whiteboards/01_fabric_power_bi.md) • 🌊 [**Pipelines & Ingestion (12 Blueprints)**](docs/whiteboards/02_data_pipelines_ingestion.md) • 🛡️ [**Platform Landscape (8 Blueprints)**](docs/whiteboards/03_platform_landscape.md)
-- 🏛️ [**Governance & Security (4 Blueprints)**](docs/whiteboards/04_governance_security.md) • 💾 [**Storage Engine (9 Blueprints)**](docs/whiteboards/05_storage_engine.md) • 🚀 [**Compute & Optimization (11 Blueprints)**](docs/whiteboards/06_compute_optimization.md)
+- 🏛️ [**Governance & Security (4 Blueprints)**](docs/whiteboards/04_governance_security.md) • 💾 [**Storage Engine (9 Blueprints)**](docs/whiteboards/05_storage_engine.md) • 🚀 [**Compute & Optimization (11 Blueprints)**](docs/whiteboards/06_compute_optimization.md) • 🏗️ [**Data Modeling & Architecture (4 Blueprints)**](docs/whiteboards/07_data_modeling_architecture.md)
 
 ---
 
@@ -142,13 +163,16 @@ The repository build system provides full programmatic control:
 
 ```bash
 # Handbook CLI syntax: handbook [build|validate|readme|export-ipynb|explore]
-uv run python -m handbook.cli --help
+uv run handbook --help
 
 # Verify notebook generation drift (fails if any notebook was hand-edited)
-uv run python -m handbook.cli build --check
+uv run handbook build --check
+
+# Verify README generated module table drift
+uv run handbook readme --check
 
 # Validate internal link and anchor graph across all markdown docs
-uv run python -m handbook.cli validate --target links
+uv run handbook validate --target links
 ```
 
 ---
@@ -162,6 +186,7 @@ Contributions must strictly satisfy the **Code-Test-Doc Triad**. Review our cont
 - 🗺️ [**Curriculum Roadmap**](docs/ROADMAP.md): Milestones and 4-tier tracking checklist.
 - 🏷️ [**Curriculum Taxonomy**](docs/TAXONOMY.md): Canonical controlled vocabulary and domain standards.
 - 🤖 [**Autonomous Agent Guidelines**](AGENTS.md): Operational invariants and multi-repository quality gates.
+- 🔒 [**Security Policy**](.github/SECURITY.md) & 🤝 [**Code of Conduct**](.github/CODE_OF_CONDUCT.md)
 
 ---
 

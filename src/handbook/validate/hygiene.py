@@ -152,6 +152,45 @@ def validate_hygiene(base_dir: Path | None = None, verbose: bool = True) -> tupl
                     f"README.md count claim out of sync with curriculum.py: expected '{claim}'"
                 )
 
+        # 6b. Whiteboard domain docs linked from both docs/whiteboards/index.md and README.md
+        wb_docs_dir = base_dir / "docs" / "whiteboards"
+        wb_index = wb_docs_dir / "index.md"
+        if wb_docs_dir.exists() and wb_index.exists():
+            wb_index_text = wb_index.read_text(encoding="utf-8")
+            domain_files = sorted(wb_docs_dir.glob("0*.md"))
+            readme_domain_total = 0
+            index_domain_total = 0
+
+            for df in domain_files:
+                if df.name not in wb_index_text:
+                    errors.append(f"docs/whiteboards/index.md missing link to {df.name}")
+                if df.name not in readme_text:
+                    errors.append(f"README.md missing link to docs/whiteboards/{df.name}")
+
+                m_idx = re.search(
+                    rf"\((\d+)\s+Blueprints\)\**\s*\]\({re.escape(df.name)}", wb_index_text
+                )
+                if m_idx:
+                    index_domain_total += int(m_idx.group(1))
+                m_rd = re.search(
+                    rf"\((\d+)\s+Blueprints\)\**\s*\]\(docs/whiteboards/{re.escape(df.name)}\)",
+                    readme_text,
+                )
+                if m_rd:
+                    readme_domain_total += int(m_rd.group(1))
+
+            if domain_files:
+                if index_domain_total != TOTAL_WHITEBOARDS:
+                    errors.append(
+                        f"docs/whiteboards/index.md domain counts sum to {index_domain_total}, "
+                        f"expected {TOTAL_WHITEBOARDS}"
+                    )
+                if readme_domain_total != TOTAL_WHITEBOARDS:
+                    errors.append(
+                        f"README.md whiteboard domain counts sum to {readme_domain_total}, "
+                        f"expected {TOTAL_WHITEBOARDS}"
+                    )
+
     # 7. Version & license consistency across pyproject.toml, CITATION.cff, and CHANGELOG.md
     pyproject_file = base_dir / "pyproject.toml"
     citation_file = base_dir / "CITATION.cff"

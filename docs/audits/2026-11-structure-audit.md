@@ -1,45 +1,36 @@
-# 🏛️ Databricks Handbook: Structural Audit & Remediation Plan
+# 🏛️ Databricks Handbook: Structural Audit & Remediation Tracker
 
 **Repository**: `databricks-handbook`  
 **Date**: November 2026  
-**Auditor**: Senior Platform / DevEx Engineering  
-**Scope**: Repository structure, generator architecture, test coverage, and documentation integrity  
-**Status**: REMEDIATED (Phases 0–5)
+**Scope**: Security gates, validator truthfulness, CI/CD, documentation consistency, and executable content tiers  
+**Status**: PHASES 0–4 REMEDIATED | PHASE 5 PENDING OWNER APPROVAL
 
 ---
 
 ## 1. Executive Summary
 
-An industry-grade forensic audit of `databricks-handbook` was performed to transition the repository from a functional content repository into an enterprise-grade, maintainable, contributor-friendly production asset.
+Following the `v1.1.0` packaging refactor, a second adversarial audit proved that several quality gates passed on broken inputs (`F1`, `F2a–F2c`), toolchain configs had drifted, and most notebooks remained boilerplate/simulated stubs (`F3`).
 
-The audit identified 14 structural defects across generator coupling, magic numbers, documentation bloat, and validation redundancy, while identifying core foundational invariants to preserve.
+Phases 1–4 remediate all security, validation, CI/CD, and documentation consistency defects while preserving the 105 notebooks byte-identical. Phase 5 (upgrading notebooks to real local-executable Spark/Delta code and aligning README claims with measured verification tiers) awaits explicit owner sign-off.
 
 ---
 
-## 2. Ground Truth & Findings
+## 2. Ground Truth & Phase Status
 
-| # | Finding | Description & Evidence | Remediation Applied |
+| ID | Finding | Status | Remediation Summary |
 |---|---|---|---|
-| **F1** | **Wrong-repo audit doc** | `docs/audits/` contained a 41 KB audit doc for `lakehouse-architect` (Next.js 16/Cloudflare) and broken links to `../../public/diagrams`. | Moved to `docs/archive/` with banner notice; authored current repository audit. |
-| **F2** | **Hidden source of truth** | 10 `gen_modNN.py` generators created `notebooks/`, but contributors had no documentation that `notebooks/` must never be hand-edited. | Documented generator workflow in `docs/development.md` and `CONTRIBUTING.md`; enforced via `handbook build --check`. |
-| **F3** | **`scripts/` junk drawer** | Mixed generators, validators, CLI, and hand-rolled test runner with `sys.path` hacks. | Packaged into standard `src/handbook/` layout with `handbook` CLI entry point. |
-| **F4** | **Duplicated validation** | Three separate scripts performed overlapping AST and formatting checks. | Unified under `handbook.validate` (`notebooks`, `bundle`, `hygiene`, `links`). |
-| **F5** | **Hardcoded magic numbers** | Numbers `105`, `52`, `6`, `4`, `5`, and `132` were hardcoded across 13+ files. | Centralized into `handbook.curriculum` registry. |
-| **F6** | **Monolithic README** | 150 KB generated README duplicated topic lists and whiteboard catalogs. | Compacted to structured guide under ~400 lines with deep links. |
-| **F7** | **Broken in-page anchors** | 46 broken anchors in README and whiteboard documentation. | Split whiteboard docs by domain and corrected all anchor slugs. |
-| **F8** | **Dependency hygiene** | Flat `requirements.txt` mixed conflicting packages (`pyspark` vs `databricks-connect`). | Added `pyproject.toml` extras, locked via `uv.lock`, and set `.python-version` to 3.11. |
-| **F9** | **Automation guardrails** | Missing pre-commit, Makefile, Dependabot, and security scanning. | Added `.pre-commit-config.yaml`, comprehensive `Makefile`, Dependabot, and security CI. |
-| **F10** | **Lint debt** | ~1.6k findings across own code; formatting risks to generated content. | Configured `ruff` with per-file ignores; formatted only `src/`, `tests/`, and `apps/`. |
-| **F11** | **Hardcoded Service Principal ID** | Dummy SP UUID was hardcoded in `databricks.yml` prod targets. | Converted to bundle variable `${var.prod_service_principal_id}` and allowlisted in `.gitleaks.toml`. |
-| **F12** | **AGENTS.md drift** | Jumped from section 1 to 5 and referenced missing skill. | Renumbered sections and synchronized `ecosystem-ci-cd-quality-gate`. |
-| **F13** | **Root directory clutter** | 25 top-level root items including single-file directories. | Moved `curriculum_matrix.md` to package data and removed empty directories. |
-| **F14** | **Tests only checked syntax** | Tests checked counts and AST without asserting the Code-Test-Doc Triad. | Added Triad assertions, secret sanitization, Mermaid rules, and Spark smoke test tier. |
+| **F1** | **Blind Gitleaks config** | ✅ Fixed (Phase 1) | Enabled `[extend] useDefault = true` in `.gitleaks.toml`, removed blanket directory allowlists, added `tests/security/test_secret_canary.py` + CI canary job, and extended `test_secret_sanitization.py` token scans. |
+| **F2a / F2b** | **DABs validator only grepped text** | ✅ Fixed (Phase 2) | Rewrote `src/handbook/validate/bundle.py` to parse YAML, enforce `mode` enums and `${var.*}` declarations, resolve all notebook/DLT/app paths, and validate against committed `src/handbook/data/bundle.schema.json`. Fixed invalid expressions/names in `databricks.yml` & `resources/*.yml`. |
+| **F2c** | **README drift unchecked** | ✅ Fixed (Phase 2) | Added `handbook readme --check`, wired into `make check` and CI, enforced curriculum count and whiteboard domain sum checks in `hygiene.py`, and backed all gates with `tests/mutation/test_gates_fail.py`. |
+| **F4–F7** | **Version, Dependabot, pre-commit & CI drift** | ✅ Fixed (Phase 3) | Aligned `pyproject.toml` (`1.1.0`) and `CITATION.cff` (`MIT`), switched Dependabot to grouped `uv` + `github-actions`, aligned pre-commit `ruff` hooks with `make lint`, extracted `.github/actions/setup`, and enforced `uv sync --locked`. |
+| **F9–F10** | **Duplicate whiteboards, stale CLI refs, root clutter** | ✅ Fixed (Phase 4) | Replaced 331 KB `docs/whiteboard_diagrams/README.md` with redirect stub, updated `README.md` hero links & added Domain 07, updated `explorer.py` (`handbook explore`) & `02_unity_catalog_and_governance`, retired root `requirements.txt`, moved `SECURITY.md` & `CODE_OF_CONDUCT.md` to `.github/`. |
+| **F3** | **Simulated notebooks & Spark smoke test** | ⏳ Pending (Phase 5) | Requires owner approval: add `handbook audit-content` & `docs/verification.md`, align public claims, strip unused boilerplate cells, upgrade Batch 1 notebooks (starting with Module 03) to real local Delta/Spark execution, and run T2 notebooks in `nightly-smoke.yml`. |
 
 ---
 
 ## 3. Preserved Invariants
 
-1. **Byte-Identical Notebooks**: All 105 Databricks source notebooks in `notebooks/` remain 100% byte-identical against baseline SHA-256 hashes (`/tmp/baseline.sha256`).
-2. **Databricks Asset Bundle Paths**: `databricks.yml` and `resources/*.yml` remain at root and continue resolving `../notebooks/...`.
-3. **Whiteboard Blueprints**: The 52 `.webp` architectural blueprints in `assets/whiteboards/` are strictly preserved.
-4. **Mermaid Parsing Compliance**: All Mermaid diagrams adhere to strict parsing rules (no unquoted parentheses in link labels, no raw comparison operators, no semicolons in sequenceDiagram notes).
+1. **Byte-Identical Notebooks (Phases 0–4)**: All 105 Databricks source notebooks in `notebooks/` remain 100% byte-identical against baseline SHA-256 hashes until Phase 5 begins.
+2. **Databricks Asset Bundle Paths**: `databricks.yml` and `resources/*.yml` resolve and validate cleanly offline and via `databricks bundle schema`.
+3. **Whiteboard Blueprints**: All 52 `.webp` blueprints in `assets/whiteboards/` are preserved and referenced across all 7 domain guides.
+4. **Mermaid Parsing Compliance**: All Mermaid diagrams pass automated syntax validation (`test_mermaid_diagrams.py`).

@@ -47,6 +47,6 @@ You are assisting on **Databricks Handbook**, an authoritative satellite reposit
   - **No Semicolons in sequenceDiagram Notes**: In `sequenceDiagram`, `;` terminates the command. Use commas or colons (`Note over Sorter: Memory full, spilling to disk`).
   - **Escape Literal Dollar Signs**: Use `\$` in prose and diagrams to prevent math-mode parsing conflicts.
 - **Markdown Relative Link Resolution**: Verify link path relative to the document's directory depth. Never assume repository root. For cross-repo links, use canonical GitHub URLs.
-- **Python Toolchain & Dependency Invariant**: Dependency lockfile is maintained via `uv.lock`. Root dependencies for CI are specified in `pyproject.toml` and mirrored in `requirements.txt`.
+- **Python Toolchain & Dependency Invariant**: Dependency resolution and locking are maintained solely via `pyproject.toml` and `uv.lock` (using `uv sync --locked`). No root `requirements.txt` is maintained; `apps/lakehouse_finops_monitor/requirements.txt` is retained exclusively for Databricks Apps serverless deployment.
 - **Databricks Notebook AST Validation**: All `.py` source notebooks must parse cleanly via `ast.parse()` using `handbook validate --target notebooks`.
 - **Skill Reference**: Activate the agent skill `ecosystem-ci-cd-quality-gate` for multi-repository invariant defense protocols.

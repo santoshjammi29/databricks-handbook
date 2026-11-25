@@ -19,5 +19,5 @@ In accordance with [`CONTRIBUTING.md`](../CONTRIBUTING.md), verify the following
 - [ ] **4. Anti-Pattern Demonstrated**: Is there a side-by-side `Bad` vs `Good` comparison with operational consequences?
 - [ ] **5. Zero Drift Verified**: Ran `make check` (or `handbook build --check`) and verified zero notebook drift.
 - [ ] **6. Tests & Lint Passing**: `make test` and `make lint` pass with 100% success.
-- [ ] **7. Link & Anchor Integrity**: `uv run python -m handbook.cli validate --target links` reports 0 broken links and 0 broken anchors.
+- [ ] **7. Link & Anchor Integrity**: `uv run handbook validate --target links` reports 0 broken links and 0 broken anchors.
 - [ ] **8. Secret Sanitization**: No credentials, tokens, or live cloud resource identifiers are committed.

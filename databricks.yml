@@ -4,6 +4,7 @@
 
 bundle:
   name: databricks-handbook
+  databricks_cli_version: ">=0.220.0"
 
 include:
   - resources/*.yml
@@ -22,7 +23,9 @@ variables:
     description: "Databricks Runtime version for workflow job clusters"
     default: "15.4.x-scala2.12"
   node_type_id:
-    description: "Worker and driver cloud VM node type"
+    # Cloud-equivalent general-purpose 4-vCPU/16GB nodes:
+    #   Azure: Standard_D4ds_v5 | AWS: m6i.xlarge (or r6gd.xlarge Graviton) | GCP: n2-standard-4
+    description: "Worker and driver cloud VM node type (override for AWS/GCP)"
     default: "Standard_D4ds_v5"
   prod_service_principal_id:
     description: "Application ID / Client ID of the production CI/CD Service Principal (must be supplied for production deployment)"

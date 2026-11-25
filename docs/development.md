@@ -49,11 +49,12 @@ The repository provides a unified CLI tool: `handbook`:
 
 | Command | Action |
 |---|---|
-| `make check` | Runs full pre-flight verification (lint + build-check + validate-fast + test) |
+| `make check` | Runs full pre-flight verification (lint + build-check + readme-check + validate-fast + test) |
 | `make build` | Regenerates all notebooks from generator source strings |
-| `make build-check` | Verifies zero drift between generators and disk (`handbook build --check`) |
+| `make build-check` | Verifies zero drift between generators and disk (`uv run handbook build --check`) |
+| `make readme-check` | Verifies README dynamic module table matches `curriculum.py` (`uv run handbook readme --check`) |
 | `make lint` | Validates code formatting and linting via `ruff` |
-| `make test` | Runs the full 24-test pytest suite |
+| `make test` | Runs the full pytest suite (unit, bundle, content, security canary, and mutation tests) |
 | `make validate` | Runs all validators (`notebooks`, `bundle`, `hygiene`, `links`) |
 | `make clean` | Cleans temporary cache and build directories |
 

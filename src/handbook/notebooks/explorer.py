@@ -4,13 +4,13 @@ Interactive CLI Explorer for The Databricks Handbook:
 Search, inspect, and explore production recipes, architectures, runbooks, and interview guides.
 
 Usage:
-    python scripts/interactive_shell.py 025
-    python scripts/interactive_shell.py "keyword"
-    python scripts/interactive_shell.py --list
-    python scripts/interactive_shell.py --runbooks
-    python scripts/interactive_shell.py --architectures
-    python scripts/interactive_shell.py --interview
-    python scripts/interactive_shell.py --ecosystem
+    uv run handbook explore 025
+    uv run handbook explore "keyword"
+    uv run handbook explore --list
+    uv run handbook explore --runbooks
+    uv run handbook explore --architectures
+    uv run handbook explore --interview
+    uv run handbook explore --ecosystem
 """
 
 import sys
@@ -74,7 +74,7 @@ Cross-Repository Topic Mapping:
 
 3. Cloud Infrastructure & Security:
    • Azure Enterprise Handbook:   https://github.com/santoshjammi29/azure-cheat-sheet
-   • Unity Catalog Governance:    databricks-handbook/notebooks/09_unity_catalog_and_security
+   • Unity Catalog Governance:    databricks-handbook/notebooks/02_unity_catalog_and_governance
 
 4. Incident Triage Runbooks:
    • Spark/Databricks OOMs:       pyspark-handbook/runbooks/01_driver_and_executor_oom_triage.md
@@ -120,12 +120,12 @@ def find_file(query: str):
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
-        print("Usage: python scripts/interactive_shell.py <query_or_number>")
-        print("       python scripts/interactive_shell.py --list")
-        print("       python scripts/interactive_shell.py --runbooks")
-        print("       python scripts/interactive_shell.py --architectures")
-        print("       python scripts/interactive_shell.py --interview")
-        print("       python scripts/interactive_shell.py --ecosystem")
+        print("Usage: uv run handbook explore <query_or_number>")
+        print("       uv run handbook explore --list")
+        print("       uv run handbook explore --runbooks")
+        print("       uv run handbook explore --architectures")
+        print("       uv run handbook explore --interview")
+        print("       uv run handbook explore --ecosystem")
         sys.exit(0)
 
     arg = sys.argv[1]
