@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 040. DLT Change Data Capture: Historical Tracking with dlt.apply_changes (SCD Type 2)
 # MAGIC **Module**: Module 04: Lakeflow Ingestion, Auto Loader & Declarative Pipelines (DLT)
-# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Advanced` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,45 +13,96 @@
 # MAGIC A financial ledger requires historical tracking of customer credit ratings over time (SCD Type 2), maintaining `__START_AT`, `__END_AT`, and active flags for point-in-time balance checks.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Deploy an SCD Type 2 dimension in DLT using `dlt.apply_changes(stored_as_scd_type='2')`, querying historical state timelines.
+# MAGIC Execute a real two-step Delta `MERGE INTO` SCD Type 2 pipeline maintaining `__START_AT`, `__END_AT`, and `__IS_CURRENT`, and verify point-in-time historical queries reconstruct exact prior ratings.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC When `stored_as_scd_type = '2'` is configured, DLT automatically maintains temporal validity intervals (`__START_AT`, `__END_AT`) for each record version, closing old rows and inserting new ones atomically.
+# MAGIC When `stored_as_scd_type = '2'` is configured in DLT `apply_changes`, Delta closes prior active intervals (`__END_AT = new_ts`) and inserts new active rows (`__END_AT = NULL`). Implementing the same staged `MERGE` locally demonstrates every state transition transparently.
+# COMMAND ----------
+
+import tempfile
+from pathlib import Path
+from delta.tables import DeltaTable
+from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. DLT apply_changes SCD Type 2 Specification
+# MAGIC ### 1. SCD Type 2 Validity Window Updates & Point-in-Time History Query
 # MAGIC
-# MAGIC Configure automatic historical dimension tracking in DLT.
+# MAGIC Close changed active dimension rows via Delta `MERGE`, append new versions with open-ended `__END_AT`, and verify historical point-in-time lookup.
 # COMMAND ----------
 
-scd2_cdc_code = """
-import dlt
+lab_dir = Path(tempfile.mkdtemp(prefix="hb_040_", dir=globals().get("HANDBOOK_TMP_DIR")))
+scd2_path = str(lab_dir / "dim_customer_scd2")
 
-dlt.create_streaming_table(
-    name="dim_customer_history_scd2",
-    comment="Full historical tracking dimension (SCD Type 2)"
+# Wave 1 (2026-11-01): Initial customer credit ratings
+spark.createDataFrame(
+    [
+        (101, "AAA", "2026-11-01", None, True),
+        (102, "BB", "2026-11-01", None, True),
+    ],
+    "customer_id BIGINT, credit_rating STRING, __START_AT STRING, __END_AT STRING, __IS_CURRENT BOOLEAN",
+).write.format("delta").save(scd2_path)
+
+# Wave 2 (2026-11-15): customer 101 downgrades AAA -> AA; 102 stays unchanged; 103 added
+wave2 = spark.createDataFrame(
+    [
+        (101, "AA", "2026-11-15"),
+        (102, "BB", "2026-11-15"),
+        (103, "A", "2026-11-15"),
+    ],
+    "customer_id BIGINT, credit_rating STRING, effective_date STRING",
 )
 
-dlt.apply_changes(
-    target="dim_customer_history_scd2",
-    source="customers_cdc_bronze",
-    keys=["customer_id"],
-    sequence_by="op_timestamp",
-    stored_as_scd_type="2"
-)
-"""
+# Step A: Retire active rows whose monitored attribute changed
+dt = DeltaTable.forPath(spark, scd2_path)
+dt.alias("t").merge(
+    wave2.alias("s"),
+    "t.customer_id = s.customer_id AND t.__IS_CURRENT = true",
+).whenMatchedUpdate(
+    condition="t.credit_rating <> s.credit_rating",
+    set={"__END_AT": "s.effective_date", "__IS_CURRENT": F.lit(False)},
+).execute()
 
-print("SCD Type 2 CDC code specification verified.")
-assert "stored_as_scd_type" in scd2_cdc_code and "2" in scd2_cdc_code
+# Step B: Append new active records only for changed or brand-new keys
+current_active = spark.read.format("delta").load(scd2_path).filter("__IS_CURRENT = true")
+new_versions = (
+    wave2.alias("s")
+    .join(current_active.alias("t"), "customer_id", "left")
+    .filter(F.col("t.customer_id").isNull())
+    .select(
+        F.col("s.customer_id"),
+        F.col("s.credit_rating"),
+        F.col("s.effective_date").alias("__START_AT"),
+        F.lit(None).cast("string").alias("__END_AT"),
+        F.lit(True).alias("__IS_CURRENT"),
+    )
+)
+new_versions.write.format("delta").mode("append").save(scd2_path)
+
+# Verify point-in-time lookup on 2026-11-10 vs 2026-11-20 for customer 101
+dim_df = spark.read.format("delta").load(scd2_path)
+as_of_nov10 = (
+    dim_df.filter("customer_id = 101 AND __START_AT <= '2026-11-10' AND COALESCE(__END_AT, '9999-12-31') > '2026-11-10'")
+    .select("credit_rating")
+    .first()[0]
+)
+as_of_nov20 = (
+    dim_df.filter("customer_id = 101 AND __IS_CURRENT = true").select("credit_rating").first()[0]
+)
+total_101_versions = dim_df.filter("customer_id = 101").count()
+total_102_versions = dim_df.filter("customer_id = 102").count()
+
+print(f"Customer 101 versions={total_101_versions}: Nov10={as_of_nov10}, Nov20={as_of_nov20}")
+assert total_101_versions == 2 and as_of_nov10 == "AAA" and as_of_nov20 == "AA"
+assert total_102_versions == 1  # No duplicate unchanged row written!
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Zero Merge Boilerplate**: DLT manages start/end timestamps and row retirement automatically.
-# MAGIC - **Point-in-Time Audits**: Query historical values for any date using standard SQL date ranges.
-# MAGIC - **ACID Guarantees**: Historical splits and inserts commit within a single atomic Delta transaction.
+# MAGIC - **Idempotent Change Suppression**: Skip unchanged incoming records so unchanged keys do not bloat history.
+# MAGIC - **Point-in-Time Audits**: Query historical states cleanly via half-open intervals `[__START_AT, __END_AT)`.
+# MAGIC - **Declarative Simplicity**: `dlt.apply_changes(stored_as_scd_type='2')` automates this exact state machine on Databricks.
 # MAGIC
 # MAGIC ---
 # MAGIC

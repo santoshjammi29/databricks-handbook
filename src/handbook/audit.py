@@ -126,6 +126,14 @@ def _analyze_python_ast(code: str) -> tuple[int, int, bool, bool, bool]:
                 elif _expr_uses_names(val, spark_vars):
                     spark_vars.add(tgt.id)
 
+        if (
+            isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "spark"
+            and node.attr in {"read", "readStream"}
+        ):
+            has_spark_exec = True
+
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Attribute):
                 attr = node.func.attr
@@ -136,6 +144,8 @@ def _analyze_python_ast(code: str) -> tuple[int, int, bool, bool, bool]:
                     if attr == "format" and node.args and isinstance(node.args[0], ast.Constant):
                         if node.args[0].value == "delta":
                             has_delta_ops = True
+                        elif node.args[0].value == "cloudFiles":
+                            has_workspace_only = True
                     elif attr in {"merge", "history", "restoreToVersion"}:
                         has_delta_ops = True
                 if isinstance(node.func.value, ast.Name) and node.func.value.id == "DeltaTable":

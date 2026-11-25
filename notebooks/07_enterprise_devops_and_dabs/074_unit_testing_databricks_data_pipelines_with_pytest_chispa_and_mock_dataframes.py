@@ -13,46 +13,56 @@
 # MAGIC A team experiences pipeline regressions when code changes accidentally alter decimal rounding logic. Data transformations must be validated by automated unit test suites before deployment.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Develop modular unit test suites using pytest and `chispa`, creating mock DataFrames, asserting schema matches, and verifying exact numerical results.
+# MAGIC Develop modular unit test suites using pytest and `chispa.assert_df_equality`, validating both positive schema/value parity and negative regression catching.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC `chispa` provides fast, clean assertion helpers (`assert_df_equality`) for PySpark DataFrames, highlighting column, schema, and row discrepancies in test output without boilerplate loops.
+# MAGIC `chispa` provides clean DataFrame assertion helpers (`assert_df_equality`) highlighting row, value, and schema mismatches in CI test output without brittle manual `.collect()` loops.
 # COMMAND ----------
 
+from chispa.dataframe_comparer import assert_df_equality
 from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Unit Test Implementation with PySpark & Mock Data
+# MAGIC ### 1. Unit Test with `chispa.assert_df_equality` & Regression Detection
 # MAGIC
-# MAGIC Write a pure transformation function and validate it with a mock unit test.
+# MAGIC Compare actual transformed Spark output against an expected DataFrame via `assert_df_equality`, then prove a buggy transformation fails `assert_df_equality` cleanly.
 # COMMAND ----------
 
-# Pure transformation function
 def calculate_net_amount(df):
     return df.withColumn("net_amount", F.round(F.col("gross") - F.col("discount"), 2))
 
-# Unit test
-mock_input = spark.createDataFrame([
-    (100.00, 10.00),
-    (250.50, 25.50),
-    (50.00, 0.00)
-], ["gross", "discount"])
+mock_input = spark.createDataFrame(
+    [(100.00, 10.00), (250.50, 25.50), (50.00, 0.00)],
+    ["gross", "discount"],
+)
+expected_df = spark.createDataFrame(
+    [(100.00, 10.00, 90.00), (250.50, 25.50, 225.00), (50.00, 0.00, 50.00)],
+    ["gross", "discount", "net_amount"],
+)
 
 df_result = calculate_net_amount(mock_input)
-results = [row["net_amount"] for row in df_result.collect()]
+assert_df_equality(df_result, expected_df, ignore_nullable=True)
 
-print(f"Computed Net Amounts: {results}")
-assert results == [90.00, 225.00, 50.00], f"Unit test failed: Expected [90.0, 225.0, 50.0], got {results}"
-print("Unit test PASSED: 100% numerical precision verified.")
+# Negative gate: confirm chispa rejects a buggy transform missing subtraction
+buggy_df = mock_input.withColumn("net_amount", F.col("gross"))
+mismatch_caught = False
+try:
+    assert_df_equality(buggy_df, expected_df, ignore_nullable=True)
+except Exception:
+    mismatch_caught = True
+
+results = [row["net_amount"] for row in df_result.orderBy("gross").collect()]
+print(f"Computed Net Amounts: {results}, mismatch_caught={mismatch_caught}")
+assert mismatch_caught is True and len(results) == 3
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Decouple Transformations**: Write business logic as pure functions that accept and return DataFrames.
-# MAGIC - **Mock Data Testing**: Run unit tests locally with tiny in-memory DataFrames in seconds.
-# MAGIC - **Automated CI Guardrail**: Run pytest on every Pull Request before approving merges.
+# MAGIC - **Decouple Transformations**: Write business logic as pure functions accepting and returning DataFrames.
+# MAGIC - **Expressive Diffs**: `chispa.assert_df_equality` pinpoints exact mismatched cells and schema differences.
+# MAGIC - **Automated CI Guardrail**: Run local Spark unit tests in seconds on every Pull Request.
 # MAGIC
 # MAGIC ---
 # MAGIC

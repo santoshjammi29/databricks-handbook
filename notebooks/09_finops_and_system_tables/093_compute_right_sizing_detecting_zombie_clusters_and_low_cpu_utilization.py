@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 093. Compute Right-Sizing: Detecting Zombie Clusters & Low-CPU Utilization
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,39 +13,55 @@
 # MAGIC An enterprise cluster audit discovered 15 interactive clusters that were left running overnight with 0% CPU utilization, wasting $1,200 per day in idle compute.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Query compute and billing system tables to detect zombie clusters (active clusters with zero queries or < 10% CPU utilization for > 2 hours) and automate notifications.
+# MAGIC Join cluster uptime metadata with query execution history in Spark SQL to detect zombie clusters (`uptime > 2h` with `0` queries executed) and calculate reclaimable DBU waste.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC Right-sizing requires correlating cluster uptime from `system.compute.clusters` with query execution counts from `system.compute.query_history` to identify idle compute resources.
+# MAGIC Correlating `system.compute.clusters` uptime windows against `system.compute.query_history` surfaces orphaned All-Purpose clusters that were left un-terminated or bypassed cluster auto-stop policies.
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Zombie Cluster Detection Algorithm
+# MAGIC ### 1. Zombie Cluster SQL Correlation & Waste Quantification
 # MAGIC
-# MAGIC Simulate identifying idle clusters running with zero active queries.
+# MAGIC Join cluster telemetry with query execution logs in Spark SQL to flag zero-query zombie compute and compute daily wasted DBUs.
 # COMMAND ----------
 
-clusters_telemetry = [
-    {"cluster_id": "cl-001", "name": "prod-etl-stream", "uptime_hours": 24, "queries_run": 14500, "status": "HEALTHY_ACTIVE"},
-    {"cluster_id": "cl-002", "name": "analyst-sandbox-1", "uptime_hours": 14, "queries_run": 0, "status": "ZOMBIE_IDLE"},
-    {"cluster_id": "cl-003", "name": "dev-scratch", "uptime_hours": 8, "queries_run": 2, "status": "LOW_UTILIZATION"}
+clusters = [
+    ("cl-001", "prod-etl-stream", 24.0, 16.0),
+    ("cl-002", "analyst-sandbox-1", 14.0, 8.0),
+    ("cl-003", "dev-scratch", 8.0, 4.0),
 ]
+queries = [
+    ("q-1", "cl-001", 1200),
+    ("q-2", "cl-003", 180),
+]
+spark.createDataFrame(clusters, ["cluster_id", "cluster_name", "uptime_hours", "dbu_per_hour"]).createOrReplaceTempView("compute_clusters")
+spark.createDataFrame(queries, ["query_id", "cluster_id", "exec_ms"]).createOrReplaceTempView("compute_queries")
 
-zombies = [c for c in clusters_telemetry if c["queries_run"] == 0 and c["uptime_hours"] > 2]
-print(f"Detected Zombie Idle Clusters: {len(zombies)}")
-for z in zombies:
-    print(f"  ALERT: {z['name']} ({z['cluster_id']}) has been idle for {z['uptime_hours']} hours!")
+zombies_df = spark.sql("""
+    SELECT
+        c.cluster_id,
+        c.cluster_name,
+        c.uptime_hours,
+        COUNT(q.query_id) AS queries_executed,
+        ROUND(c.uptime_hours * c.dbu_per_hour, 2) AS wasted_dbus
+    FROM compute_clusters c
+    LEFT JOIN compute_queries q ON c.cluster_id = q.cluster_id
+    GROUP BY c.cluster_id, c.cluster_name, c.uptime_hours, c.dbu_per_hour
+    HAVING queries_executed = 0 AND uptime_hours > 2.0
+""")
 
+zombies = zombies_df.collect()
+print(f"Detected zombie clusters: {[(z['cluster_id'], z['wasted_dbus']) for z in zombies]}")
 assert len(zombies) == 1
-assert zombies[0]["cluster_id"] == "cl-002"
+assert zombies[0]["cluster_id"] == "cl-002" and zombies[0]["wasted_dbus"] == 112.0
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
-# MAGIC - **Eliminate Zombie Spend**: Enforce automated 15-minute auto-termination to kill idle clusters.
-# MAGIC - **Right-Sizing Audits**: Downsize worker VM types from 8-core to 4-core if average CPU stays under 20%.
-# MAGIC - **Automated Remediation**: Terminate zombie clusters programmatically via Databricks REST API.
+# MAGIC - **Eliminate Zombie Spend**: Enforce 10–15 minute auto-termination on all interactive clusters via Cluster Policies.
+# MAGIC - **Right-Sizing Audits**: Correlate cluster DBU burn with actual SQL/job query counts.
+# MAGIC - **Automated Remediation**: Wire zombie-detection queries into Databricks Alerts + Cluster Termination API.
 # MAGIC
 # MAGIC ---
 # MAGIC

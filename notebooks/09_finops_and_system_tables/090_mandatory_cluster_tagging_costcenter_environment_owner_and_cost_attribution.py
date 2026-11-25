@@ -4,7 +4,7 @@
 # MAGIC %md
 # MAGIC # 090. Mandatory Cluster Tagging (CostCenter, Environment, Owner) & Cost Attribution
 # MAGIC **Module**: Module 09: FinOps, Observability & System Tables Masterclass
-# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T1 Simulated`
+# MAGIC **Mastery Level**: `Intermediate` | **Verification Tier**: `T2 Local-executable`
 # MAGIC **Target Platform**: Databricks Runtime 15.4+ LTS | Apache Spark 3.5+ | Unity Catalog | Delta Lake 3.2
 # MAGIC
 # MAGIC ---
@@ -13,42 +13,50 @@
 # MAGIC Finance cannot allocate a $500,000 monthly Databricks bill to business units because 60% of clusters were launched without `CostCenter` or `Project` tags.
 # MAGIC
 # MAGIC ### 🎯 Engineering Objective
-# MAGIC Enforce mandatory cluster tagging via Cluster Policies, parse the `custom_tags` map in `system.billing.usage`, and allocate 100% of DBU spend to verified department cost centers.
+# MAGIC Parse the `custom_tags` map in Spark SQL over billing telemetry to attribute 100% of DBU spend across `CostCenter` and `Project` codes and quarantine untagged cluster leaks.
 # MAGIC
 # MAGIC ### 🏛️ Architectural Context & Under the Hood Mechanics
-# MAGIC Cluster policies can mandate fixed or pattern-matched tags (e.g. `custom_tags.CostCenter`). These tags propagate directly into cloud provider billing logs and Databricks `system.billing.usage.custom_tags`.
+# MAGIC Cluster policies enforce `custom_tags.CostCenter`, propagating automatically into `system.billing.usage.custom_tags` (`MAP<STRING, STRING>`).
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 1. Querying Tagged Costs from custom_tags Map
+# MAGIC ### 1. Query Tagged Costs & Untouched Leak Detection in Spark SQL
 # MAGIC
-# MAGIC Extract nested JSON map keys to attribute costs to departments.
+# MAGIC Materialize `custom_tags` MapType telemetry in Spark SQL, coalesce untagged clusters as `UNALLOCATED_LEAK`, and compute cost-attribution share.
 # COMMAND ----------
 
-sql_tag_attribution = """
--- Allocate DBU spend by CostCenter and Project tags
-SELECT
-    usage_date,
-    COALESCE(custom_tags['CostCenter'], 'UNALLOCATED_LEAK') AS cost_center,
-    COALESCE(custom_tags['Project'], 'GENERAL') AS project,
-    SUM(usage_quantity) AS total_dbus,
-    ROUND(SUM(usage_quantity * 0.30), 2) AS cost_usd
-FROM system.billing.usage
-WHERE usage_date >= CURRENT_DATE() - INTERVAL 14 DAYS
-GROUP BY 1, 2, 3
-ORDER BY total_dbus DESC;
-"""
+tagged_rows = [
+    ("2026-11-20", {"CostCenter": "FIN-100", "Project": "RISK_DW"}, 300.0),
+    ("2026-11-20", {"CostCenter": "MKT-220", "Project": "ATTRIBUTION"}, 180.0),
+    ("2026-11-20", {"Owner": "contractor"}, 120.0),  # Missing CostCenter!
+]
+spark.createDataFrame(tagged_rows, ["usage_date", "custom_tags", "usage_quantity"]).createOrReplaceTempView(
+    "billing_usage_tagged"
+)
 
-print("Tag-based cost attribution query verified.")
-assert "custom_tags['CostCenter']" in sql_tag_attribution
+attr_df = spark.sql("""
+    SELECT
+        COALESCE(custom_tags['CostCenter'], 'UNALLOCATED_LEAK') AS cost_center,
+        COALESCE(custom_tags['Project'], 'GENERAL') AS project,
+        SUM(usage_quantity) AS total_dbus,
+        ROUND(SUM(usage_quantity * 0.30), 2) AS cost_usd
+    FROM billing_usage_tagged
+    GROUP BY 1, 2
+    ORDER BY total_dbus DESC
+""")
+
+by_cc = {r["cost_center"]: r["cost_usd"] for r in attr_df.collect()}
+print(f"Cost Attribution USD: {by_cc}")
+assert by_cc["UNALLOCATED_LEAK"] == 36.0
+assert by_cc["FIN-100"] == 90.0
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### 📌 Production Invariants & Key Takeaways
 # MAGIC
 # MAGIC - **Enforce at Policy Level**: Never rely on human memory for tagging; enforce via cluster policies.
-# MAGIC - **Unallocated Leak Hunting**: Query for `CostCenter IS NULL` to identify rogue clusters.
-# MAGIC - **Automated Chargeback**: Provide monthly departmental reports directly to finance.
+# MAGIC - **Unallocated Leak Hunting**: Query for `custom_tags['CostCenter'] IS NULL` to isolate non-compliant workloads.
+# MAGIC - **Automated Chargeback**: Export aggregated attribution tables directly to enterprise finance pipelines.
 # MAGIC
 # MAGIC ---
 # MAGIC
