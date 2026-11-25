@@ -1,17 +1,17 @@
+title = "databricks-handbook"
+
 [extend]
-# Extend default gitleaks configuration
+useDefault = true # without this, no rules run
 
 [allowlist]
-description = "Global allowlist for intentional fictitious placeholders and educational mock tokens"
+description = "Fictitious placeholder IDs and the deliberate teaching fake"
 regexes = [
-    '''4f63c679-0db8-40a2-b91a-7b3b7e7136f4''',
-    '''a1b2c3d4-e5f6-7890-abcd-ef1234567890''',
-    '''99a8b7c6-1234-5678-abcd-ef0123456789''',
+  '''4f63c679-0db8-40a2-b91a-7b3b7e7136f4''',
+  '''a1b2c3d4-e5f6-7890-abcd-ef1234567890''',
+  '''99a8b7c6-1234-5678-abcd-ef0123456789''',
+  '''sk_live_998877665544332211''', # fake key in notebook 007
 ]
 paths = [
-    '''\.gitleaks\.toml$''',
-    '''notebooks/.*''',
-    '''src/handbook/curriculum\.py''',
-    '''src/handbook/generators/.*''',
-    '''tests/.*''',
+  '''\.gitleaks\.toml$''',
+  '''\.agents/skills/databricks-asset-bundles-dev/resources/resources/jobs\.yml$''', # false positives: task keys
 ]
