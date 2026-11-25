@@ -10,7 +10,7 @@ repos:
         args: [--unsafe]
       - id: check-added-large-files
         args: [--maxkb=500]
-        exclude: ^assets/
+        exclude: ^(assets/|src/handbook/data/bundle\.schema\.json$)
       - id: end-of-file-fixer
         exclude: ^(notebooks/|.*\.md$)
       - id: trailing-whitespace

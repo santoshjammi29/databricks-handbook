@@ -26,6 +26,9 @@ variables:
     default: "Standard_D4ds_v5"
   prod_service_principal_id:
     description: "Application ID / Client ID of the production CI/CD Service Principal (must be supplied for production deployment)"
+  default_sql_warehouse_id:
+    description: "SQL Warehouse ID for AI/BI Lakeview Dashboards"
+    default: "sql_warehouse_placeholder_id"
 
 targets:
   # --------------------------------------------------------------------------
@@ -39,6 +42,10 @@ targets:
     variables:
       catalog: "dev_catalog"
       schema: "dev_${workspace.current_user.short_name}"
+    resources:
+      pipelines:
+        databricks_handbook_dlt_pipeline:
+          development: true
     sync:
       include:
         - notebooks/**
@@ -78,3 +85,10 @@ targets:
         group_name: "all-users"
     run_as:
       service_principal_name: "${var.prod_service_principal_id}"
+    resources:
+      jobs:
+        databricks_handbook_master_pipeline:
+          schedule:
+            quartz_cron_expression: "0 0 4 * * ?"
+            timezone_id: "UTC"
+            pause_status: "UNPAUSED"

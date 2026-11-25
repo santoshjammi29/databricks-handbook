@@ -8,8 +8,8 @@ resources:
       target: "${var.schema}"
       catalog: "${var.catalog}"
       continuous: false
-      development: "${bundle.target == 'dev'}"
-      channel: "current"
+      development: false # Enabled in dev via targets.dev.resources override in databricks.yml
+      channel: "CURRENT"
       edition: "ADVANCED"
       photon: true
 

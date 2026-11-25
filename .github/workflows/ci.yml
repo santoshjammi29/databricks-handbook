@@ -63,6 +63,9 @@ jobs:
       - name: Verify Generator vs Notebook Disk Drift
         run: uv run python -m handbook.cli build --check
 
+      - name: Verify README Generated Block Drift
+        run: uv run python -m handbook.cli readme --check
+
   validate:
     name: Artifact & Bundle Validation
     runs-on: ubuntu-latest
@@ -91,14 +94,22 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          if [ -n "$DATABRICKS_HOST" ] && [ -n "$DATABRICKS_TOKEN" ]; then
-            echo "Running online Databricks bundle validate..."
-            curl -fsSL https://raw.githubusercontent.com/databricks/cli/main/install.sh | sh
-            databricks bundle validate -t dev
-          else
-            echo "Running offline bundle schema and resource path validation..."
-            uv run python -m handbook.cli validate --target bundle
-          fi
+          echo "Running offline bundle YAML, schema, and path validation..."
+          uv run python -m handbook.cli validate --target bundle
+
+      - name: Install Databricks CLI (when workspace secrets configured)
+        if: env.DATABRICKS_HOST != '' && env.DATABRICKS_TOKEN != ''
+        uses: databricks/setup-cli@e1dad86b08f6ea07707aea128ec4bfa76af8db55 # v1.28.0
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Online Databricks Bundle Validate (when workspace secrets configured)
+        if: env.DATABRICKS_HOST != '' && env.DATABRICKS_TOKEN != ''
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t dev
 
       - name: Validate Repository Hygiene & Architectural Invariants
         run: uv run python -m handbook.cli validate --target hygiene

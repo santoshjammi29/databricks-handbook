@@ -69,11 +69,24 @@ def cmd_readme(args, base_dir: Path) -> int:
     try:
         from handbook.readme.build import build_readme
 
-        build_readme()
-        print("✅ README updated successfully.")
+        check_only = getattr(args, "check", False)
+        ok = build_readme(base_dir=base_dir, check=check_only)
+        if not ok:
+            if check_only:
+                print(
+                    "❌ README drift or missing generated block markers detected! "
+                    "Run 'handbook readme' to regenerate."
+                )
+            else:
+                print("❌ Failed to update README: missing BEGIN/END GENERATED:modules markers.")
+            return 1
+        if check_only:
+            print("✅ README generated blocks are in sync (zero drift).")
+        else:
+            print("✅ README updated successfully.")
         return 0
     except Exception as e:
-        print(f"❌ Failed to build README: {e}")
+        print(f"❌ Failed to process README: {e}")
         return 1
 
 
@@ -85,25 +98,25 @@ def cmd_export_ipynb(args, base_dir: Path) -> int:
 def cmd_explore(args, base_dir: Path) -> int:
     from handbook.notebooks import explorer
 
-    # Forward any remaining args to explorer
-    orig_argv = sys.argv
-    try:
-        sys.argv = ["handbook explore", *getattr(args, "explore_args", [])]
-        if not getattr(args, "explore_args", []) or args.explore_args[0] == "--list":
-            explorer.list_all()
-        elif args.explore_args[0] == "--runbooks":
-            explorer.list_runbooks()
-        elif args.explore_args[0] == "--architectures":
-            explorer.list_architectures()
-        elif args.explore_args[0] == "--interview":
-            explorer.list_interviews()
-        elif args.explore_args[0] == "--ecosystem":
-            explorer.list_ecosystem()
-        else:
-            explorer.inspect_recipe(args.explore_args[0])
-        return 0
-    finally:
-        sys.argv = orig_argv
+    if getattr(args, "runbooks", False):
+        explorer.list_runbooks()
+    elif getattr(args, "architectures", False):
+        explorer.list_architectures()
+    elif getattr(args, "interview", False):
+        explorer.list_interviews()
+    elif getattr(args, "ecosystem", False):
+        explorer.list_ecosystem()
+    elif getattr(args, "list", False) or not getattr(args, "query", None):
+        explorer.list_all()
+    else:
+        match = explorer.find_file(args.query)
+        if not match:
+            print(f"❌ No matching content found for: '{args.query}'")
+            return 1
+        print(f"\n📖 Found: {match.name}\n" + "=" * 80)
+        print(match.read_text(encoding="utf-8"))
+        print("=" * 80)
+    return 0
 
 
 def main(argv=None):
@@ -138,7 +151,12 @@ def main(argv=None):
     )
 
     # readme
-    subparsers.add_parser("readme", help="Rebuild / update README markdown blocks")
+    parser_readme = subparsers.add_parser("readme", help="Rebuild / update README markdown blocks")
+    parser_readme.add_argument(
+        "--check",
+        action="store_true",
+        help="Verify README generated blocks exist and match without modifying README.md",
+    )
 
     # export-ipynb
     subparsers.add_parser(
@@ -149,7 +167,16 @@ def main(argv=None):
     parser_explore = subparsers.add_parser(
         "explore", help="Explore catalog, runbooks, architectures, and recipes"
     )
-    parser_explore.add_argument("explore_args", nargs="*", help="Arguments for catalog explorer")
+    parser_explore.add_argument("query", nargs="?", help="Recipe ID or search keyword")
+    parser_explore.add_argument("--list", action="store_true", help="List all 105 recipes")
+    parser_explore.add_argument("--runbooks", action="store_true", help="List incident runbooks")
+    parser_explore.add_argument(
+        "--architectures", action="store_true", help="List architecture guides"
+    )
+    parser_explore.add_argument("--interview", action="store_true", help="List interview guides")
+    parser_explore.add_argument(
+        "--ecosystem", action="store_true", help="Show ecosystem cross-navigation"
+    )
 
     args = parser.parse_args(argv)
     if not args.command:

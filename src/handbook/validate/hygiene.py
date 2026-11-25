@@ -12,8 +12,10 @@ from handbook.curriculum import (
     TOTAL_ARCHITECTURES,
     TOTAL_FLASHCARDS,
     TOTAL_INTERVIEW_GUIDES,
+    TOTAL_MODULES,
     TOTAL_NOTEBOOKS,
     TOTAL_RUNBOOKS,
+    TOTAL_TOPICS,
     TOTAL_WHITEBOARDS,
 )
 
@@ -130,6 +132,22 @@ def validate_hygiene(base_dir: Path | None = None, verbose: bool = True) -> tupl
             for q_idx in range(1, TOTAL_FLASHCARDS + 1):
                 if f"{q_idx}." not in fc_text:
                     errors.append(f"Missing flashcard #{q_idx} in {flashcards_file.name}")
+
+    # 6. README count consistency against curriculum.py
+    readme_file = base_dir / "README.md"
+    if readme_file.exists():
+        readme_text = readme_file.read_text(encoding="utf-8")
+        expected_claims = [
+            f"{TOTAL_MODULES} Core Modules ({TOTAL_NOTEBOOKS} Production Recipes)",
+            f"{TOTAL_WHITEBOARDS} Whiteboard Architecture Blueprints",
+            f"{TOTAL_FLASHCARDS} Architect Flashcards Deck",
+            f"{TOTAL_TOPICS} Topics Directory",
+        ]
+        for claim in expected_claims:
+            if claim not in readme_text:
+                errors.append(
+                    f"README.md count claim out of sync with curriculum.py: expected '{claim}'"
+                )
 
     if verbose:
         if errors:
