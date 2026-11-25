@@ -25,7 +25,7 @@ help:
 	@echo "  check         - Run full CI quality gate (lint + build-check + readme-check + validate-fast + test)"
 
 install:
-	$(UV) sync --extra dev
+	$(UV) sync --locked --extra dev
 
 build:
 	$(UV) run python -m handbook.cli build

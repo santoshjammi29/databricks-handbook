@@ -209,3 +209,14 @@ def test_mutation_missing_runbook_section_fails_hygiene(base_dir: Path, tmp_path
     ok, errors = validate_hygiene(repo, verbose=False)
     assert not ok, "validate_hygiene passed despite missing Emergency Decision Tree in runbook!"
     assert any("Emergency Decision Tree" in e for e in errors)
+
+
+def test_mutation_version_mismatch_fails_hygiene(base_dir: Path, tmp_path: Path):
+    repo = _stage_repo_subset(base_dir, tmp_path)
+    cit = repo / "CITATION.cff"
+    text = cit.read_text(encoding="utf-8")
+    cit.write_text(text.replace("version: 1.1.0", "version: 9.9.9", 1), encoding="utf-8")
+
+    ok, errors = validate_hygiene(repo, verbose=False)
+    assert not ok, "validate_hygiene passed despite CITATION.cff version mismatch!"
+    assert any("Version mismatch" in e for e in errors)

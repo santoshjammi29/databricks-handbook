@@ -6,7 +6,7 @@ resources:
     databricks_handbook_master_pipeline:
       name: "[${bundle.target}] Databricks Handbook Master Data Intelligence Pipeline"
       description: "Production end-to-end multi-task Lakehouse orchestration: Auto Loader -> DLT Expectation -> Liquid Clustering -> Photon SQL -> Mosaic AI Monitoring"
-      
+
       tags:
         project: "databricks-handbook"
         environment: "${bundle.target}"

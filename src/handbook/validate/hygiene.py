@@ -5,7 +5,10 @@ Enforces counts, structure invariants, and Mermaid parsing rules across the repo
 
 import re
 import sys
+import tomllib
 from pathlib import Path
+
+import yaml
 
 from handbook.curriculum import (
     EXPECTED_MODULE_FOLDERS,
@@ -148,6 +151,35 @@ def validate_hygiene(base_dir: Path | None = None, verbose: bool = True) -> tupl
                 errors.append(
                     f"README.md count claim out of sync with curriculum.py: expected '{claim}'"
                 )
+
+    # 7. Version & license consistency across pyproject.toml, CITATION.cff, and CHANGELOG.md
+    pyproject_file = base_dir / "pyproject.toml"
+    citation_file = base_dir / "CITATION.cff"
+    changelog_file = base_dir / "CHANGELOG.md"
+    if pyproject_file.exists() and citation_file.exists() and changelog_file.exists():
+        pyproject_data = tomllib.loads(pyproject_file.read_text(encoding="utf-8"))
+        pkg_version = str(pyproject_data.get("project", {}).get("version", "")).strip()
+        pkg_license = str(
+            pyproject_data.get("project", {}).get("license", {}).get("text", "")
+        ).strip()
+
+        citation_data = yaml.safe_load(citation_file.read_text(encoding="utf-8")) or {}
+        cit_version = str(citation_data.get("version", "")).strip()
+        cit_license = str(citation_data.get("license", "")).strip()
+
+        changelog_text = changelog_file.read_text(encoding="utf-8")
+        cl_match = re.search(r"^##\s+\[(\d+\.\d+\.\d+)\]", changelog_text, re.MULTILINE)
+        cl_version = cl_match.group(1) if cl_match else ""
+
+        if not pkg_version or pkg_version != cit_version or pkg_version != cl_version:
+            errors.append(
+                f"Version mismatch: pyproject.toml={pkg_version!r}, "
+                f"CITATION.cff={cit_version!r}, CHANGELOG.md={cl_version!r}"
+            )
+        if pkg_license and cit_license and pkg_license != cit_license:
+            errors.append(
+                f"License mismatch: pyproject.toml={pkg_license!r}, CITATION.cff={cit_license!r}"
+            )
 
     if verbose:
         if errors:
