@@ -8,349 +8,347 @@
 ### 1. ACID Transactions
 
 **Answer:**  
-How Delta Lake guarantees atomicity, consistency, isolation, and durability on top of cloud object storage. Optimistic concurrency control. Why this matters vs. raw Parquet.
+Delta Lake guarantees ACID transactions on cloud object storage via Optimistic Concurrency Control (OCC) and atomic log commits inside `_delta_log/`: every write stages Parquet data files first and commits only by atomically writing the next numbered JSON log file (`00000N.json`), preventing readers from seeing partial writes, corrupt directories, or inconsistent multi-file updates that plague raw Parquet.
 
 ---
 
 ### 2. Transaction Log (`_delta_log`)
 
 **Answer:**  
-How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 100 commits. How the log enables time travel.
+Delta Lake tracks every table mutation as ordered JSON commit files (`000000.json`, `000001.json`, ...) inside `_delta_log/` and periodically compacts log state into Parquet checkpoint files (every `10` commits by default in OSS Delta, customizable via `delta.checkpointInterval`, alongside V2 sidecar/UUID checkpoints). Readers attain Snapshot Isolation by reconstructing the file list (`AddFile` / `RemoveFile` actions) as of the table version pinned at query start, which simultaneously enables repeatable reads and Time Travel.
 
 ---
 
 ### 3. Time Travel & RESTORE
 
 **Answer:**  
-Querying previous versions with `VERSION AS OF` and `TIMESTAMP AS OF`. Restoring tables with `RESTORE`. When time travel stops working (after VACUUM). Retention configuration.
+Previous table states can be queried declaratively with `SELECT * FROM tbl VERSION AS OF 12` or `TIMESTAMP AS OF '2026-11-01T00:00:00Z'`, and rolled back in-place using `RESTORE TABLE tbl TO VERSION AS OF 12`. Time Travel stops functioning once `VACUUM` physically deletes historical Parquet files or `_delta_log` entries age past `delta.logRetentionDuration` (default `INTERVAL 30 DAYS`), while unreferenced data files default to `delta.deletedFileRetentionDuration` (`INTERVAL 7 DAYS`).
 
 ---
 
 ### 4. Schema Enforcement vs. Evolution
 
 **Answer:**  
-How `mergeSchema` and `overwriteSchema` work. What happens when a write doesn't match the schema. When to use enforcement vs. evolution in production.
+By default, Delta rejects incompatible appends whose column names or types differ from the target table schema (Schema Enforcement). Setting `.option("mergeSchema", "true")` (or `spark.databricks.delta.schema.autoMerge.enabled = true`) allows additive nullable columns during writes, whereas `.option("overwriteSchema", "true")` replaces the target schema only on complete overwrites; production pipelines keep enforcement enabled and restrict `mergeSchema` to controlled Bronze/Silver ingestion boundaries.
 
 ---
 
 ### 5. Liquid Clustering
 
 **Answer:**  
-The recommended layout strategy for all new tables. How `CLUSTER BY` works. Replaces legacy partitioning and Z-ORDER. Clustering triggered on writes that exceed size thresholds. Why OPTIMIZE is still recommended for comprehensive clustering.
+Liquid Clustering (`CLUSTER BY (col1, col2)`) replaces rigid directory partitioning (`PARTITIONED BY`) and `ZORDER BY` with dynamic Hilbert-curve multi-dimensional clustering stored incrementally in Parquet files without rewriting untouched data. You can alter keys zero-cost via `ALTER TABLE tbl CLUSTER BY (new_key)` and use `CLUSTER BY AUTO` so Databricks Predictive Optimization selects and incrementally compacts optimal clustering columns based on actual query predicates.
 
 ---
 
 ### 6. OPTIMIZE & File Compaction
 
 **Answer:**  
-Why small files kill read performance (causes: frequent appends, streaming micro-batches). How OPTIMIZE rewrites files and triggers Liquid Clustering. Auto Compaction as a lighter-weight alternative. When to rely on Predictive Optimization (#53) vs. running manually.
+Streaming micro-batches and frequent small appends degrade read throughput via S3/ADLS object-listing latency and Parquet footer overhead (the "small files problem"). Running `OPTIMIZE tbl` bin-packs small Parquet files into uniform target sizes (~128 MB–1 GB depending on adaptive heuristics) and applies clustering layout, while table properties `delta.autoOptimize.autoCompact` and `delta.autoOptimize.optimizeWrite` mitigate fragmentation at write time before Predictive Optimization compacts managed Unity Catalog tables automatically.
 
 ---
 
 ### 7. VACUUM & Storage Lifecycle
 
 **Answer:**  
-How VACUUM removes unreferenced files. The 7-day default retention and why lowering it breaks time travel. Interaction with concurrent readers. How Predictive Optimization automates VACUUM on managed tables.
+`VACUUM tbl RETAIN 168 HOURS` physically deletes Parquet files no longer referenced by the current snapshot whose deletion timestamp exceeds the 7-day (`168`-hour) safety threshold. Lowering retention below `168` hours requires disabling the safety guard (`spark.databricks.delta.retentionDurationCheck.enabled = false`) and risks aborting long-running concurrent readers or breaking Time Travel; Predictive Optimization runs `VACUUM` automatically on UC managed tables.
 
 ---
 
 ### 8. Change Data Feed (CDF)
 
 **Answer:**  
-How to enable and query `table_changes()`. The `_change_type` column (insert, update_preimage, update_postimage, delete). Use cases: incremental downstream processing, audit trails, replication.
+Enabling `TBLPROPERTIES (delta.enableChangeDataFeed = true)` emits row-level change metadata queryable via `table_changes('tbl', start_version, end_version)` or `.option("readChangeFeed", "true")` streaming reads. Returned rows include `_change_type` (`insert`, `update_preimage`, `update_postimage`, `delete`), `_commit_version`, and `_commit_timestamp`, enabling efficient incremental Silver-to-Gold propagation, SCD pipelines, and external warehouse replication without full table scans.
 
 ---
 
 ### 9. Deletion Vectors
 
 **Answer:**  
-Soft-delete markers that avoid rewriting files on DELETE, UPDATE, and MERGE. Enabled by default on new tables (rolling out). Physical deletion happens at OPTIMIZE/compaction. Compatibility considerations for external readers.
+Deletion Vectors (`delta.enableDeletionVectors = true`, enabled by default on Databricks Runtime 14.1+ / UC managed tables) accelerate `DELETE`, `UPDATE`, and `MERGE` up to 10x by recording row-level Roaring bitmap tombstones instead of copying entire Parquet data files (Merge-on-Read semantics). Masked rows are physically purged during subsequent `OPTIMIZE` or `REORG TABLE ... APPLY (PURGE)`, and external engines require Reader v3 or Delta UniForm metadata generation.
 
 ---
 
 ### 10. Delta Table Properties & Configuration
 
 **Answer:**  
-Key table properties every DE manages: `delta.enableChangeDataFeed`, `delta.enableDeletionVectors`, `delta.columnMapping.mode`, `delta.minReaderVersion`/`minWriterVersion`, `delta.checkpointInterval`. How these affect compatibility, performance, and feature availability. Checking and setting with `ALTER TABLE SET TBLPROPERTIES`.
+Production Delta tables are tuned via `ALTER TABLE tbl SET TBLPROPERTIES (...)` using properties such as `delta.enableDeletionVectors`, `delta.enableChangeDataFeed`, `delta.columnMapping.mode = 'name'` (for zero-rewrite `RENAME`/`DROP COLUMN`), `delta.checkpointInterval`, `delta.deletedFileRetentionDuration`, and `delta.minReaderVersion` / `delta.minWriterVersion`. Upgrading protocol versions or enabling table features records permanent protocol entries in `_delta_log/`, which older external readers may not support.
 
 ---
 
 ### 11. Lazy Evaluation & Actions
 
 **Answer:**  
-Why transformations build a plan but don't execute. Which operations are actions (collect, count, write, show) vs. transformations (filter, select, join). Why this enables optimization.
+Spark transformations (`filter`, `select`, `withColumn`, `join`) append logical operators to a Catalyst lineage DAG without triggering cluster computation. Execution starts only when an action (`count`, `collect`, `show`, `write`, `foreachBatch`) is invoked, allowing Catalyst to fuse filters, prune unused columns, push predicates into Parquet/Delta footers, and collapse stages before scheduling tasks across executors.
 
 ---
 
 ### 12. Photon Engine
 
 **Answer:**  
-Native vectorized C++ query engine for SQL and DataFrame operations. Which operations benefit most (scans, filters, aggregations, joins). How to verify Photon is active in query plans. Automatically enabled on serverless compute.
+Photon is Databricks' native C++ vectorized execution engine running off-JVM to process columnar memory batches via SIMD instructions, eliminating JVM garbage collection overhead on wide scans, hash joins, and aggregations. Enabled automatically on Databricks SQL Serverless Warehouses and toggleable on All-Purpose/Job clusters (`photon_enabled = true`), Photon activation appears directly in the Spark UI SQL DAG and `EXPLAIN` plan as `PhotonScan`, `PhotonFilter`, and `PhotonGroupingAgg` operators.
 
 ---
 
 ### 13. Catalyst Optimizer & Query Plans
 
 **Answer:**  
-How Catalyst transforms logical plans into physical plans. Reading `EXPLAIN` output. Recognizing when the optimizer makes good vs. poor decisions.
+Catalyst translates every SQL query and DataFrame chain through four pipeline stages: Analysis (resolving columns/types via Unity Catalog), Logical Optimization (predicate pushdown, constant folding, projection pruning), Physical Planning (cost-based join and scan selection), and Whole-Stage Codegen. Inspecting `df.explain("formatted")` exposes unnecessary `Exchange` shuffles, `BroadcastNestedLoopJoin` fallbacks, or missing `PushedFilters` before costly production runs.
 
 ---
 
 ### 14. Adaptive Query Execution (AQE)
 
 **Answer:**  
-How AQE adjusts plans at runtime based on actual data statistics. Three key optimizations: coalescing shuffle partitions, converting sort-merge joins to broadcast, optimizing skew joins. Enabled by default.
+Adaptive Query Execution (`spark.sql.adaptive.enabled = true`, enabled by default since Spark 3.0) re-optimizes the physical execution plan at stage shuffle boundaries using runtime byte/partition statistics. AQE automatically executes three key optimizations: coalescing tiny post-shuffle partitions (`coalescePartitions.enabled`), converting Sort-Merge Joins to Broadcast Hash Joins when runtime filtered inputs shrink below threshold, and splitting skewed partitions (`skewJoin.enabled`).
 
 ---
 
 ### 15. Shuffle Operations
 
 **Answer:**  
-What triggers a shuffle (groupBy, join, repartition, distinct). Why shuffles are expensive (serialization + network + disk I/O). Reading shuffle metrics in Spark UI.
+Wide transformations (`groupBy`, `join`, `repartition`, `distinct`, window `PARTITION BY`) trigger a shuffle boundary (`Exchange`) that hashes, serializes, writes shuffle blocks to local SSD, and streams partitions across executor network links. Shuffles dominate latency and spill risk; Spark UI tracks their cost under **Shuffle Write** (upstream map stage) and **Shuffle Read / Remote Bytes** (downstream reduce stage).
 
 ---
 
 ### 16. Join Strategies
 
 **Answer:**  
-The three join types: broadcast hash join (small table fits in memory), sort-merge join (default for large-large), shuffle hash join (rare). The 10MB broadcast threshold (higher with Photon). Using `broadcast()` hints. How AQE dynamically converts at runtime.
+Spark selects among Broadcast Hash Join (BHJ — duplicates small relation <= `10 MB` default via `spark.sql.autoBroadcastJoinThreshold` to avoid shuffles), Sort-Merge Join (SMJ — sorts and shuffles both large inputs; default for large tables), Shuffle Hash Join (SHJ — hashes smaller shuffled side without full sort), and fallback Broadcast Nested Loop Join. Hints (`F.broadcast(dim)`) and AQE runtime join conversion eliminate multi-terabyte Sort-Merge shuffles cleanly.
 
 ---
 
 ### 17. Reading the Spark UI
 
 **Answer:**  
-The tabs that matter: Jobs, Stages, Tasks, SQL. What to look for: task duration variance, spill metrics, shuffle read/write sizes, scan statistics. Diagnosing bottlenecks from the UI.
+Triage bottlenecks across four Spark UI tabs: **Jobs/Stages** (spot straggler tasks where Max Task Duration >> Median Duration, indicating data skew or GC), **Task Metrics** (inspect `Shuffle Read/Write`, `Spill (Memory)` vs. non-zero `Spill (Disk)`), **SQL / DataFrame** (examine DAG node row counts and Photon coverage), and **Executors** (identify dead containers, Exit Code `137` OOM kills, and JVM GC time > 10% of task time).
 
 ---
 
 ### 18. Partitioning & Parallelism
 
 **Answer:**  
-How `spark.sql.shuffle.partitions` controls parallelism after shuffles. When to repartition vs. coalesce. The relationship between partition count, core count, and task parallelism. How to diagnose over/under-partitioning from Spark UI task metrics.
+Post-shuffle parallelism defaults to `spark.sql.shuffle.partitions = 200` (or `auto` on Databricks Photon clusters) and should target roughly `128 MB` compressed data per partition across `2x–3x` total cluster vCPUs. Use `repartition(n, key)` to evenly redistribute or increase partitions via a full shuffle, whereas `coalesce(n)` narrows partitions without shuffling (though over-using `coalesce` upstream can throttle parallelism across entire stages).
 
 ---
 
 ### 19. Data Skew: Detection & Mitigation
 
 **Answer:**  
-Recognizing skew in Spark UI (one task takes 10x longer). Why skew kills parallelism. Salting technique for skewed keys. AQE's automatic skew join optimization. When manual salting is still needed.
+Data skew occurs when one key (`NULL`, default sentinel, or hot tenant ID) concentrates disproportionate rows into one partition, leaving 199 tasks finished while 1 task stalls or OOMs on disk spill. AQE Skew Join automatically splits large skewed partitions during Sort-Merge Joins; when joining outside AQE or aggregating (`COUNT DISTINCT` / `groupBy`) heavily skewed keys, apply a two-phase salt (`concat(key, '_', floor(rand() * N))`) followed by partial-to-global aggregation.
 
 ---
 
 ### 20. Memory Management & Spill
 
 **Answer:**  
-The unified memory model (execution + storage pool). What causes spill to disk. How to diagnose spill from Spark UI. Tuning `spark.sql.shuffle.partitions` and executor memory.
+Spark shares JVM heap inside a unified pool (`spark.memory.fraction = 0.6` default) divided dynamically between Execution Memory (shuffle buffers, sort arrays, hash joins) and Storage Memory (cached DataFrames). When execution tasks exceed their memory share, Spark serializes sort/hash structures to local SSD (**Spill Memory -> Spill Disk**), degrading throughput severely; fix spill by eliminating wide skew, filtering early, raising `spark.sql.shuffle.partitions`, or choosing memory-optimized workers.
 
 ---
 
 ### 21. DataFrame API: Core Operations
 
 **Answer:**  
-select, filter, withColumn, groupBy, agg, join. Method chaining patterns. When to use DataFrame API vs. Spark SQL (same execution plan either way).
+Chained transformations (`select`, `filter`/`where`, `withColumn`, `groupBy().agg()`, `join`) compile down to the exact same Catalyst Logical Plan and Tungsten/Photon physical plan as equivalent Spark SQL strings. Prefer DataFrame APIs for programmatic modular pipelines, strong parameterization, and unit testing with `chispa`, and reserve multi-line Spark SQL views for analytics readability and DBSQL dashboard interoperability.
 
 ---
 
 ### 22. Temp Views & Global Temp Views
 
 **Answer:**  
-Scope: temp views live in the SparkSession, global temp views in `global_temp` and survive across notebooks on the same cluster. Neither persists across restarts.
+`df.createOrReplaceTempView("v")` binds a non-materialized logical view strictly to the active `SparkSession` within the current notebook/job, whereas `createOrReplaceGlobalTempView("gv")` stores it inside the `global_temp` database shared across notebooks attached to the same multi-notebook cluster. Neither view persists metadata or data across cluster termination; use Unity Catalog managed tables or SQL views (`CREATE VIEW`) for durable cross-session sharing.
 
 ---
 
 ### 23. Window Functions
 
 **Answer:**  
-ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, running totals with SUM OVER. Partition and ordering clauses. How these translate to physical execution (shuffles on partition keys).
+SQL window functions (`ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`, `LAG()`, `LEAD()`, cumulative `SUM() OVER (...)`) compute rankings and moving metrics without collapsing row grain. Catalyst maps each `PARTITION BY ... ORDER BY ...` clause to a `Window` physical operator preceded by an `Exchange` shuffle on the partition key and a partition sort; omitting `PARTITION BY` forces all cluster data onto a single executor partition and causes Driver/Executor OOM.
 
 ---
 
 ### 24. Complex Types: ARRAY, STRUCT, MAP
 
 **Answer:**  
-Creating and querying nested structures. Exploding arrays with `explode()` and `posexplode()`. Struct field access with dot notation. Flattening deeply nested JSON.
+Spark handles hierarchical schemas natively with `ARRAY<T>`, `STRUCT<field:T>`, and `MAP<K,V>`: traverse struct attributes directly via dot notation (`customer.address.zip`), iterate or flatten arrays using `F.explode` / `F.explode_outer` (preserving null/empty arrays) or `F.posexplode` (keeping element ordinal index), and parse raw JSON strings deterministically using `F.from_json(col, schema)` instead of fragile regex extraction.
 
 ---
 
 ### 25. Higher-Order Functions
 
 **Answer:**  
-`transform()`, `filter()`, `exists()`, `aggregate()` for array manipulation without exploding. When these outperform explode + groupBy. Real patterns: cleaning arrays, conditional filtering.
+Higher-order SQL/DataFrame functions (`transform`, `filter`, `exists`, `forall`, `aggregate`) execute lambda transformations inline inside each `ARRAY` element without invoking `explode` + `groupBy` + `collect_list`. Avoiding array explosion eliminates intermediate row multiplication, network shuffles, and object-reordering bugs while enabling single-pass vectorized array sanitization (`FILTER(items, x -> x.price > 0)`).
 
 ---
 
 ### 26. CTEs, PIVOT & Subqueries
 
 **Answer:**  
-Writing CTEs for readable multi-step queries. PIVOT for wide-format reshaping. Correlated vs. uncorrelated subqueries. How these map to physical plans.
+Common Table Expressions (`WITH cte AS (...)`) decompose complex analytical SQL into readable steps that Catalyst inlines and optimizes holistically (unless referenced multiple times where caching or temp Delta tables may prevent recomputation). `PIVOT` transposes long key-value aggregates into fixed wide columns, and Catalyst automatically rewrites most correlated `EXISTS`/`IN` subqueries into fast Broadcast or Sort-Merge semi-joins.
 
 ---
 
 ### 27. UDFs vs. Native Functions
 
 **Answer:**  
-Why Python UDFs break Catalyst and force row-by-row execution. The 10-100x performance gap. Pandas UDFs (vectorized) as a middle ground. When a UDF is genuinely the right choice.
+Standard row-by-row Python UDFs serialize JVM rows across Py4J sockets to single-threaded Python worker processes, disabling Photon vectorization and Catalyst predicate pushdown (often 10x–100x slower). Always favor native `pyspark.sql.functions` expressions first, step up to Apache Arrow-backed Pandas UDFs (`@pandas_udf`) when external Python ML/SciPy libraries are unavoidable, and restrict custom Java/Scala UDFs to strict legacy reuse.
 
 ---
 
 ### 28. VARIANT Type
 
 **Answer:**  
-Storing semi-structured data (JSON) in a native binary format. Schema-on-read without parsing overhead. Querying with `:` path syntax. When VARIANT outperforms STRING or STRUCT columns for JSON data.
+Introduced in Databricks Runtime 15.3+, the `VARIANT` type stores schema-less semi-structured JSON payloads in a compact shredded binary format rather than plain text `STRING`. It supports fast path extraction (`payload:user.id::INT`), avoids repeated JSON re-parsing at read time, allows deeply heterogeneous schemas to evolve without `ALTER TABLE`, and achieves significantly better compression and query scan speed than `STRING` JSON blobs.
 
 ---
 
 ### 29. MERGE INTO & Upsert Patterns
 
 **Answer:**  
-The MERGE syntax for insert/update/delete in one statement. Clause ordering (MATCHED before NOT MATCHED). Write amplification and why MERGE rewrites entire files. Optimization: match on Liquid Clustering keys. How deletion vectors reduce cost.
+`MERGE INTO target USING source ON keys` atomically executes conditional `WHEN MATCHED THEN UPDATE/DELETE`, `WHEN NOT MATCHED THEN INSERT`, and `WHEN NOT MATCHED BY SOURCE THEN DELETE` in one ACID commit. Because Copy-on-Write rewrites every touched Parquet file (write amplification), always place explicit constant partition/clustering predicates inside the `ON` condition (`t.event_date >= current_date() - 3`), keep `source` deduplicated by join key, and enable Deletion Vectors so updates avoid full-file rewrites.
 
 ---
 
 ### 30. Table Constraints & Generated Columns
 
 **Answer:**  
-CHECK constraints, NOT NULL, PRIMARY KEY (informational), FOREIGN KEY (informational). Generated columns with expressions (e.g., `date GENERATED ALWAYS AS CAST(timestamp AS DATE)`). How constraints enforce data quality at the write layer.
+Delta Lake enforces hard data integrity on writes using `NOT NULL` and `CHECK (amount > 0)` constraints (aborting invalid writes before `_delta_log` commit), while Unity Catalog `PRIMARY KEY` and `FOREIGN KEY` constraints are informational metadata used for ER modeling and optimizer join-elimination (`RELY` option). Generated columns (`event_date DATE GENERATED ALWAYS AS (CAST(ts AS DATE))`) derive columns automatically and forward parent filters (`ts >= ...`) for automatic data skipping.
 
 ---
 
 ### 31. COPY INTO vs. Auto Loader
 
 **Answer:**  
-COPY INTO for ad-hoc/batch loads (idempotent, simpler). Auto Loader for continuous/streaming ingestion (exactly-once, scalable, schema evolution). Why Auto Loader is preferred for production.
+`COPY INTO` performs idempotent SQL batch loads tracked per table log metadata and fits low-volume ad-hoc loads (< thousands of files). Auto Loader (`spark.readStream.format("cloudFiles")`) uses incremental lexical listing or cloud event queues plus RocksDB state checkpoints to ingest millions of cloud files at near-O(new files) cost with native schema evolution and `_rescued_data` capture, making it the Databricks production standard.
 
 ---
 
 ### 32. File Formats in the Lakehouse
 
 **Answer:**  
-Why Parquet is the default (columnar, compressed, schema-embedded). Delta stores Parquet under the hood. When to use JSON, CSV, or Avro for ingestion sources. Schema-on-read vs. schema-on-write.
+Delta Lake builds on compressed columnar **Parquet** files because columnar storage enables projection pruning, dictionary/RLE compression, and footer min/max statistics for Z-Order / Liquid Clustering data skipping. Raw **JSON** and **CSV** are reserved for external landing zones (`Volumes`) prior to Silver parsing, while **Avro** fits row-oriented Kafka/Event Hub streaming payloads with Schema Registry contracts before writing Delta Bronze tables.
 
 ---
 
 ### 33. Volumes
 
 **Answer:**  
-Governed access to non-tabular files (CSVs, images, ML models) within Unity Catalog. Managed vs. external volumes. Using Volumes as landing zones and staging areas.
+Unity Catalog **Volumes** (`/Volumes/<catalog>/<schema>/<volume>/`) provide three-level governed, RBAC-controlled POSIX/REST access to non-tabular unstructured assets (CSVs, PDFs, ML artifacts, images, init scripts) inside cloud object storage without exposing storage keys or legacy DBFS mounts. **Managed Volumes** store files under catalog/schema managed storage with full lifecycle ownership, while **External Volumes** map existing cloud buckets governed by UC External Locations.
 
 ---
 
 ### 34. Auto Loader: File Discovery
 
 **Answer:**  
-File notification mode (cloud events, efficient at scale, requires setup) vs. directory listing mode (simpler, slower with millions of files). When to use each. Why Auto Loader is the default for production ingestion.
+Auto Loader supports two discovery modes: **Directory Listing** (default; supports incremental lexical listing across ordered timestamps with zero cloud IAM webhook setup, optimal under ~1M files/day) and **File Notification** (`cloudFiles.useNotifications = true`; provisions AWS SQS/SNS, Azure Event Grid, or GCP Pub/Sub queues via External Location permissions to push file creation events at near-constant latency across millions of daily objects).
 
 ---
 
 ### 35. Auto Loader: Schema Evolution & Rescued Data
 
 **Answer:**  
-How schema inference works from the first batch. `cloudFiles.schemaEvolutionMode` options (addNewColumns, rescue, failOnNewColumns, none). The `_rescued_data` column for capturing mismatches instead of failing.
+On initialization, Auto Loader samples up to 50 GB or 1,000 files to infer types and caches the schema in `cloudFiles.schemaLocation`. Setting `cloudFiles.schemaEvolutionMode` controls drift handling: `addNewColumns` restarts the stream cleanly on new columns (default with inferred schema), `rescue` preserves unknown fields and malformed values inside a JSON `_rescued_data` column without halting ingestion, `failOnNewColumns` enforces strict contracts, and `none` drops unmapped fields.
 
 ---
 
 ### 36. Multi-Hop Medallion Architecture
 
 **Answer:**  
-Bronze (raw, append-only), Silver (cleaned, deduplicated, typed), Gold (business aggregates). Why this pattern exists. When it's overkill. How each layer serves different consumers with different freshness requirements.
+The Medallion pattern separates data lifecycle into **Bronze** (immutable, append-only raw landing with ingestion timestamps and `_rescued_data`), **Silver** (deduplicated, typed, constraint-checked enterprise entities), and **Gold** (denormalized star-schema aggregates and feature tables tailored to BI/ML SLAs). It isolates schema drift from downstream dashboards and permits cheap Silver/Gold recomputation from Bronze without re-querying source systems.
 
 ---
 
 ### 37. Incremental Processing Patterns
 
 **Answer:**  
-Processing only new/changed data. Techniques: Auto Loader (file-level), Change Data Feed (row-level), watermark-based (time-based), merge keys (hash-based). Cost vs. latency tradeoffs for each.
+Instead of reprocessing entire tables nightly, Lakehouse pipelines propagate deltas using **Auto Loader** for new landing files, **Delta Change Data Feed (`readChangeFeed`)** for row-level CDC inserts/updates/deletes, **Structured Streaming Watermarks + Stateful Operations** for windowed events, and **SCD/MERGE Watermark Queries** filtered by Liquid Clustering commit timestamps. Incremental processing cuts compute DBUs roughly proportional to `changed_bytes / total_bytes`.
 
 ---
 
 ### 38. Lakehouse Federation
 
 **Answer:**  
-Querying external databases (PostgreSQL, MySQL, SQL Server, Snowflake) without copying data. Query pushdown optimization. Connection objects and security. When federation beats ETL and when it doesn't.
+Unity Catalog **Lakehouse Federation** creates `CONNECTION` objects and **Foreign Catalogs** (`CREATE FOREIGN CATALOG`) over PostgreSQL, MySQL, SQL Server, Snowflake, Redshift, or BigQuery so analysts query live remote tables using unified UC RBAC/lineage without building ETL replication first. Catalyst pushes filters, projections, and aggregates down to the remote SQL engine; choose ingestion into managed Delta instead for high-concurrency BI, large joins, or heavy analytical scans.
 
 ---
 
 ### 39. Idempotent Pipeline Design
 
 **Answer:**  
-Why every production pipeline must produce the same result when re-run. Databricks-specific techniques: MERGE with natural keys, `INSERT OVERWRITE` with `replaceWhere`, Auto Loader checkpoint recovery, Workflows retry policies. How streaming checkpoints provide built-in idempotency.
+An idempotent pipeline yields identical target state across arbitrary retries or partial failure restarts. Implement idempotency via natural-key `MERGE INTO` deduplication, bounded slice replacement (`df.write.option("replaceWhere", "event_date = '2026-11-25'").mode("overwrite")`), deterministic batch IDs / `txnAppId` + `txnVersion` Delta options, or Structured Streaming checkpoints that commit processed offset logs atomically with each micro-batch.
 
 ---
 
 ### 40. SCD Type 1 & Type 2 Patterns
 
 **Answer:**  
-SCD1 (overwrite current values) vs. SCD2 (maintain full history with effective dates). Implementing SCD2 with MERGE. Why Lakeflow Declarative Pipelines' `AUTO CDC INTO` (#75) is simpler for SCD2 at scale.
+**SCD Type 1** overwrites attributes in place (preserving only current truth), whereas **SCD Type 2** retains full historical versions via `__START_AT`, `__END_AT`, and active-row flags (`__END_AT IS NULL`). In Lakeflow Declarative Pipelines (DLT), `AUTO CDC INTO target FROM source KEYS (id) SEQUENCE BY updated_at STORED AS SCD TYPE 2` handles out-of-order late events, tombstones, and interval splits declaratively without hand-written staged self-joins.
 
 ---
 
 ### 41. Structured Streaming Fundamentals
 
 **Answer:**  
-How Structured Streaming on Databricks uses Delta Lake as both source and sink. The `readStream`/`writeStream` API. Why Delta-to-Delta streaming is the most common production pattern. Integration with Auto Loader as a file source.
+Structured Streaming treats bounded and unbounded datasets uniformly via an infinite append-only table model backed natively by Delta Lake checkpoints (`_delta_log` offsets + RocksDB state). Combining `spark.readStream` (from `cloudFiles` or Delta sources) with `writeStream.format("delta")` provides ACID snapshot isolation for concurrent readers and seamless transition between continuous low-latency pipelines and scheduled serverless batch increments.
 
 ---
 
 ### 42. Triggers
 
 **Answer:**  
-`processingTime` (recurring micro-batches at fixed intervals). `availableNow` (process all available data then stop; replaces deprecated `once`). Choosing the right trigger for latency vs. cost.
+Structured Streaming triggers govern micro-batch cadence vs. cost: `trigger(availableNow=True)` drains all queued files/commits in optimized multi-batch steps and shuts the cluster down cleanly (replacing deprecated `once=True`), `trigger(processingTime="30 seconds")` runs recurring fixed-interval batches on long-lived compute, `RealTime` / continuous `1 millisecond` mode serves sub-second stateless pipelines, and default/unset runs continuous back-to-back micro-batches as fast as previous ones finish.
 
 ---
 
 ### 43. Output Modes
 
 **Answer:**  
-Append (new rows only, default). Complete (full result table, aggregations only). Update (changed rows only). Which modes work with which operations and sinks.
+Delta streaming sinks support three semantics: **Append** (default; outputs new finalized rows—for aggregations, rows emit only once `watermark` expires window end), **Complete** (rewrites the entire updated aggregation result table every batch; invalid for unaggregated append streams), and **Update** (emits only newly added or modified keys since the previous trigger, typically consumed inside `foreachBatch` `MERGE INTO` upserts).
 
 ---
 
 ### 44. Stream-Static Joins
 
 **Answer:**  
-Joining streaming DataFrames with batch DataFrames. Static side re-read each micro-batch. Use cases: enriching events with dimension data. Outer join limitations on the streaming side.
+Stream-static joins enrich incoming streaming events (`readStream`) against batch Delta dimension tables (`spark.read.table("dim_users")`) without requiring stream state stores on the static side. Spark dynamically reads the latest committed Delta snapshot of the static table on each micro-batch (`stateless` refresh); **inner** and **left outer** (with stream on left) joins are supported, whereas right/full outer joins on the static side fail because Spark cannot retroactively materialize unmatched static rows into past stream outputs.
 
 ---
 
 ### 45. Windowed Aggregations
 
 **Answer:**  
-Tumbling windows (fixed, non-overlapping), sliding windows (fixed, overlapping), session windows (gap-based). Combining windows with watermarks for bounded state.
+Structured Streaming aggregates time-series events across **Tumbling windows** (`window("ts", "5 minutes")`, non-overlapping buckets), **Sliding windows** (`window("ts", "10 minutes", "5 minutes")`, overlapping buckets), and **Session windows** (`session_window("ts", "15 minutes")`, inactivity gap-bounded per key). Combining any window with `.withWatermark("ts", "10 minutes")` allows Spark to evict expired RocksDB state buckets once watermarks cross window boundaries.
 
 ---
 
 ### 46. foreachBatch Pattern
 
 **Answer:**  
-Using `foreachBatch()` to apply arbitrary batch logic to each micro-batch. Use cases: writing to multiple sinks, MERGE operations in streaming, calling external APIs. Exactly-once considerations.
+`writeStream.foreachBatch(fn)` exposes each streaming micro-batch as a deterministic static `DataFrame` + monotonic `batch_id`, allowing `MERGE INTO` upserts, multi-table Medallion/DLQ splits, or REST API calls unsupported by standard Delta sinks. Because Spark may retry `batch_id` after failure (at-least-once invocation), make `fn` strictly idempotent via Delta `txnAppId` / `txnVersion` write options or natural-key `MERGE`.
 
 ---
 
 ### 47. Streaming Tables in Lakeflow Pipelines
 
 **Answer:**  
-How streaming tables in Lakeflow Declarative Pipelines abstract away checkpoint and state management. The difference between streaming tables and raw Structured Streaming. When to use each approach.
+Lakeflow Declarative Pipelines (DLT) **Streaming Tables** (`CREATE OR REFRESH STREAMING TABLE`) manage Auto Loader streams, cloud checkpoints, RocksDB state provisioning, DQ `@dlt.expect` routing, and incremental Materialized Views automatically via Unity Catalog metadata without manual checkpoint directory management or custom `foreachBatch` boilerplate. Drop down to raw PySpark Structured Streaming only for custom multi-cluster sinks, arbitrary external APIs, or low-level RocksDB/flatMapGroupsWithState control.
 
 ---
 
 ### 48. Checkpointing & Exactly-Once
 
 **Answer:**  
-How checkpoint directories track processing state. Stream restart behavior (replay from checkpoint). Why checkpoint location must be stable and unique per query. Limitations of exactly-once guarantees.
+Every streaming query stores WAL source offsets, commit completion markers, and state-store snapshots under a unique immutable `checkpointLocation` directory on object storage. On restart, Spark reads the last uncommitted WAL offset from the checkpoint to replay idempotent sources (Delta/Auto Loader) and produce end-to-end **exactly-once** targets—provided sink writes are transactional (`Delta`) or deduplicated by `batch_id`; deleting/reusing checkpoints across differing queries corrupts offsets.
 
 ---
 
 ### 49. Watermarks & Late Data
 
 **Answer:**  
-How `withWatermark()` bounds how late data can arrive. The tradeoff: longer watermark = more complete results but higher memory/state. How Spark drops state for expired windows.
+`.withWatermark("event_time", "15 minutes")` sets `Watermark = max(event_time seen) - 15 minutes` to bound stateful aggregation/deduplication memory. Events arriving within the 15-minute grace delay still update open state windows before final output; records older than the advancing watermark are silently dropped and expired RocksDB key state is purged to prevent unbounded OOM growth (`STATE_STORE` heap exhaustion).
 
 ---
 
 ### 50. Stream-Stream Joins
 
 **Answer:**  
-Joining two streaming DataFrames. Watermark requirements for state cleanup. Inner, left outer, and right outer join semantics. State management implications.
-
----
+Joining two live `readStream` DataFrames requires buffering uncommitted rows from both sides in distributed RocksDB state stores because matching events can arrive out of order. Production queries MUST specify event-time watermarks on **both** streams plus a range predicate (`a.event_ts BETWEEN b.event_ts - INTERVAL 1 HOUR AND b.event_ts + INTERVAL 1 HOUR`) so Spark can safely evict aged unmatched state, supporting `inner` and watermarked `left/right/full outer` semantics.

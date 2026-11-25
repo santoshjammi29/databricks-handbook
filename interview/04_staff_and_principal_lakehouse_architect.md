@@ -15,8 +15,20 @@ In enterprise Databricks lakehouses, Lakehouse Table Design Patterns is an essen
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Lakehouse Table Design Patterns
-SELECT 1;
+-- Star schema Gold fact table: Liquid Clustered by join + time predicates (avoid over-splitting)
+CREATE TABLE IF NOT EXISTS prod_catalog.gold.fact_orders (
+  order_id BIGINT NOT NULL,
+  customer_sk BIGINT NOT NULL,
+  order_date DATE NOT NULL,
+  net_amount_usd DECIMAL(14, 2) NOT NULL,
+  order_attrs VARIANT
+)
+USING DELTA
+CLUSTER BY (order_date, customer_sk)
+TBLPROPERTIES (
+  'delta.enableDeletionVectors' = 'true',
+  'delta.enableRowTracking' = 'true'
+);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -38,8 +50,18 @@ In enterprise Databricks lakehouses, Delta UniForm & Multi-Engine Interoperabili
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Delta UniForm & Multi-Engine Interoperability
-SELECT 1;
+-- Generate Iceberg metadata alongside _delta_log for Snowflake/Trino/BigQuery zero-copy reads
+CREATE TABLE IF NOT EXISTS prod_catalog.gold.events_uniform (
+  event_id STRING NOT NULL,
+  event_date DATE NOT NULL,
+  revenue_usd DOUBLE
+)
+USING DELTA
+TBLPROPERTIES (
+  'delta.columnMapping.mode' = 'name',
+  'delta.enableIcebergCompatV2' = 'true',
+  'delta.universalFormat.enabledFormats' = 'iceberg'
+);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -60,9 +82,14 @@ Using cluster policies to control what users can provision (instance types, max 
 In enterprise Databricks lakehouses, Compute Policies & Cluster Governance is an essential mechanism under Architecture & Advanced Patterns. Using cluster policies to control what users can provision (instance types, max workers, spot ratios, auto-termination). Preventing cost overruns. Balancing developer freedom with budget discipline.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Compute Policies & Cluster Governance
-SELECT 1;
+```json
+{
+  "spark_version": {"type": "regex", "pattern": "15\\.4\\.x-.*"},
+  "autotermination_minutes": {"type": "range", "minValue": 10, "maxValue": 30, "defaultValue": 15},
+  "autoscale.max_workers": {"type": "range", "minValue": 1, "maxValue": 16, "defaultValue": 4},
+  "custom_tags.cost_center": {"type": "allowlist", "values": ["data_eng", "finance", "ml_ops"]},
+  "data_security_mode": {"type": "fixed", "value": "USER_ISOLATION"}
+}
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -197,8 +224,19 @@ In enterprise Databricks lakehouses, MERGE INTO & Upsert Patterns is an essentia
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for MERGE INTO & Upsert Patterns
-SELECT 1;
+-- Pruned MERGE INTO pushing clustering date bounds into ON predicate for file skipping
+MERGE INTO prod_catalog.silver.orders AS tgt
+USING (
+  SELECT * EXCEPT(rn) FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) AS rn
+    FROM staging_orders_batch
+  ) WHERE rn = 1
+) AS src
+ON tgt.order_id = src.order_id
+   AND tgt.order_date >= current_date() - 3
+WHEN MATCHED AND src.is_deleted = true THEN DELETE
+WHEN MATCHED AND src.updated_at > tgt.updated_at THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -219,9 +257,18 @@ Why every production pipeline must produce the same result when re-run. Databric
 In enterprise Databricks lakehouses, Idempotent Pipeline Design is an essential mechanism under Data Ingestion. Why every production pipeline must produce the same result when re-run. Databricks-specific techniques: MERGE with natural keys, `INSERT OVERWRITE` with `replaceWhere`, Auto Loader checkpoint recovery, Workflows retry policies. How streaming checkpoints provide built-in idempotency.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Idempotent Pipeline Design
-SELECT 1;
+```python
+# Partition-bounded atomic overwrite using replaceWhere + Delta transaction IDs
+target_date = "2026-11-25"
+daily_df = spark.read.table("prod_catalog.silver.events").filter(f"event_date = '{target_date}'")
+(
+    daily_df.write.format("delta")
+    .mode("overwrite")
+    .option("replaceWhere", f"event_date = '{target_date}'")
+    .option("txnAppId", "daily-gold-events-job")
+    .option("txnVersion", "20261125")
+    .saveAsTable("prod_catalog.gold.events_daily")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -243,8 +290,18 @@ In enterprise Databricks lakehouses, SCD Type 1 & Type 2 Patterns is an essentia
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for SCD Type 1 & Type 2 Patterns
-SELECT 1;
+-- Lakeflow AUTO CDC INTO declarative SCD Type 2 preserving historical attribute intervals
+CREATE OR REFRESH STREAMING TABLE prod_catalog.silver.customers_scd2;
+
+CREATE FLOW customers_cdc_flow AS
+AUTO CDC INTO prod_catalog.silver.customers_scd2
+FROM STREAM(prod_catalog.bronze.customers_cdc)
+KEYS (customer_id)
+APPLY AS DELETE WHEN op = 'DELETE'
+SEQUENCE BY event_seq_ts
+COLUMNS * EXCEPT (op, _rescued_data)
+STORED AS SCD TYPE 2
+TRACK HISTORY ON (email, subscription_tier);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -265,9 +322,18 @@ How checkpoint directories track processing state. Stream restart behavior (repl
 In enterprise Databricks lakehouses, Checkpointing & Exactly-Once is an essential mechanism under Streaming. How checkpoint directories track processing state. Stream restart behavior (replay from checkpoint). Why checkpoint location must be stable and unique per query. Limitations of exactly-once guarantees.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Checkpointing & Exactly-Once
-SELECT 1;
+```python
+# Isolate one unique checkpoint per query; pair with idempotent Delta commits
+(
+    spark.readStream.table("prod_catalog.bronze.ledger_entries")
+    .writeStream.format("delta")
+    .outputMode("append")
+    .option(
+        "checkpointLocation",
+        "/Volumes/prod_catalog/silver/checkpoints/ledger_entries_v1",
+    )
+    .toTable("prod_catalog.silver.ledger_entries")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -288,9 +354,16 @@ How `withWatermark()` bounds how late data can arrive. The tradeoff: longer wate
 In enterprise Databricks lakehouses, Watermarks & Late Data is an essential mechanism under Streaming. How `withWatermark()` bounds how late data can arrive. The tradeoff: longer watermark = more complete results but higher memory/state. How Spark drops state for expired windows.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Watermarks & Late Data
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Bound state memory in RocksDB: evict keys older than (max(event_ts) - 2 hours)
+bounded_agg = (
+    spark.readStream.table("prod_catalog.silver.ad_impressions")
+    .withWatermark("event_ts", "2 hours")
+    .groupBy(F.window("event_ts", "15 minutes"), F.col("campaign_id"))
+    .count()
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -311,9 +384,28 @@ Joining two streaming DataFrames. Watermark requirements for state cleanup. Inne
 In enterprise Databricks lakehouses, Stream-Stream Joins is an essential mechanism under Streaming. Joining two streaming DataFrames. Watermark requirements for state cleanup. Inner, left outer, and right outer join semantics. State management implications.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Stream-Stream Joins
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Both streams require watermarks + explicit time-range join predicate for state cleanup
+impressions = spark.readStream.table("prod_catalog.bronze.impressions").withWatermark(
+    "imp_ts", "1 hour"
+)
+clicks = spark.readStream.table("prod_catalog.bronze.clicks").withWatermark(
+    "click_ts", "2 hours"
+)
+
+attributed = impressions.join(
+    clicks,
+    F.expr(
+        """
+        imp_ad_id = click_ad_id
+        AND click_ts >= imp_ts
+        AND click_ts <= imp_ts + INTERVAL 30 MINUTES
+        """
+    ),
+    how="leftOuter",
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -334,9 +426,16 @@ When a join is the bottleneck: reading shuffle sizes, spill metrics, and task sk
 In enterprise Databricks lakehouses, Join Performance Diagnosis is an essential mechanism under Performance & Cost. When a join is the bottleneck: reading shuffle sizes, spill metrics, and task skew in Spark UI for join stages. Tuning `spark.sql.autoBroadcastJoinThreshold`. Choosing between forcing broadcast hints vs. redesigning the query. When to pre-aggregate or filter before joining to reduce shuffle volume.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Join Performance Diagnosis
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Inspect physical plan to eliminate SortMergeJoin / skew bottlenecks
+fact = spark.read.table("prod_catalog.silver.orders_large")
+dim = spark.read.table("prod_catalog.silver.dim_currencies")
+
+# Force BroadcastHashJoin for dimension tables (< 100 MB with Photon)
+joined = fact.join(F.broadcast(dim), on="currency_code", how="inner")
+print(joined._jdf.queryExecution().executedPlan().toString())
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -358,8 +457,12 @@ In enterprise Databricks lakehouses, MERGE Write Amplification is an essential m
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for MERGE Write Amplification
-SELECT 1;
+-- Deletion Vectors isolate touched row positions inside lightweight bitmaps vs rewriting 1 GB files
+ALTER TABLE prod_catalog.silver.user_profiles
+SET TBLPROPERTIES ('delta.enableDeletionVectors' = 'true');
+
+-- Periodically materialize purged files cleanly off peak SLA hours
+REORG TABLE prod_catalog.silver.user_profiles APPLY (PURGE);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -381,8 +484,16 @@ In enterprise Databricks lakehouses, Row Filters & Column Masks is an essential 
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Row Filters & Column Masks
-SELECT 1;
+-- Fine-grained Unity Catalog Column Masking & Row-Level Security without duplicate views
+CREATE OR REPLACE FUNCTION prod_catalog.governance.mask_ssn(ssn STRING)
+RETURNS STRING
+RETURN CASE
+  WHEN is_account_group_member('hr_pii_admins') THEN ssn
+  ELSE CONCAT('XXX-XX-', RIGHT(ssn, 4))
+END;
+
+ALTER TABLE prod_catalog.silver.employees
+ALTER COLUMN ssn SET MASK prod_catalog.governance.mask_ssn;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -404,8 +515,14 @@ In enterprise Databricks lakehouses, Delta Sharing is an essential mechanism und
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Delta Sharing
-SELECT 1;
+-- Zero-copy open-protocol data sharing across clouds/tenants via Unity Catalog Recipients
+CREATE SHARE IF NOT EXISTS partner_analytics_share
+COMMENT 'Read-only curated customer metrics for external partners';
+
+ALTER SHARE partner_analytics_share
+ADD TABLE prod_catalog.gold.partner_daily_kpis WITH CHANGE DATA FEED;
+
+GRANT SELECT ON SHARE partner_analytics_share TO RECIPIENT external_partner_corp;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -427,8 +544,17 @@ In enterprise Databricks lakehouses, CDC Processing: AUTO CDC INTO is an essenti
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for CDC Processing: AUTO CDC INTO
-SELECT 1;
+-- Handles out-of-order CDC arrivals natively without manual MERGE deduplication code
+CREATE OR REFRESH STREAMING TABLE prod_catalog.silver.products_current;
+
+CREATE FLOW products_cdc_sync AS
+AUTO CDC INTO prod_catalog.silver.products_current
+FROM STREAM(prod_catalog.bronze.products_cdc_stream)
+KEYS (product_id)
+APPLY AS DELETE WHEN change_op = 'D'
+SEQUENCE BY commit_lsn
+COLUMNS * EXCEPT (change_op, _rescued_data)
+STORED AS SCD TYPE 1;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -449,9 +575,14 @@ Routing bad records to quarantine tables instead of failing the pipeline. Using 
 In enterprise Databricks lakehouses, Error Handling & Dead Letter Patterns is an essential mechanism under Lakeflow Declarative Pipelines. Routing bad records to quarantine tables instead of failing the pipeline. Using expectations with `ON VIOLATION DROP ROW` plus a separate quality monitoring table. Building observability into pipeline design.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Error Handling & Dead Letter Patterns
-SELECT 1;
+```python
+# Quarantine malformed or schema-rescued records cleanly instead of halting Bronze->Silver
+raw_df = spark.read.table("prod_catalog.bronze.events")
+valid_df = raw_df.filter(F.col("_rescued_data").isNull() & F.col("amount_usd").isNotNull())
+dlq_df = raw_df.filter(F.col("_rescued_data").isNotNull() | F.col("amount_usd").isNull())
+
+valid_df.write.mode("append").saveAsTable("prod_catalog.silver.events")
+dlq_df.write.mode("append").saveAsTable("prod_catalog.quarantine.events_dlq")
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -472,9 +603,18 @@ Parameterizing pipelines for dev/staging/prod environments. Configuration manage
 In enterprise Databricks lakehouses, Pipeline Parameters & Configuration is an essential mechanism under Lakeflow Declarative Pipelines. Parameterizing pipelines for dev/staging/prod environments. Configuration management patterns. Passing runtime settings. Managing pipeline dependencies across environments.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Pipeline Parameters & Configuration
-SELECT 1;
+```python
+# Parameterize DLT pipelines cleanly across dev/staging/prod using spark.conf keys
+source_catalog = spark.conf.get("pipeline.source_catalog", "dev_catalog")
+lookback_days = int(spark.conf.get("pipeline.lookback_days", "7"))
+
+
+@dlt.table(name="filtered_events")
+def filtered_events():
+    return (
+        spark.read.table(f"{source_catalog}.bronze.events")
+        .filter(f"event_date >= current_date() - {lookback_days}")
+    )
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -495,9 +635,21 @@ Splitting large pipelines into smaller, focused pipelines with clear boundaries.
 In enterprise Databricks lakehouses, Multi-Pipeline Architecture is an essential mechanism under Lakeflow Declarative Pipelines. Splitting large pipelines into smaller, focused pipelines with clear boundaries. Sharing tables between pipelines. Managing dependencies and execution ordering. When a single pipeline becomes too complex to maintain.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Multi-Pipeline Architecture
-SELECT 1;
+```yaml
+# Decouple Ingestion DLT Pipeline (continuous) from Gold Mart DLT Pipeline (triggered) via Workflow
+resources:
+  jobs:
+    lakehouse_orchestrator:
+      name: "Decoupled Domain Pipelines"
+      tasks:
+        - task_key: "bronze_silver_ingestion"
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.ingestion_dlt.id}
+        - task_key: "gold_domain_marts"
+          depends_on:
+            - task_key: "bronze_silver_ingestion"
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.gold_marts_dlt.id}
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -518,7 +670,7 @@ Databricks Declarative Automation Bundles (formerly Asset Bundles). Defining job
 In enterprise Databricks lakehouses, Declarative Automation Bundles (DABs) are the software engineering standard for CI/CD automation. Using databricks.yml, engineers manage parameterized jobs, cluster policies, and permissions as code, deployed via GitHub Actions using keyless Azure/AWS OIDC authentication.
 
 **Production Code / SQL Implementation:**
-```python
+```yaml
 # databricks.yml: Production Declarative Automation Bundle
 bundle:
   name: lakehouse_daily_etl
@@ -532,7 +684,7 @@ targets:
     workspace:
       host: https://adb-prod.azuredatabricks.net
     run_as:
-      service_principal_name: 11111111-2222-3333-4444-555555555555
+      service_principal_name: "sp-databricks-prod-etl"
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -554,8 +706,12 @@ In enterprise Databricks lakehouses, Multi-Workspace Architecture is an essentia
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Multi-Workspace Architecture
-SELECT 1;
+-- Bind isolated dev/staging/prod Workspaces to shared Metastore with environment-scoped Catalogs
+CREATE CATALOG IF NOT EXISTS prod_catalog
+MANAGED LOCATION 'abfss://uc-prod@enterpriseprod.dfs.core.windows.net/';
+
+-- Restrict Workspace-Catalog bindings so dev clusters cannot mutate prod_catalog tables
+GRANT USE CATALOG ON CATALOG prod_catalog TO `prod_pipeline_sp`;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -576,9 +732,22 @@ A structured approach to diagnosing slow pipelines: check Spark UI stage breakdo
 In enterprise Databricks lakehouses, Performance Troubleshooting Methodology is an essential mechanism under Architecture & Advanced Patterns. A structured approach to diagnosing slow pipelines: check Spark UI stage breakdown, identify shuffle/spill bottlenecks, examine query plan for full scans or bad joins, verify clustering/statistics, check cluster utilization. Building runbooks for common performance patterns.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Performance Troubleshooting Methodology
-SELECT 1;
+```python
+# Structured triage: Check 1) Skipping ratio, 2) Shuffle spill bytes, 3) Skew ratio (Max/Median task)
+profile_df = spark.sql(
+    """
+    SELECT
+      statement_id,
+      total_duration_ms,
+      spilled_local_bytes,
+      read_pruned_bytes,
+      read_bytes
+    FROM system.query.history
+    WHERE start_time >= current_timestamp() - INTERVAL 6 HOURS
+    ORDER BY spilled_local_bytes DESC
+    LIMIT 10
+    """
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -599,9 +768,19 @@ Unit testing transformations with sample DataFrames. Integration testing with re
 In enterprise Databricks lakehouses, Testing Patterns for Data Pipelines is an essential mechanism under Architecture & Advanced Patterns. Unit testing transformations with sample DataFrames. Integration testing with representative data subsets. Data quality assertions beyond Lakeflow expectations. Testing schema evolution scenarios. CI/CD test pipelines with DABs.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Testing Patterns for Data Pipelines
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+from chispa.dataframe_comparer import assert_df_equality
+
+
+def aggregate_daily_sales(df):
+    return df.groupBy("store_id").agg(F.sum("amount").alias("total_amount"))
+
+
+def test_aggregate_daily_sales(spark_session):
+    src = spark_session.createDataFrame([(10, 25.0), (10, 15.0)], ["store_id", "amount"])
+    expected = spark_session.createDataFrame([(10, 40.0)], ["store_id", "total_amount"])
+    assert_df_equality(aggregate_daily_sales(src), expected, ignore_nullable=True)
 ```
 
 **Key Invariants & Architectural Best Practices:**

@@ -15,8 +15,18 @@ In enterprise Databricks lakehouses, Predictive Optimization is an essential mec
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Predictive Optimization
-SELECT 1;
+-- Enable Unity Catalog Predictive Optimization at schema level for auto OPTIMIZE & VACUUM
+ALTER SCHEMA prod_catalog.silver ENABLE PREDICTIVE OPTIMIZATION;
+
+-- Inspect automated maintenance operations and DBU cost via system tables
+SELECT
+  table_name,
+  operation_type,
+  operation_metrics['numFilesRemoved'] AS files_removed,
+  usage_quantity AS dbus_spent
+FROM system.storage.predictive_optimization_operations_history
+WHERE start_time >= current_timestamp() - INTERVAL 7 DAYS
+ORDER BY start_time DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -38,8 +48,14 @@ In enterprise Databricks lakehouses, Column Statistics & File Pruning is an esse
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Column Statistics & File Pruning
-SELECT 1;
+-- Collect column stats only on the first N indexed filter columns to cut commit overhead
+ALTER TABLE prod_catalog.silver.clickstream
+SET TBLPROPERTIES (
+  'delta.dataSkippingNumIndexedCols' = '8'
+);
+
+-- Cluster by high-cardinality filter predicates instead of low-selectivity flags
+ALTER TABLE prod_catalog.silver.clickstream CLUSTER BY (tenant_id, event_date);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -61,8 +77,13 @@ In enterprise Databricks lakehouses, Write Optimization is an essential mechanis
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Write Optimization
-SELECT 1;
+-- Enable Optimize Write + Auto Compaction to emit uniformly sized ~128 MB Parquet files
+ALTER TABLE prod_catalog.silver.transactions
+SET TBLPROPERTIES (
+  'delta.autoOptimize.optimizeWrite' = 'true',
+  'delta.autoOptimize.autoCompact' = 'true',
+  'delta.targetFileSize' = '134217728'
+);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -83,9 +104,19 @@ Right-sizing for ETL vs. ML vs. SQL analytics workloads. Autoscaling min/max wor
 In enterprise Databricks lakehouses, Cluster Sizing & Autoscaling is an essential mechanism under Performance & Cost. Right-sizing for ETL vs. ML vs. SQL analytics workloads. Autoscaling min/max workers. Spot instances for cost savings. The relationship between partition count, core count, and parallelism.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Cluster Sizing & Autoscaling
-SELECT 1;
+```json
+{
+  "cluster_name": "silver-streaming-etl",
+  "spark_version": "15.4.x-scala2.12",
+  "node_type_id": "Standard_D8ds_v5",
+  "autoscale": {
+    "min_workers": 2,
+    "max_workers": 12
+  },
+  "autotermination_minutes": 15,
+  "enable_elastic_disk": true,
+  "runtime_engine": "PHOTON"
+}
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -107,8 +138,21 @@ In enterprise Databricks lakehouses, DBU Cost Model & Billing is an essential me
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for DBU Cost Model & Billing
-SELECT 1;
+-- Chargeback report breaking down daily DBU & dollar spend by cost_center tag
+SELECT
+  u.usage_date,
+  COALESCE(u.custom_tags['cost_center'], 'untagged') AS cost_center,
+  u.sku_name,
+  ROUND(SUM(u.usage_quantity), 2) AS total_dbus,
+  ROUND(SUM(u.usage_quantity * lp.pricing.default), 2) AS estimated_cost_usd
+FROM system.billing.usage u
+JOIN system.billing.list_prices lp
+  ON u.sku_name = lp.sku_name AND u.cloud = lp.cloud
+ AND u.usage_end_time >= lp.price_start_time
+ AND (lp.price_end_time IS NULL OR u.usage_end_time < lp.price_end_time)
+WHERE u.usage_date >= current_date() - 30
+GROUP BY 1, 2, 3
+ORDER BY estimated_cost_usd DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -130,8 +174,19 @@ In enterprise Databricks lakehouses, Query Profile & Execution Plans is an essen
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Query Profile & Execution Plans
-SELECT 1;
+-- Analyze top queued & spilled DBSQL warehouse queries via system.query.history
+SELECT
+  statement_id,
+  executed_by,
+  ROUND(total_duration_ms / 1000.0, 2) AS total_sec,
+  ROUND(waiting_for_compute_duration_ms / 1000.0, 2) AS queue_sec,
+  ROUND(spilled_local_bytes / 1024 / 1024 / 1024, 2) AS disk_spill_gb,
+  read_pruned_bytes / NULLIF(read_bytes + read_pruned_bytes, 0) AS pruning_ratio
+FROM system.query.history
+WHERE start_time >= current_timestamp() - INTERVAL 24 HOURS
+  AND execution_status = 'FINISHED'
+ORDER BY disk_spill_gb DESC, total_sec DESC
+LIMIT 20;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -153,8 +208,13 @@ In enterprise Databricks lakehouses, Permission Model & Inheritance is an essent
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Permission Model & Inheritance
-SELECT 1;
+-- Privileges inherit downward (Catalog -> Schema -> Table); grant explicit BROWSE separately
+GRANT BROWSE ON CATALOG prod_catalog TO `data_discovery_users`;
+GRANT USE CATALOG, USE SCHEMA ON SCHEMA prod_catalog.gold TO `bi_readers`;
+GRANT SELECT ON SCHEMA prod_catalog.gold TO `bi_readers`;
+
+-- Inspect effective privileges after inheritance
+SHOW GRANTS ON TABLE prod_catalog.gold.daily_revenue;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -176,8 +236,18 @@ In enterprise Databricks lakehouses, Dynamic Views for Security is an essential 
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Dynamic Views for Security
-SELECT 1;
+-- Prefer Unity Catalog Column Masks & Row Filters on tables; use Dynamic Views for API projection
+CREATE OR REPLACE VIEW prod_catalog.gold.customers_masked AS
+SELECT
+  customer_id,
+  CASE
+    WHEN is_account_group_member('pii_auditors') THEN email
+    ELSE CONCAT('***@', SPLIT_PART(email, '@', 2))
+  END AS email,
+  region,
+  lifetime_value_usd
+FROM prod_catalog.silver.customers
+WHERE is_account_group_member('global_analysts') OR region = current_user();
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -199,8 +269,17 @@ In enterprise Databricks lakehouses, Data Lineage is an essential mechanism unde
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Data Lineage
-SELECT 1;
+-- Trace upstream column & table dependencies automatically via Unity Catalog lineage tables
+SELECT
+  source_table_full_name,
+  target_table_full_name,
+  target_column_name,
+  source_column_name,
+  entity_type
+FROM system.access.column_lineage
+WHERE target_table_full_name = 'prod_catalog.gold.daily_revenue'
+  AND event_date >= current_date() - 30
+ORDER BY event_time DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -222,8 +301,20 @@ In enterprise Databricks lakehouses, Information Schema & Metadata Queries is an
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Information Schema & Metadata Queries
-SELECT 1;
+-- Discover large managed Delta tables lacking row-level tags or governance owners
+SELECT
+  t.table_catalog,
+  t.table_schema,
+  t.table_name,
+  t.table_owner,
+  t.table_type
+FROM prod_catalog.information_schema.tables t
+LEFT JOIN prod_catalog.information_schema.table_tags tt
+  ON t.table_catalog = tt.catalog_name
+ AND t.table_schema = tt.schema_name
+ AND t.table_name = tt.table_name
+WHERE t.table_schema NOT IN ('information_schema')
+  AND tt.tag_name IS NULL;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -245,8 +336,17 @@ In enterprise Databricks lakehouses, External Locations & Storage Credentials is
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for External Locations & Storage Credentials
-SELECT 1;
+-- Bind cloud IAM identity cleanly to object storage prefixes via Unity Catalog
+CREATE STORAGE CREDENTIAL IF NOT EXISTS cred_prod_adls
+WITH AZURE_MANAGED_IDENTITY (
+  ACCESS_CONNECTOR_ID = '/subscriptions/sub-01/resourceGroups/rg-lake/providers/Microsoft.Databricks/accessConnectors/dbx-uc'
+);
+
+CREATE EXTERNAL LOCATION IF NOT EXISTS ext_bronze_landing
+URL 'abfss://landing@enterpriseprod.dfs.core.windows.net/'
+WITH (STORAGE CREDENTIAL cred_prod_adls);
+
+GRANT READ FILES ON EXTERNAL LOCATION ext_bronze_landing TO `etl_service_principals`;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -267,9 +367,21 @@ Using service principals for automated jobs instead of personal credentials. Man
 In enterprise Databricks lakehouses, Service Principals & Managed Identity is an essential mechanism under Unity Catalog & Governance. Using service principals for automated jobs instead of personal credentials. Managed identity on Azure, instance profiles on AWS. Why production workloads must never run under personal accounts.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Service Principals & Managed Identity
-SELECT 1;
+```yaml
+# Production workflows execute as non-human Service Principals via DAB run_as
+bundle:
+  name: finance_settlement_etl
+
+targets:
+  prod:
+    mode: production
+    run_as:
+      service_principal_name: "sp-databricks-prod-etl"
+    permissions:
+      - level: CAN_VIEW
+        group_name: "finance-engineers"
+      - level: IS_OWNER
+        service_principal_name: "sp-databricks-prod-etl"
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -291,8 +403,22 @@ In enterprise Databricks lakehouses, Audit Logging is an essential mechanism und
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Audit Logging
-SELECT 1;
+-- Security SIEM query: detect failed logins or external location downloads in 24h
+SELECT
+  event_time,
+  user_identity.email AS actor,
+  service_name,
+  action_name,
+  source_ip_address,
+  response.status_code,
+  request_params
+FROM system.access.audit
+WHERE event_date >= current_date() - 1
+  AND (
+    action_name IN ('downloadResults', 'createToken', 'updatePermissions')
+    OR response.status_code >= 400
+  )
+ORDER BY event_time DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -314,8 +440,15 @@ In enterprise Databricks lakehouses, Streaming Tables vs. Materialized Views is 
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Streaming Tables vs. Materialized Views
-SELECT 1;
+-- Streaming Table (incremental append ingestion) -> Materialized View (incremental SQL agg)
+CREATE OR REFRESH STREAMING TABLE prod_catalog.silver.orders_st
+AS SELECT * FROM STREAM(prod_catalog.bronze.orders_raw)
+WHERE order_status != 'CANCELLED';
+
+CREATE OR REFRESH MATERIALIZED VIEW prod_catalog.gold.revenue_by_country_mv
+AS SELECT country_code, COUNT(*) AS order_cnt, SUM(amount_usd) AS revenue_usd
+FROM prod_catalog.silver.orders_st
+GROUP BY country_code;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -336,9 +469,16 @@ Defining data quality constraints that warn, drop, or fail on violation. Monitor
 In enterprise Databricks lakehouses, Expectations (Quality Rules) is an essential mechanism under Lakeflow Declarative Pipelines. Defining data quality constraints that warn, drop, or fail on violation. Monitoring expectation pass/fail rates in the pipeline UI. Using expectations as production data quality gates.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Expectations (Quality Rules)
-SELECT 1;
+```python
+import dlt
+
+
+@dlt.table(name="silver_payments")
+@dlt.expect("valid_currency", "currency IN ('USD', 'EUR', 'GBP')")
+@dlt.expect_or_drop("non_negative_amt", "amount > 0")
+@dlt.expect_or_fail("required_pk", "payment_id IS NOT NULL")
+def silver_payments():
+    return dlt.read_stream("bronze_payments")
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -359,9 +499,19 @@ Development vs. production modes. Incremental vs. full refresh. Testing pipeline
 In enterprise Databricks lakehouses, Pipeline Development & Testing is an essential mechanism under Lakeflow Declarative Pipelines. Development vs. production modes. Incremental vs. full refresh. Testing pipeline logic locally before deployment. The pipeline settings and configuration options.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Pipeline Development & Testing
-SELECT 1;
+```python
+from pyspark.sql import DataFrame, functions as F
+from chispa.dataframe_comparer import assert_df_equality
+
+
+def transform_orders(df: DataFrame) -> DataFrame:
+    return df.filter(F.col("amount") > 0).withColumn("net_usd", F.round(F.col("amount") * 0.95, 2))
+
+
+def test_transform_orders_drops_invalid():
+    raw = spark.createDataFrame([(1, 100.0), (2, -5.0)], ["id", "amount"])
+    expected = spark.createDataFrame([(1, 100.0, 95.0)], ["id", "amount", "net_usd"])
+    assert_df_equality(transform_orders(raw), expected, ignore_nullable=True)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -383,8 +533,22 @@ In enterprise Databricks lakehouses, Pipeline Monitoring & Event Log is an essen
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Pipeline Monitoring & Event Log
-SELECT 1;
+-- Query Lakeflow Declarative Pipeline (DLT) data quality drop rates from Event Log table
+SELECT
+  timestamp,
+  details:flow_progress.metrics.num_output_rows AS output_rows,
+  exp.name AS expectation_name,
+  exp.passed_records,
+  exp.failed_records
+FROM prod_catalog.ops.dlt_event_log_orders
+LATERAL VIEW EXPLODE(
+  FROM_JSON(
+    details:flow_progress.data_quality.expectations,
+    'ARRAY<STRUCT<name:STRING, passed_records:BIGINT, failed_records:BIGINT>>'
+  )
+) AS exp
+WHERE event_type = 'flow_progress'
+ORDER BY timestamp DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -405,9 +569,17 @@ Triggered pipelines (batch-like, process available data then stop) vs. continuou
 In enterprise Databricks lakehouses, Pipeline Modes: Triggered vs. Continuous is an essential mechanism under Lakeflow Declarative Pipelines. Triggered pipelines (batch-like, process available data then stop) vs. continuous pipelines (always-on, sub-second latency). Cost and latency tradeoffs. When each mode is appropriate.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Pipeline Modes: Triggered vs. Continuous
-SELECT 1;
+```yaml
+# Switch between cost-saving Triggered mode and sub-minute Continuous DLT pipelines in DABs
+resources:
+  pipelines:
+    orders_silver_dlt:
+      name: "Orders Medallion Pipeline"
+      target: "silver"
+      catalog: "prod_catalog"
+      serverless: true
+      continuous: false  # Set true only for <1 min SLA streaming requirements
+      channel: "CURRENT"
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -428,9 +600,21 @@ Creating jobs with multiple tasks (notebooks, Python scripts, SQL, dbt, JARs). T
 In enterprise Databricks lakehouses, Databricks Workflows: Multi-Task Jobs is an essential mechanism under Workflows, CI/CD & Operations. Creating jobs with multiple tasks (notebooks, Python scripts, SQL, dbt, JARs). Task dependencies (linear, fan-out, fan-in). Run conditions and error handling.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Databricks Workflows: Multi-Task Jobs
-SELECT 1;
+```yaml
+# Multi-task Workflow sharing one Job Cluster across upstream & downstream ETL stages
+resources:
+  jobs:
+    medallion_orchestrator:
+      name: "Medallion Bronze-to-Gold"
+      tasks:
+        - task_key: "ingest_bronze"
+          notebook_task:
+            notebook_path: ./src/ingest_bronze.py
+        - task_key: "build_silver"
+          depends_on:
+            - task_key: "ingest_bronze"
+          notebook_task:
+            notebook_path: ./src/build_silver.py
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -451,9 +635,21 @@ Per-task retry policies and timeout limits. Conditional execution based on upstr
 In enterprise Databricks lakehouses, Task Dependencies, Retries & Conditional Logic is an essential mechanism under Workflows, CI/CD & Operations. Per-task retry policies and timeout limits. Conditional execution based on upstream task outcomes. Task values for passing data between tasks. Email and webhook alerting on failure.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Task Dependencies, Retries & Conditional Logic
-SELECT 1;
+```yaml
+# Bounded retries + IF/ELSE task branching based on upstream taskValues count
+tasks:
+  - task_key: "dq_gate"
+    max_retries: 2
+    min_retry_interval_millis: 60000
+    notebook_task:
+      notebook_path: ./src/dq_gate.py
+  - task_key: "check_quarantine"
+    depends_on:
+      - task_key: "dq_gate"
+    condition_task:
+      op: "GREATER_THAN"
+      left: "{{tasks.dq_gate.values.quarantined_rows}}"
+      right: "0"
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -474,9 +670,20 @@ Connecting Databricks to GitHub/GitLab/Azure DevOps. Databricks Repos for versio
 In enterprise Databricks lakehouses, Git Integration & Repos is an essential mechanism under Workflows, CI/CD & Operations. Connecting Databricks to GitHub/GitLab/Azure DevOps. Databricks Repos for version-controlled notebooks. Branch-based development. Pull request workflows for notebook code.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Git Integration & Repos
-SELECT 1;
+```yaml
+# Execute production Workflows directly against immutable remote Git refs (not personal folders)
+resources:
+  jobs:
+    prod_git_job:
+      name: "Production ETL from Git Tag"
+      git_source:
+        git_url: "https://github.com/org/lakehouse-pipelines.git"
+        git_provider: "gitHub"
+        git_tag: "v2.4.0"
+      tasks:
+        - task_key: "run_etl"
+          notebook_task:
+            notebook_path: "src/pipelines/daily_etl.py"
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -498,8 +705,14 @@ In enterprise Databricks lakehouses, Monitoring, Alerting & SQL Alerts is an ess
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Monitoring, Alerting & SQL Alerts
-SELECT 1;
+-- Databricks SQL Alert query: trigger PagerDuty/Slack when Bronze SLA lags > 45 minutes
+SELECT
+  COUNT(*) AS stale_partitions,
+  MAX(TIMESTAMPDIFF(MINUTE, max_event_ts, current_timestamp())) AS max_lag_minutes
+FROM (
+  SELECT MAX(event_ts) AS max_event_ts FROM prod_catalog.bronze.events
+)
+HAVING max_lag_minutes > 45;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -521,8 +734,19 @@ In enterprise Databricks lakehouses, System Tables for Operations is an essentia
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for System Tables for Operations
-SELECT 1;
+-- Identify recurring Job Run failures & cost waste across Lakeflow Jobs
+SELECT
+  j.name AS job_name,
+  r.result_state,
+  COUNT(*) AS failed_runs_7d,
+  MAX(r.period_start_time) AS last_failure_ts
+FROM system.lakeflow.job_run_timeline r
+JOIN system.lakeflow.jobs j
+  ON r.workspace_id = j.workspace_id AND r.job_id = j.job_id
+WHERE r.period_start_time >= current_timestamp() - INTERVAL 7 DAYS
+  AND r.result_state IN ('FAILED', 'TIMEDOUT')
+GROUP BY 1, 2
+ORDER BY failed_runs_7d DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -544,8 +768,18 @@ In enterprise Databricks lakehouses, Managed vs. External Tables: Architecture T
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Managed vs. External Tables: Architecture Tradeoffs
-SELECT 1;
+-- Managed table: full Unity Catalog lifecycle, Predictive Optimization, & safe DROP purge
+CREATE TABLE IF NOT EXISTS prod_catalog.gold.revenue_managed (
+  order_date DATE,
+  revenue_usd DECIMAL(14, 2)
+)
+CLUSTER BY (order_date);
+
+-- External table: DROP deletes metadata only while underlying cloud Parquet persists
+CREATE TABLE IF NOT EXISTS prod_catalog.bronze.vendor_ext (
+  payload STRING
+)
+LOCATION 'abfss://vendor@enterpriseprod.dfs.core.windows.net/exports/';
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -567,8 +801,10 @@ In enterprise Databricks lakehouses, Legacy: Partitioning & Z-ORDER is an essent
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Legacy: Partitioning & Z-ORDER
-SELECT 1;
+-- Legacy optimization pattern (<1 TB or pre-Liquid tables); prefer Liquid CLUSTER BY for new tables
+OPTIMIZE prod_catalog.legacy.clickstream_partitioned
+WHERE event_date >= current_date() - 7
+ZORDER BY (user_id, session_id);
 ```
 
 **Key Invariants & Architectural Best Practices:**

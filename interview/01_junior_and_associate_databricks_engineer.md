@@ -14,7 +14,7 @@ How Delta Lake guarantees atomicity, consistency, isolation, and durability on t
 In enterprise Databricks lakehouses, ACID Transactions is an essential mechanism under Delta Lake. How Delta Lake guarantees atomicity, consistency, isolation, and durability on top of cloud object storage. Optimistic concurrency control. Why this matters vs. raw Parquet.
 
 **Production Code / SQL Implementation:**
-```python
+```sql
 -- ACID guarantees via optimistic concurrency control in Unity Catalog
 BEGIN TRANSACTION;
 INSERT INTO prod_catalog.gold.sales VALUES (101, 'Widget', 29.99, current_timestamp());
@@ -33,13 +33,13 @@ COMMIT;
 ### Q1.2: Transaction Log (`_delta_log`) (Delta Lake)
 
 **Question & Concept Overview:**  
-How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 100 commits. How the log enables time travel.
+How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 10 commits. How the log enables time travel.
 
 **Detailed Technical Explanation:**  
-In enterprise Databricks lakehouses, Transaction Log (`_delta_log`) is an essential mechanism under Delta Lake. How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 100 commits. How the log enables time travel.
+In enterprise Databricks lakehouses, Transaction Log (`_delta_log`) is an essential mechanism under Delta Lake. How the JSON-based transaction log tracks every change. What happens during reads (snapshot isolation). Log checkpoints every 10 commits. How the log enables time travel.
 
 **Production Code / SQL Implementation:**
-```python
+```sql
 -- Inspecting the transaction log commits in Unity Catalog
 DESCRIBE HISTORY prod_catalog.gold.sales;
 -- Reading raw log metadata via Unity Catalog Volumes
@@ -138,9 +138,21 @@ select, filter, withColumn, groupBy, agg, join. Method chaining patterns. When t
 In enterprise Databricks lakehouses, DataFrame API: Core Operations is an essential mechanism under SQL & DataFrames. select, filter, withColumn, groupBy, agg, join. Method chaining patterns. When to use DataFrame API vs. Spark SQL (same execution plan either way).
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for DataFrame API: Core Operations
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+orders = spark.read.table("prod_catalog.bronze.orders_raw")
+daily_revenue = (
+    orders
+    .filter((F.col("status") == "COMPLETED") & (F.col("amount_usd") > 0))
+    .withColumn("order_date", F.to_date("order_ts"))
+    .groupBy("order_date", "region")
+    .agg(
+        F.count("*").alias("order_count"),
+        F.round(F.sum("amount_usd"), 2).alias("total_revenue_usd"),
+    )
+)
+daily_revenue.write.mode("overwrite").saveAsTable("prod_catalog.gold.daily_revenue")
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -161,9 +173,14 @@ Scope: temp views live in the SparkSession, global temp views in `global_temp` a
 In enterprise Databricks lakehouses, Temp Views & Global Temp Views is an essential mechanism under SQL & DataFrames. Scope: temp views live in the SparkSession, global temp views in `global_temp` and survive across notebooks on the same cluster. Neither persists across restarts.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Temp Views & Global Temp Views
-SELECT 1;
+```python
+# Session-scoped Temp View (isolated to the active SparkSession)
+df_filtered = spark.read.table("prod_catalog.silver.events").filter("event_type = 'PURCHASE'")
+df_filtered.createOrReplaceTempView("session_purchases")
+
+# Cluster-scoped Global Temp View (accessible across attached notebooks via global_temp schema)
+df_filtered.createOrReplaceGlobalTempView("shared_purchases")
+spark.sql("SELECT COUNT(*) FROM global_temp.shared_purchases").show()
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -184,9 +201,22 @@ COPY INTO for ad-hoc/batch loads (idempotent, simpler). Auto Loader for continuo
 In enterprise Databricks lakehouses, COPY INTO vs. Auto Loader is an essential mechanism under Data Ingestion. COPY INTO for ad-hoc/batch loads (idempotent, simpler). Auto Loader for continuous/streaming ingestion (exactly-once, scalable, schema evolution). Why Auto Loader is preferred for production.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for COPY INTO vs. Auto Loader
-SELECT 1;
+```python
+# Production Auto Loader stream (recommended for continuous/scalable cloud ingestion)
+bronze_df = (
+    spark.readStream.format("cloudFiles")
+    .option("cloudFiles.format", "json")
+    .option("cloudFiles.schemaLocation", "/Volumes/prod_catalog/bronze/checkpoints/orders_schema")
+    .option("cloudFiles.inferColumnTypes", "true")
+    .option("rescuedDataColumn", "_rescued_data")
+    .load("/Volumes/prod_catalog/bronze/landing/orders/")
+)
+(
+    bronze_df.writeStream
+    .option("checkpointLocation", "/Volumes/prod_catalog/bronze/checkpoints/orders")
+    .trigger(availableNow=True)
+    .toTable("prod_catalog.bronze.orders")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -208,8 +238,23 @@ In enterprise Databricks lakehouses, File Formats in the Lakehouse is an essenti
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for File Formats in the Lakehouse
-SELECT 1;
+-- Managed Delta table (Parquet + _delta_log) vs. external raw landing formats
+CREATE TABLE IF NOT EXISTS prod_catalog.silver.customers_delta (
+  customer_id BIGINT NOT NULL,
+  tier STRING,
+  updated_at TIMESTAMP
+)
+USING DELTA
+CLUSTER BY (tier);
+
+-- Inspect raw Avro / JSON / Parquet sources via read_files before Silver promotion
+SELECT *
+FROM read_files(
+  '/Volumes/prod_catalog/bronze/landing/customers/*.json',
+  format => 'json',
+  rescuedDataColumn => '_rescued_data'
+)
+LIMIT 20;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -231,8 +276,16 @@ In enterprise Databricks lakehouses, Volumes is an essential mechanism under Dat
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Volumes
-SELECT 1;
+-- Create a Unity Catalog Managed Volume for non-tabular artifacts & landing files
+CREATE VOLUME IF NOT EXISTS prod_catalog.bronze.raw_landing_files;
+
+-- Query unstructured CSV payloads directly from a governed Volume path
+SELECT customer_id, signup_ts, _metadata.file_path AS source_file
+FROM read_files(
+  '/Volumes/prod_catalog/bronze/raw_landing_files/signups/*.csv',
+  format => 'csv',
+  header => true
+);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -254,8 +307,22 @@ In enterprise Databricks lakehouses, Serverless Compute Economics is an essentia
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Serverless Compute Economics
-SELECT 1;
+-- Quantify Serverless SQL vs. Classic Jobs DBU burn over the past 30 days
+SELECT
+  sku_name,
+  billing_origin_product,
+  ROUND(SUM(usage_quantity), 2) AS total_dbus,
+  ROUND(SUM(usage_quantity * lp.pricing.default), 2) AS estimated_list_usd
+FROM system.billing.usage u
+JOIN system.billing.list_prices lp
+  ON u.sku_name = lp.sku_name
+ AND u.cloud = lp.cloud
+ AND u.usage_end_time >= lp.price_start_time
+ AND (lp.price_end_time IS NULL OR u.usage_end_time < lp.price_end_time)
+WHERE u.usage_date >= current_date() - 30
+  AND (u.sku_name LIKE '%SERVERLESS%' OR u.sku_name LIKE '%JOBS%')
+GROUP BY 1, 2
+ORDER BY total_dbus DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -277,8 +344,19 @@ In enterprise Databricks lakehouses, Three-Level Namespace is an essential mecha
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Three-Level Namespace
-SELECT 1;
+-- Always qualify objects across catalog.schema.table inside Unity Catalog
+USE CATALOG prod_catalog;
+USE SCHEMA silver;
+
+CREATE TABLE IF NOT EXISTS prod_catalog.silver.payments (
+  payment_id BIGINT NOT NULL,
+  merchant_id BIGINT,
+  amount_cents BIGINT
+);
+
+GRANT USE CATALOG ON CATALOG prod_catalog TO `finance_analysts`;
+GRANT USE SCHEMA ON SCHEMA prod_catalog.silver TO `finance_analysts`;
+GRANT SELECT ON TABLE prod_catalog.silver.payments TO `finance_analysts`;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -299,9 +377,19 @@ SQL: `CREATE STREAMING TABLE`, `CREATE MATERIALIZED VIEW`. Python: `@table`, `@m
 In enterprise Databricks lakehouses, Python vs. SQL Pipeline Syntax is an essential mechanism under Lakeflow Declarative Pipelines. SQL: `CREATE STREAMING TABLE`, `CREATE MATERIALIZED VIEW`. Python: `@table`, `@materialized_view`, `@temporary_view` decorators (from `pyspark.pipelines`). Old `import dlt` syntax still works. Choosing based on team skills.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Python vs. SQL Pipeline Syntax
-SELECT 1;
+```python
+import dlt
+from pyspark.sql import functions as F
+
+
+@dlt.table(name="silver_orders", comment="Cleansed orders with expectations")
+@dlt.expect_or_drop("valid_amount", "amount_usd > 0")
+def silver_orders():
+    return (
+        dlt.read_stream("bronze_orders")
+        .withColumn("ingested_date", F.to_date("_commit_ts"))
+        .select("order_id", "customer_id", "amount_usd", "ingested_date")
+    )
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -322,9 +410,26 @@ Serverless compute as the default for new jobs (no cluster management, Photon au
 In enterprise Databricks lakehouses, Choosing Compute for Jobs is an essential mechanism under Workflows, CI/CD & Operations. Serverless compute as the default for new jobs (no cluster management, Photon auto-enabled). When to use job clusters instead (custom init scripts, GPU workloads, unsupported task types). Why all-purpose clusters are for development, not production. Instance pools for fast classic cluster startup.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Choosing Compute for Jobs
-SELECT 1;
+```yaml
+# databricks.yml task compute selection: Job Compute for ETL, Serverless SQL for BI refresh
+resources:
+  jobs:
+    nightly_lakehouse_pipeline:
+      name: "Nightly Lakehouse ETL"
+      job_clusters:
+        - job_cluster_key: "etl_worker_pool"
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_D8ds_v5"
+            autoscale:
+              min_workers: 2
+              max_workers: 8
+            data_security_mode: "USER_ISOLATION"
+      tasks:
+        - task_key: "transform_silver"
+          job_cluster_key: "etl_worker_pool"
+          notebook_task:
+            notebook_path: ./src/transform_silver.py
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -345,9 +450,20 @@ Databricks Secret Scopes for credentials (API keys, database passwords). `dbutil
 In enterprise Databricks lakehouses, Secrets Management is an essential mechanism under Workflows, CI/CD & Operations. Databricks Secret Scopes for credentials (API keys, database passwords). `dbutils.secrets.get()` in notebooks. Key-vault backed scopes (Azure Key Vault, AWS Secrets Manager). Why secrets must never be hardcoded.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Secrets Management
-SELECT 1;
+```python
+# Retrieve API credentials safely via Databricks Secret Scopes (redacted in logs/UI)
+api_token = dbutils.secrets.get(scope="prod-keyvault-scope", key="stripe-ingestion-key")
+jdbc_pass = dbutils.secrets.get(scope="prod-keyvault-scope", key="erp-ro-password")
+
+# Never print or collect secret values into Delta tables; inject straight into options
+erp_df = (
+    spark.read.format("jdbc")
+    .option("url", "jdbc:postgresql://erp-db.internal:5432/orders")
+    .option("dbtable", "public.invoices")
+    .option("user", "svc_lakehouse_ro")
+    .option("password", jdbc_pass)
+    .load()
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -368,9 +484,20 @@ SELECT 1;
 In enterprise Databricks lakehouses, Parameterization: Widgets, Job Parameters, Task Values is an essential mechanism under Workflows, CI/CD & Operations. `dbutils.widgets` for notebook parameters. Job parameters passed from Workflows. Task values for inter-task communication. Databricks SQL parameters for parameterized queries.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Parameterization: Widgets, Job Parameters, Task Values
-SELECT 1;
+```python
+# Declare interactive/job widgets with explicit defaults and propagate task values
+dbutils.widgets.text("run_date", "2026-11-25", "Processing Date")
+dbutils.widgets.dropdown("env", "prod", ["dev", "staging", "prod"], "Environment")
+
+run_date = dbutils.widgets.get("run_date")
+target_env = dbutils.widgets.get("env")
+
+processed_rows = (
+    spark.read.table(f"{target_env}_catalog.bronze.events")
+    .filter(f"event_date = '{run_date}'")
+    .count()
+)
+dbutils.jobs.taskValues.set(key="processed_row_count", value=processed_rows)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -391,9 +518,24 @@ SELECT 1;
 In enterprise Databricks lakehouses, Notebook Development Patterns is an essential mechanism under Workflows, CI/CD & Operations. `%run` for shared utilities. `dbutils.notebook.run()` for orchestration. Magic commands (`%sql`, `%python`, `%md`). Notebook-scoped libraries. When to use notebooks vs. Python files in production.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Notebook Development Patterns
-SELECT 1;
+```python
+# Prefer modular Python package helpers in Workspace/Repo + thin notebook orchestration
+from dataclasses import dataclass
+from pyspark.sql import DataFrame, functions as F
+
+
+@dataclass(frozen=True)
+class QualityConfig:
+    min_amount: float = 0.01
+    required_country_len: int = 2
+
+
+def clean_transactions(df: DataFrame, cfg: QualityConfig) -> DataFrame:
+    return (
+        df.filter(F.col("amount_usd") >= cfg.min_amount)
+        .filter(F.length(F.col("country_code")) == cfg.required_country_len)
+        .dropDuplicates(["transaction_id"])
+    )
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -415,8 +557,13 @@ In enterprise Databricks lakehouses, Shallow vs. Deep Clones is an essential mec
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Shallow vs. Deep Clones
-SELECT 1;
+-- Zero-copy Shallow Clone for staging / QA validation against production tables
+CREATE OR REPLACE TABLE staging_catalog.qa.orders_clone
+SHALLOW CLONE prod_catalog.silver.orders;
+
+-- Deep Clone copies both _delta_log and Parquet data files for cross-region DR
+CREATE OR REPLACE TABLE dr_catalog.backup.orders_dr
+DEEP CLONE prod_catalog.silver.orders;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -493,7 +640,7 @@ Why small files kill read performance (causes: frequent appends, streaming micro
 In enterprise Databricks lakehouses, OPTIMIZE & File Compaction is an essential mechanism under Delta Lake. Why small files kill read performance (causes: frequent appends, streaming micro-batches). How OPTIMIZE rewrites files and triggers Liquid Clustering. Auto Compaction as a lighter-weight alternative. When to rely on Predictive Optimization (#53) vs. running manually.
 
 **Production Code / SQL Implementation:**
-```python
+```sql
 -- Compacting fragmented files into ~1GB files
 OPTIMIZE sales;
 -- Compacting specific partition or range
@@ -518,7 +665,7 @@ How VACUUM removes unreferenced files. The 7-day default retention and why lower
 In enterprise Databricks lakehouses, VACUUM & Storage Lifecycle is an essential mechanism under Delta Lake. How VACUUM removes unreferenced files. The 7-day default retention and why lowering it breaks time travel. Interaction with concurrent readers. How Predictive Optimization automates VACUUM on managed tables.
 
 **Production Code / SQL Implementation:**
-```python
+```sql
 -- Storage hygiene: removing tombstoned Parquet files past 7 days
 VACUUM sales RETAIN 168 HOURS;
 -- Dry run check

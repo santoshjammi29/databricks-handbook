@@ -14,7 +14,7 @@ How AQE adjusts plans at runtime based on actual data statistics. Three key opti
 In enterprise Databricks lakehouses, Adaptive Query Execution (AQE) is an essential mechanism under Spark Execution. How AQE adjusts plans at runtime based on actual data statistics. Three key optimizations: coalescing shuffle partitions, converting sort-merge joins to broadcast, optimizing skew joins. Enabled by default.
 
 **Production Code / SQL Implementation:**
-```python
+```sql
 -- Adaptive Query Execution (AQE) enabled by default in Spark 3.x
 SET spark.sql.adaptive.enabled = true;
 SET spark.sql.adaptive.coalescePartitions.enabled = true;
@@ -139,8 +139,23 @@ In enterprise Databricks lakehouses, Window Functions is an essential mechanism 
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Window Functions
-SELECT 1;
+-- Rank latest customer state & compute 7-day rolling spend via window frames
+WITH ranked_events AS (
+  SELECT
+    customer_id,
+    event_ts,
+    spend_usd,
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY event_ts DESC) AS recency_rank,
+    SUM(spend_usd) OVER (
+      PARTITION BY customer_id
+      ORDER BY UNIX_TIMESTAMP(event_ts)
+      RANGE BETWEEN 604800 PRECEDING AND CURRENT ROW
+    ) AS rolling_7d_spend_usd
+  FROM prod_catalog.silver.customer_orders
+)
+SELECT customer_id, event_ts, spend_usd, rolling_7d_spend_usd
+FROM ranked_events
+WHERE recency_rank = 1;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -162,8 +177,16 @@ In enterprise Databricks lakehouses, Complex Types: ARRAY, STRUCT, MAP is an ess
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Complex Types: ARRAY, STRUCT, MAP
-SELECT 1;
+-- Traverse STRUCT paths and explode_outer ARRAY<STRUCT> payloads cleanly
+SELECT
+  o.order_id,
+  o.customer.email AS customer_email,
+  o.attributes['channel'] AS sales_channel,
+  item_pos AS line_number,
+  item.sku AS product_sku,
+  item.qty * item.unit_price AS line_total_usd
+FROM prod_catalog.bronze.order_events o
+LATERAL VIEW POSEXPLODE_OUTER(o.line_items) exploded AS item_pos, item;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -185,8 +208,17 @@ In enterprise Databricks lakehouses, Higher-Order Functions is an essential mech
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Higher-Order Functions
-SELECT 1;
+-- Process nested arrays inline using FILTER, TRANSFORM, and AGGREGATE (zero explode shuffle)
+SELECT
+  cart_id,
+  FILTER(items, x -> x.qty > 0 AND x.in_stock = true) AS valid_items,
+  TRANSFORM(items, x -> ROUND(x.qty * x.unit_price * 0.90, 2)) AS discounted_totals,
+  AGGREGATE(
+    items,
+    CAST(0.0 AS DOUBLE),
+    (acc, x) -> acc + COALESCE(x.qty * x.unit_price, 0.0)
+  ) AS gross_cart_usd
+FROM prod_catalog.silver.shopping_carts;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -208,8 +240,22 @@ In enterprise Databricks lakehouses, CTEs, PIVOT & Subqueries is an essential me
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for CTEs, PIVOT & Subqueries
-SELECT 1;
+-- Readable multi-stage CTEs + PIVOT wide transformation for BI executive reporting
+WITH monthly_sku AS (
+  SELECT
+    DATE_TRUNC('month', usage_date) AS billing_month,
+    sku_name,
+    ROUND(SUM(usage_quantity), 1) AS total_dbus
+  FROM system.billing.usage
+  WHERE usage_date >= current_date() - 90
+  GROUP BY 1, 2
+)
+SELECT *
+FROM monthly_sku
+PIVOT (
+  SUM(total_dbus) FOR sku_name IN ('JOBS', 'SERVERLESS_SQL', 'ALL_PURPOSE')
+)
+ORDER BY billing_month DESC;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -230,9 +276,23 @@ Why Python UDFs break Catalyst and force row-by-row execution. The 10-100x perfo
 In enterprise Databricks lakehouses, UDFs vs. Native Functions is an essential mechanism under SQL & DataFrames. Why Python UDFs break Catalyst and force row-by-row execution. The 10-100x performance gap. Pandas UDFs (vectorized) as a middle ground. When a UDF is genuinely the right choice.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for UDFs vs. Native Functions
-SELECT 1;
+```python
+import pandas as pd
+from pyspark.sql import functions as F
+from pyspark.sql.functions import pandas_udf
+
+# 1. Prefer native Spark SQL functions (full Photon/Catalyst vectorization)
+native_df = spark.range(1000).withColumn("normalized", F.upper(F.trim(F.lit("  prod  "))))
+
+
+# 2. When Python scientific/ML libraries are required, use Arrow-backed @pandas_udf
+@pandas_udf("double")
+def zscore_series(vals: pd.Series) -> pd.Series:
+    std = vals.std() or 1.0
+    return (vals - vals.mean()) / std
+
+
+scored_df = spark.range(1000).withColumn("z_score", zscore_series(F.col("id").cast("double")))
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -254,8 +314,22 @@ In enterprise Databricks lakehouses, VARIANT Type is an essential mechanism unde
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for VARIANT Type
-SELECT 1;
+-- Native semi-structured VARIANT storage & typed path extraction (DBR 15.3+)
+CREATE TABLE IF NOT EXISTS prod_catalog.bronze.webhook_payloads (
+  received_at TIMESTAMP,
+  payload VARIANT
+);
+
+INSERT INTO prod_catalog.bronze.webhook_payloads
+SELECT
+  current_timestamp(),
+  PARSE_JSON('{"event":"charge.succeeded","amount_cents":4900,"meta":{"region":"eu"}}');
+
+SELECT
+  payload:event::STRING AS event_name,
+  payload:amount_cents::INT / 100.0 AS amount_usd,
+  payload:meta.region::STRING AS region
+FROM prod_catalog.bronze.webhook_payloads;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -277,8 +351,16 @@ In enterprise Databricks lakehouses, Table Constraints & Generated Columns is an
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Table Constraints & Generated Columns
-SELECT 1;
+-- Generated partition/clustering columns + CHECK / NOT NULL enforcement at write time
+CREATE TABLE IF NOT EXISTS prod_catalog.silver.payments_enforced (
+  payment_id STRING NOT NULL,
+  event_ts TIMESTAMP NOT NULL,
+  event_date DATE GENERATED ALWAYS AS (CAST(event_ts AS DATE)),
+  amount_usd DECIMAL(12, 2) NOT NULL,
+  CONSTRAINT positive_amount CHECK (amount_usd > 0)
+)
+USING DELTA
+CLUSTER BY (event_date);
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -299,9 +381,16 @@ File notification mode (cloud events, efficient at scale, requires setup) vs. di
 In enterprise Databricks lakehouses, Auto Loader: File Discovery is an essential mechanism under Data Ingestion. File notification mode (cloud events, efficient at scale, requires setup) vs. directory listing mode (simpler, slower with millions of files). When to use each. Why Auto Loader is the default for production ingestion.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Auto Loader: File Discovery
-SELECT 1;
+```python
+# Auto Loader File Notification mode (SQS / Event Grid) for >1M files/day pipelines
+high_scale_stream = (
+    spark.readStream.format("cloudFiles")
+    .option("cloudFiles.format", "parquet")
+    .option("cloudFiles.useNotifications", "true")
+    .option("cloudFiles.maxFilesPerTrigger", 2000)
+    .option("cloudFiles.schemaLocation", "/Volumes/prod_catalog/bronze/meta/clickstream_schema")
+    .load("abfss://raw@datalake.dfs.core.windows.net/clickstream/")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -322,9 +411,17 @@ How schema inference works from the first batch. `cloudFiles.schemaEvolutionMode
 In enterprise Databricks lakehouses, Auto Loader: Schema Evolution & Rescued Data is an essential mechanism under Data Ingestion. How schema inference works from the first batch. `cloudFiles.schemaEvolutionMode` options (addNewColumns, rescue, failOnNewColumns, none). The `_rescued_data` column for capturing mismatches instead of failing.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Auto Loader: Schema Evolution & Rescued Data
-SELECT 1;
+```python
+# Quarantine unexpected fields safely in _rescued_data instead of aborting SLA streams
+resilient_stream = (
+    spark.readStream.format("cloudFiles")
+    .option("cloudFiles.format", "json")
+    .option("cloudFiles.schemaEvolutionMode", "rescue")
+    .option("rescuedDataColumn", "_rescued_data")
+    .option("cloudFiles.schemaHints", "customer_id BIGINT, amount DECIMAL(12,2)")
+    .option("cloudFiles.schemaLocation", "/Volumes/prod_catalog/bronze/meta/payments_schema")
+    .load("/Volumes/prod_catalog/bronze/landing/payments/")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -345,9 +442,22 @@ Bronze (raw, append-only), Silver (cleaned, deduplicated, typed), Gold (business
 In enterprise Databricks lakehouses, Multi-Hop Medallion Architecture is an essential mechanism under Data Ingestion. Bronze (raw, append-only), Silver (cleaned, deduplicated, typed), Gold (business aggregates). Why this pattern exists. When it's overkill. How each layer serves different consumers with different freshness requirements.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Multi-Hop Medallion Architecture
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Bronze -> Silver -> Gold clear separation of immutable landing, clean entities, and BI marts
+bronze = spark.readStream.table("prod_catalog.bronze.events_raw")
+silver = (
+    bronze.filter("event_id IS NOT NULL")
+    .withColumn("event_date", F.to_date("event_ts"))
+    .dropDuplicates(["event_id"])
+)
+(
+    silver.writeStream
+    .option("checkpointLocation", "/Volumes/prod_catalog/silver/checkpoints/events")
+    .trigger(availableNow=True)
+    .toTable("prod_catalog.silver.events_clean")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -368,9 +478,15 @@ Processing only new/changed data. Techniques: Auto Loader (file-level), Change D
 In enterprise Databricks lakehouses, Incremental Processing Patterns is an essential mechanism under Data Ingestion. Processing only new/changed data. Techniques: Auto Loader (file-level), Change Data Feed (row-level), watermark-based (time-based), merge keys (hash-based). Cost vs. latency tradeoffs for each.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Incremental Processing Patterns
-SELECT 1;
+```python
+# Incremental Silver -> Gold pipeline driven by Delta Change Data Feed (CDF)
+cdf_stream = (
+    spark.readStream.format("delta")
+    .option("readChangeFeed", "true")
+    .option("startingVersion", 120)
+    .table("prod_catalog.silver.orders_clean")
+    .filter(F.col("_change_type").isin("insert", "update_postimage"))
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -392,8 +508,20 @@ In enterprise Databricks lakehouses, Lakehouse Federation is an essential mechan
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Lakehouse Federation
-SELECT 1;
+-- Query remote PostgreSQL operational DB via Unity Catalog Foreign Catalog (zero ETL copy)
+CREATE CONNECTION IF NOT EXISTS pg_crm_conn TYPE postgresql
+OPTIONS (
+  host 'crm-replica.internal.company.com',
+  port '5432',
+  user secret('prod-kv', 'pg-ro-user'),
+  password secret('prod-kv', 'pg-ro-pass')
+);
+
+CREATE FOREIGN CATALOG IF NOT EXISTS crm_federated
+USING CONNECTION pg_crm_conn
+OPTIONS (database 'crm_prod');
+
+SELECT account_id, plan_tier FROM crm_federated.public.accounts WHERE is_active = true;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -414,9 +542,21 @@ How Structured Streaming on Databricks uses Delta Lake as both source and sink. 
 In enterprise Databricks lakehouses, Structured Streaming Fundamentals is an essential mechanism under Streaming. How Structured Streaming on Databricks uses Delta Lake as both source and sink. The `readStream`/`writeStream` API. Why Delta-to-Delta streaming is the most common production pattern. Integration with Auto Loader as a file source.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Structured Streaming Fundamentals
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Stateful streaming deduplication with bounded watermark state -> Delta Sink
+dedup_events = (
+    spark.readStream.table("prod_catalog.bronze.telemetry")
+    .withWatermark("event_ts", "30 minutes")
+    .dropDuplicates(["device_id", "event_ts"])
+)
+query = (
+    dedup_events.writeStream.format("delta")
+    .outputMode("append")
+    .option("checkpointLocation", "/Volumes/prod_catalog/silver/checkpoints/telemetry")
+    .toTable("prod_catalog.silver.telemetry")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -437,9 +577,18 @@ SELECT 1;
 In enterprise Databricks lakehouses, Triggers is an essential mechanism under Streaming. `processingTime` (recurring micro-batches at fixed intervals). `availableNow` (process all available data then stop; replaces deprecated `once`). Choosing the right trigger for latency vs. cost.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Triggers
-SELECT 1;
+```python
+# Trigger.availableNow processes all queued micro-batches then stops cleanly (FinOps best fit)
+(
+    spark.readStream.table("prod_catalog.bronze.orders")
+    .writeStream.format("delta")
+    .option("checkpointLocation", "/Volumes/prod_catalog/silver/checkpoints/orders_avail")
+    .trigger(availableNow=True)
+    .toTable("prod_catalog.silver.orders")
+)
+
+# For low-latency SLA pipelines: recurring micro-batch interval
+# .trigger(processingTime="10 seconds")
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -460,9 +609,22 @@ Append (new rows only, default). Complete (full result table, aggregations only)
 In enterprise Databricks lakehouses, Output Modes is an essential mechanism under Streaming. Append (new rows only, default). Complete (full result table, aggregations only). Update (changed rows only). Which modes work with which operations and sinks.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Output Modes
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Watermarked aggregation using Append mode emits rows only once window closes cleanly
+windowed_counts = (
+    spark.readStream.table("prod_catalog.silver.clicks")
+    .withWatermark("click_ts", "10 minutes")
+    .groupBy(F.window("click_ts", "5 minutes"), F.col("campaign_id"))
+    .count()
+)
+(
+    windowed_counts.writeStream.format("delta")
+    .outputMode("append")
+    .option("checkpointLocation", "/Volumes/prod_catalog/gold/checkpoints/clicks_5m")
+    .toTable("prod_catalog.gold.campaign_clicks_5m")
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -483,9 +645,15 @@ Joining streaming DataFrames with batch DataFrames. Static side re-read each mic
 In enterprise Databricks lakehouses, Stream-Static Joins is an essential mechanism under Streaming. Joining streaming DataFrames with batch DataFrames. Static side re-read each micro-batch. Use cases: enriching events with dimension data. Outer join limitations on the streaming side.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Stream-Static Joins
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# Enrich high-throughput event stream against latest snapshot of Silver dimension table
+events_stream = spark.readStream.table("prod_catalog.bronze.page_views")
+dim_users = spark.read.table("prod_catalog.silver.dim_users")  # Re-read each micro-batch
+
+# Left outer join preserves unmatched stream events; use F.broadcast for small dimensions
+enriched = events_stream.join(F.broadcast(dim_users), on="user_id", how="left")
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -506,9 +674,19 @@ Tumbling windows (fixed, non-overlapping), sliding windows (fixed, overlapping),
 In enterprise Databricks lakehouses, Windowed Aggregations is an essential mechanism under Streaming. Tumbling windows (fixed, non-overlapping), sliding windows (fixed, overlapping), session windows (gap-based). Combining windows with watermarks for bounded state.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for Windowed Aggregations
-SELECT 1;
+```python
+from pyspark.sql import functions as F
+
+# 10-minute sliding windows advancing every 5 minutes with a 15-minute late-data watermark
+sliding_metrics = (
+    spark.readStream.table("prod_catalog.silver.sensor_readings")
+    .withWatermark("reading_ts", "15 minutes")
+    .groupBy(
+        F.window("reading_ts", "10 minutes", "5 minutes"),
+        F.col("sensor_id"),
+    )
+    .agg(F.avg("temperature_c").alias("avg_temp_c"), F.count("*").alias("sample_count"))
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -529,9 +707,28 @@ Using `foreachBatch()` to apply arbitrary batch logic to each micro-batch. Use c
 In enterprise Databricks lakehouses, foreachBatch Pattern is an essential mechanism under Streaming. Using `foreachBatch()` to apply arbitrary batch logic to each micro-batch. Use cases: writing to multiple sinks, MERGE operations in streaming, calling external APIs. Exactly-once considerations.
 
 **Production Code / SQL Implementation:**
-```sql
--- Example for foreachBatch Pattern
-SELECT 1;
+```python
+def upsert_microbatch_to_silver(microbatch_df, batch_id: int) -> None:
+    dedup_batch = microbatch_df.dropDuplicates(["order_id"])
+    dedup_batch.createOrReplaceTempView("src_updates")
+    microbatch_df.sparkSession.sql(
+        """
+        MERGE INTO prod_catalog.silver.orders AS tgt
+        USING src_updates AS src
+        ON tgt.order_id = src.order_id
+        WHEN MATCHED THEN UPDATE SET *
+        WHEN NOT MATCHED THEN INSERT *
+        """
+    )
+
+
+(
+    spark.readStream.table("prod_catalog.bronze.orders")
+    .writeStream.foreachBatch(upsert_microbatch_to_silver)
+    .option("checkpointLocation", "/Volumes/prod_catalog/silver/checkpoints/orders_merge")
+    .trigger(availableNow=True)
+    .start()
+)
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -553,8 +750,18 @@ In enterprise Databricks lakehouses, Streaming Tables in Lakeflow Pipelines is a
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Streaming Tables in Lakeflow Pipelines
-SELECT 1;
+-- Lakeflow Declarative Pipeline (DLT) managed Streaming Table + Materialized View Gold
+CREATE OR REFRESH STREAMING TABLE prod_catalog.bronze.raw_orders
+AS SELECT *, current_timestamp() AS ingested_at
+FROM STREAM read_files(
+  '/Volumes/prod_catalog/bronze/landing/orders/',
+  format => 'json'
+);
+
+CREATE OR REFRESH MATERIALIZED VIEW prod_catalog.gold.daily_order_totals
+AS SELECT DATE(order_ts) AS order_date, COUNT(*) AS orders, SUM(amount_usd) AS revenue
+FROM prod_catalog.bronze.raw_orders
+GROUP BY 1;
 ```
 
 **Key Invariants & Architectural Best Practices:**
@@ -576,8 +783,12 @@ In enterprise Databricks lakehouses, Predicate Pushdown & Data Skipping is an es
 
 **Production Code / SQL Implementation:**
 ```sql
--- Example for Predicate Pushdown & Data Skipping
-SELECT 1;
+-- Column statistics min/max + Liquid Clustering skip >95% of Parquet files automatically
+EXPLAIN COST
+SELECT order_id, customer_id, amount_usd
+FROM prod_catalog.silver.orders
+WHERE order_date BETWEEN DATE '2026-11-01' AND DATE '2026-11-07'
+  AND region = 'EU-WEST';
 ```
 
 **Key Invariants & Architectural Best Practices:**

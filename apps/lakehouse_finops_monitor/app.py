@@ -1,122 +1,136 @@
 """
-Databricks App: Lakehouse FinOps & DBU Consumption Monitor
-Built with Streamlit & Unity Catalog System Tables
+Databricks App: Lakehouse FinOps & DBU Consumption Monitor.
+
+Built with Streamlit and Unity Catalog System Tables (with deterministic demo fallback).
 """
+
+from __future__ import annotations
 
 import datetime
 
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(
-    page_title="Databricks Lakehouse FinOps Monitor",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+try:
+    from apps.lakehouse_finops_monitor import finops_data
+except ImportError:  # When executed directly from apps/lakehouse_finops_monitor via Streamlit
+    import finops_data
 
-st.title("⚡ Databricks Lakehouse FinOps & DBU Intelligence Monitor")
-st.markdown("""
-*Real-time observability into DBU spend, cluster efficiency, serverless warehouse queues, and Predictive Optimization ROI powered by Unity Catalog **System Tables**.*
-""")
 
-# Sidebar Controls
-st.sidebar.header("🎯 FinOps Filters")
-date_range = st.sidebar.date_input(
-    "Analysis Window",
-    value=(datetime.date.today() - datetime.timedelta(days=30), datetime.date.today()),
-)
-selected_env = st.sidebar.selectbox(
-    "Target Environment", ["All", "Production", "Staging", "Development"]
-)
-selected_sku = st.sidebar.multiselect(
-    "Workload SKUs",
-    ["ALL_PURPOSE", "JOBS", "SERVERLESS_SQL", "PRO_SQL", "DLT_ADVANCED", "MODEL_SERVING"],
-    default=["ALL_PURPOSE", "JOBS", "SERVERLESS_SQL"],
-)
-
-# Top KPI metrics
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.metric(label="Total 30-Day DBUs", value="14,820", delta="-8.4% MoM")
-with col2:
-    st.metric(label="Estimated Cloud Cost", value="$4,446.00", delta="-$408.00")
-with col3:
-    st.metric(label="Avg Cluster Utilization", value="76.2%", delta="+4.1%")
-with col4:
-    st.metric(label="Predictive Opt Storage ROI", value="$1,240 / mo", delta="+12.5%")
-
-st.divider()
-
-# Tabbed Interface
-tab1, tab2, tab3 = st.tabs(
-    ["📊 DBU Spend by SKU", "🔍 Cluster Right-Sizing", "💡 Predictive Optimization ROI"]
-)
-
-with tab1:
-    st.subheader("Daily DBU Consumption across Workload Types")
-    # Mock aggregated time-series data matching system.billing.usage
-    dates = pd.date_range(end=datetime.date.today(), periods=14)
-    df_spend = pd.DataFrame(
-        {
-            "Date": dates,
-            "Automated Jobs": [350 + i * 12 for i in range(14)],
-            "Serverless SQL": [210 + i * 8 for i in range(14)],
-            "Interactive / All-Purpose": [120 - i * 3 for i in range(14)],
-            "DLT Pipelines": [90 + i * 4 for i in range(14)],
-        }
-    ).set_index("Date")
-    st.area_chart(df_spend)
-
-with tab2:
-    st.subheader("Zombie & Underutilized Interactive Clusters")
-    st.info(
-        "Interactive clusters with < 15% average CPU over the last 7 days recommended for auto-termination reduction."
+def render_app() -> None:
+    """Renders the Lakehouse FinOps & DBU Intelligence Streamlit dashboard."""
+    st.set_page_config(
+        page_title="Databricks Lakehouse FinOps Monitor",
+        page_icon="⚡",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
-    zombie_clusters = pd.DataFrame(
-        [
-            {
-                "Cluster Name": "adhoc-analyst-pool-01",
-                "Owner": "dev_analyst@example.com",
-                "Node Type": "Standard_E8ds_v5",
-                "Max Workers": 8,
-                "Avg CPU": "8.4%",
-                "Action": "Reduce Auto-Stop to 10 min",
-            },
-            {
-                "Cluster Name": "feature-eng-scratch",
-                "Owner": "ml_engineer@example.com",
-                "Node Type": "Standard_D16ds_v5",
-                "Max Workers": 4,
-                "Avg CPU": "11.2%",
-                "Action": "Migrate to Single-User Job Cluster",
-            },
-            {
-                "Cluster Name": "legacy-etl-sandbox",
-                "Owner": "contractor@example.com",
-                "Node Type": "Standard_D8ds_v5",
-                "Max Workers": 6,
-                "Avg CPU": "4.1%",
-                "Action": "Terminate Immediately (Zero Activity)",
-            },
-        ]
-    )
-    st.dataframe(zombie_clusters, use_container_width=True)
 
-with tab3:
-    st.subheader("Predictive Optimization: Automated Compaction & VACUUM Savings")
-    st.success(
-        "Predictive Optimization automatically coalesced 412,000 small files into 1,840 optimized Parquet files, improving query read latency by 4.2x."
+    st.title("⚡ Databricks Lakehouse FinOps & DBU Intelligence Monitor")
+    st.markdown(
+        "*Real-time observability into DBU spend, cluster efficiency, serverless warehouse queues, "
+        "and Predictive Optimization ROI powered by Unity Catalog **System Tables**.*"
     )
-    compaction_stats = pd.DataFrame(
-        {
-            "Metric": [
-                "Total Small Files Eliminated",
-                "Tombstoned Parquet Cleaned (VACUUM)",
-                "Storage Reclaimed (TB)",
-                "Avg Query Read Speedup",
-            ],
-            "Value": ["412,890 files", "184,200 files", "14.8 TB", "4.2x faster scan"],
-        }
+
+    # Sidebar Controls
+    st.sidebar.header("🎯 FinOps Filters")
+    default_end = datetime.date.today()
+    default_start = default_end - datetime.timedelta(days=30)
+    raw_dates = st.sidebar.date_input("Analysis Window", value=(default_start, default_end))
+    start_date, end_date = finops_data.normalize_date_range(raw_dates, fallback_end=default_end)
+
+    selected_env = st.sidebar.selectbox(
+        "Target Environment", list(finops_data.DEFAULT_ENVIRONMENTS)
     )
-    st.table(compaction_stats)
+    selected_skus = st.sidebar.multiselect(
+        "Workload SKUs",
+        list(finops_data.DEFAULT_SKUS),
+        default=["ALL_PURPOSE", "JOBS", "SERVERLESS_SQL"],
+    )
+
+    records, zombies, po_metrics, src_mode, src_detail = finops_data.load_finops_telemetry(
+        start_date=start_date,
+        end_date=end_date,
+    )
+    snapshot = finops_data.summarize_finops(
+        records,
+        zombies,
+        po_metrics,
+        start_date=start_date,
+        end_date=end_date,
+        selected_env=selected_env,
+        selected_skus=selected_skus,
+        source=src_mode,
+        source_detail=src_detail,
+    )
+
+    if snapshot.source == "live":
+        st.sidebar.success(f"🟢 Live System Tables\n\n{snapshot.source_detail}")
+    else:
+        st.sidebar.info(f"🟡 Simulated Telemetry Mode\n\n{snapshot.source_detail}")
+
+    window_days = max((end_date - start_date).days + 1, 1)
+
+    # Dynamic Top KPI Metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(
+            label=f"Total {window_days}-Day DBUs",
+            value=f"{snapshot.total_dbus:,.1f}",
+            delta=f"{len(selected_skus)} SKUs active",
+        )
+    with col2:
+        st.metric(
+            label="Estimated Cloud Cost",
+            value=f"${snapshot.estimated_cost_usd:,.2f}",
+            delta=f"Env: {selected_env}",
+        )
+    with col3:
+        st.metric(
+            label="Avg Cluster Utilization",
+            value=f"{snapshot.avg_cpu_pct:.1f}%",
+            delta="Target >= 70.0%",
+        )
+    with col4:
+        st.metric(
+            label="Predictive Opt Storage ROI",
+            value=f"${snapshot.po_storage_roi_usd:,.0f} / mo",
+            delta=f"Env: {selected_env}",
+        )
+
+    st.divider()
+
+    tab1, tab2, tab3 = st.tabs(
+        ["📊 DBU Spend by SKU", "🔍 Cluster Right-Sizing", "💡 Predictive Optimization ROI"]
+    )
+
+    with tab1:
+        st.subheader("Daily DBU Consumption across Filtered Workload SKUs")
+        if not snapshot.daily_spend_rows or not selected_skus:
+            st.warning("No matching telemetry records for the selected window, env, or SKUs.")
+        else:
+            df_spend = pd.DataFrame(snapshot.daily_spend_rows).set_index("Date")
+            st.area_chart(df_spend)
+
+    with tab2:
+        st.subheader("Zombie & Underutilized Interactive Clusters")
+        st.info(
+            "Interactive clusters with < 15% average CPU over the last 7 days recommended "
+            "for auto-termination reduction."
+        )
+        if not snapshot.zombie_clusters:
+            st.success("No underutilized clusters flagged for the selected environment.")
+        else:
+            st.dataframe(pd.DataFrame(snapshot.zombie_clusters), use_container_width=True)
+
+    with tab3:
+        st.subheader("Predictive Optimization: Automated Compaction & VACUUM Savings")
+        st.success(
+            "Predictive Optimization eliminates manual OPTIMIZE/VACUUM scheduling overhead "
+            "via automated small-file compaction and tombstone cleanup."
+        )
+        st.table(pd.DataFrame(snapshot.compaction_rows))
+
+
+if __name__ == "__main__":
+    render_app()
