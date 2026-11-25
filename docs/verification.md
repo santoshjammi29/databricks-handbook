@@ -9,9 +9,9 @@
 
 | Tier | Meaning | Count | Share | Verification Method |
 |:---:|:---|---:|---:|:---|
-| **`T2`** | Local-Executable (PySpark + Delta Lake) | 5 | 4.8% | Executed cell-by-cell against local Spark 3.5 + Delta 3.2 (`uv run pytest -m spark`) |
+| **`T2`** | Local-Executable (PySpark + Delta Lake) | 16 | 15.2% | Executed cell-by-cell against local Spark 3.5 + Delta 3.2 (`uv run pytest -m spark`) |
 | **`T3`** | Workspace-Executable (Databricks Cloud) | 0 | 0.0% | Requires live Unity Catalog / DLT / System Tables / Vector Search workspace |
-| **`T1`** | Simulated (Python Literals / String Checks) | 98 | 93.3% | Format, AST syntax, and Python script execution of literal assertions |
+| **`T1`** | Simulated (Python Literals / String Checks) | 87 | 82.9% | Format, AST syntax, and Python script execution of literal assertions |
 | **`T0`** | Reference / Config Templates | 2 | 1.9% | Format & Python AST syntax check (`handbook validate --target notebooks`) |
 
 ---
@@ -54,17 +54,17 @@
 | **019** | [Delta Sharing Databricks-to-Databricks: Managed Cross-Account Data Virtualization](../notebooks/02_unity_catalog_and_governance/019_delta_sharing_databricks_to_databricks_managed_cross_account_data_virtualization.py) | `T1` | `T1` | 2 (0) | Python/Text |
 | **020** | [Attribute-Based Access Control (ABAC) & Automated PII Tagging via Information Schema](../notebooks/02_unity_catalog_and_governance/020_attribute_based_access_control_abac_and_automated_pii_tagging_via_information_schema.py) | `T1` | `T1` | 2 (0) | Python/Text |
 | **021** | [Clean Rooms: Privacy-Preserving Collaborative Analytics Across Enterprise Boundaries](../notebooks/02_unity_catalog_and_governance/021_clean_rooms_privacy_preserving_collaborative_analytics_across_enterprise_boundaries.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **022** | [Delta Transaction Log Internals: Atomic Commits, Checkpoints & CRC](../notebooks/03_delta_lake_storage_engine/022_delta_transaction_log_internals_atomic_commits_checkpoints_and_crc.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **023** | [Optimistic Concurrency Control (OCC) & Row-Level Concurrency Conflicts](../notebooks/03_delta_lake_storage_engine/023_optimistic_concurrency_control_occ_and_row_level_concurrency_conflicts.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **024** | [Deletion Vectors (MoR): Bitmap Invalidation vs. Copy-on-Write Rewrite Overhead](../notebooks/03_delta_lake_storage_engine/024_deletion_vectors_mor_bitmap_invalidation_vs_copy_on_write_rewrite_overhead.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **025** | [Liquid Clustering (`CLUSTER BY`): Hilbert Curves, Dynamic ZCubes & Hive Migration](../notebooks/03_delta_lake_storage_engine/025_liquid_clustering_cluster_by_hilbert_curves_and_hive_migration.py) | `T1` | `T1` | 2 (0) | Python/Text |
-| **026** | [Delta Change Data Feed (CDF): Batch & Streaming Micro-Batch Deduplicated Merges](../notebooks/03_delta_lake_storage_engine/026_delta_change_data_feed_cdf_batch_and_streaming_micro_batch_deduplicated_merges.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **027** | [Predictive Optimization: Serverless Automatic Compaction, VACUUM & ANALYZE](../notebooks/03_delta_lake_storage_engine/027_predictive_optimization_serverless_automatic_compaction_vacuum_and_analyze.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **028** | [Delta UniForm: Asynchronous Iceberg Metadata Manifest Generation & Trino Access](../notebooks/03_delta_lake_storage_engine/028_delta_uniform_asynchronous_iceberg_metadata_manifest_generation_and_trino_access.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **029** | [Shallow Clones vs. Deep Clones: Zero-Copy Sandboxes, Testing & Disaster Recovery](../notebooks/03_delta_lake_storage_engine/029_shallow_clones_vs_deep_clones_zero_copy_sandboxes_testing_and_disaster_recovery.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **030** | [Schema Evolution (`mergeSchema`) vs. Enforcement & Table Constraints](../notebooks/03_delta_lake_storage_engine/030_schema_evolution_mergeschema_vs_enforcement_and_table_constraints.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **031** | [Delta Time Travel: Historical Point-in-Time Auditing, Rollbacks & Log Retention](../notebooks/03_delta_lake_storage_engine/031_delta_time_travel_historical_point_in_time_auditing_rollbacks_and_log_retention.py) | `T1` | `T1` | 1 (0) | Python/Text |
-| **032** | [In-Place Parquet to Delta Migration: `CONVERT TO DELTA` & Schema Repair](../notebooks/03_delta_lake_storage_engine/032_in_place_parquet_to_delta_migration_convert_to_delta_and_schema_repair.py) | `T1` | `T1` | 1 (0) | Python/Text |
+| **022** | [Delta Transaction Log Internals: Atomic Commits, Checkpoints & CRC](../notebooks/03_delta_lake_storage_engine/022_delta_transaction_log_internals_atomic_commits_checkpoints_and_crc.py) | `T2` | `T2` | 6 (5) | Spark+Delta |
+| **023** | [Optimistic Concurrency Control (OCC) & Row-Level Concurrency Conflicts](../notebooks/03_delta_lake_storage_engine/023_optimistic_concurrency_control_occ_and_row_level_concurrency_conflicts.py) | `T2` | `T2` | 4 (3) | Spark+Delta |
+| **024** | [Deletion Vectors (MoR): Bitmap Invalidation vs. Copy-on-Write Rewrite Overhead](../notebooks/03_delta_lake_storage_engine/024_deletion_vectors_mor_bitmap_invalidation_vs_copy_on_write_rewrite_overhead.py) | `T2` | `T2` | 6 (5) | Spark+Delta |
+| **025** | [Liquid Clustering (`CLUSTER BY`): Hilbert Curves, Dynamic ZCubes & Hive Migration](../notebooks/03_delta_lake_storage_engine/025_liquid_clustering_cluster_by_hilbert_curves_and_hive_migration.py) | `T2` | `T2` | 4 (4) | Spark+Delta |
+| **026** | [Delta Change Data Feed (CDF): Batch & Streaming Micro-Batch Deduplicated Merges](../notebooks/03_delta_lake_storage_engine/026_delta_change_data_feed_cdf_batch_and_streaming_micro_batch_deduplicated_merges.py) | `T2` | `T2` | 3 (3) | Spark+Delta |
+| **027** | [Predictive Optimization: Serverless Automatic Compaction, VACUUM & ANALYZE](../notebooks/03_delta_lake_storage_engine/027_predictive_optimization_serverless_automatic_compaction_vacuum_and_analyze.py) | `T2` | `T2` | 5 (5) | Spark+Delta |
+| **028** | [Delta UniForm: Asynchronous Iceberg Metadata Manifest Generation & Trino Access](../notebooks/03_delta_lake_storage_engine/028_delta_uniform_asynchronous_iceberg_metadata_manifest_generation_and_trino_access.py) | `T2` | `T2` | 6 (6) | Spark+Delta |
+| **029** | [Shallow Clones vs. Deep Clones: Zero-Copy Sandboxes, Testing & Disaster Recovery](../notebooks/03_delta_lake_storage_engine/029_shallow_clones_vs_deep_clones_zero_copy_sandboxes_testing_and_disaster_recovery.py) | `T2` | `T2` | 7 (7) | Spark+Delta |
+| **030** | [Schema Evolution (`mergeSchema`) vs. Enforcement & Table Constraints](../notebooks/03_delta_lake_storage_engine/030_schema_evolution_mergeschema_vs_enforcement_and_table_constraints.py) | `T2` | `T2` | 5 (3) | Spark+Delta |
+| **031** | [Delta Time Travel: Historical Point-in-Time Auditing, Rollbacks & Log Retention](../notebooks/03_delta_lake_storage_engine/031_delta_time_travel_historical_point_in_time_auditing_rollbacks_and_log_retention.py) | `T2` | `T2` | 5 (5) | Spark+Delta |
+| **032** | [In-Place Parquet to Delta Migration: `CONVERT TO DELTA` & Schema Repair](../notebooks/03_delta_lake_storage_engine/032_in_place_parquet_to_delta_migration_convert_to_delta_and_schema_repair.py) | `T2` | `T2` | 6 (6) | Spark+Delta |
 | **033** | [Auto Loader (cloudFiles): Incremental Lexical Directory Listing vs. File Notifications](../notebooks/04_lakeflow_ingestion_and_dlt/033_auto_loader_cloudfiles_directory_listing_vs_file_notifications.py) | `T0` | `T0` | 0 (0) | Python/Text |
 | **034** | [Auto Loader Schema Inference, addNewColumns Evolution & _rescued_data Quarantine](../notebooks/04_lakeflow_ingestion_and_dlt/034_auto_loader_schema_inference_addnewcolumns_evolution_and_rescued_data_quarantine.py) | `T2` | `T2` | 1 (1) | Spark |
 | **035** | [High-Throughput Semi-Structured JSON/CSV Ingestion with cloudFiles and RocksDB](../notebooks/04_lakeflow_ingestion_and_dlt/035_high_throughput_semi_structured_json_csv_ingestion_with_cloudfiles_and_rocksdb.py) | `T1` | `T1` | 1 (0) | Python/Text |
