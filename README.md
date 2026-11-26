@@ -77,7 +77,7 @@ uv run handbook export-ipynb
 | **Platform & Security Engineer** | Modules `01`, `02`, `07` | [Split-Plane Architecture](architectures/01_split_plane_security_and_serverless_compute.md) · [UC Governance](architectures/02_unity_catalog_governance_and_lakehouse_federation.md) · [Credential Runbook](runbooks/06_unity_catalog_storage_credential_and_permission_disasters.md) |
 | **Data & Lakehouse Engineer** | Modules `03`, `04`, `05` | [Delta 3.x Engine](architectures/03_delta_lake_3x_storage_engine_and_liquid_clustering.md) · [DevOps & DABs](architectures/04_enterprise_devops_dabs_and_lakeflow_orchestration.md) · [OCC & Skew Runbooks](runbooks/02_delta_concurrent_modification_conflicts.md) |
 | **FinOps & DBSQL Owner** | Modules `06`, `09` | [Warehouse Queue Runbook](runbooks/05_serverless_sql_warehouse_queueing_and_spill_tuning.md) · [FinOps App](apps/lakehouse_finops_monitor/app.py) |
-| **Interview & On-Call Prep** | Module `10` + Flashcards | [Level 100–400 Guides](interview/01_junior_and_associate_databricks_engineer.md) · [50 Flashcards](interview/05_flashcards_deck_50.md) · [OOM Triage Runbook](runbooks/01_driver_and_executor_oom_triage.md) |
+| **Interview & On-Call Prep** | Module `10` + Flashcards | [Level 1–4 Guides](interview/01_junior_and_associate_databricks_engineer.md) · [50 Flashcards](interview/05_flashcards_deck_50.md) · [OOM Triage Runbook](runbooks/01_driver_and_executor_oom_triage.md) |
 
 ---
 
@@ -138,10 +138,10 @@ Six battle-tested disaster recovery and forensic triage runbooks equipped with e
 
 System design defense, deep-dive architectural trade-offs, and 50 flashcards across 4 tiers:
 
-- 🟢 [**Level 100: Junior & Associate**](interview/01_junior_and_associate_databricks_engineer.md): Spark RDD vs DataFrame, Catalyst optimizer phases, Delta ACID guarantees.
-- 🟡 [**Level 200: Mid-Level Lakehouse**](interview/02_mid_level_lakehouse_engineer.md): Compaction, Liquid Clustering, UniForm Iceberg metadata, Delta Live Tables.
-- 🔴 [**Level 300: Senior Performance Engineer**](interview/03_senior_databricks_performance_engineer.md): Tungsten shuffle spill, executor off-heap memory, DABs CI/CD workflows.
-- 🟣 [**Level 400: Staff & Principal Architect**](interview/04_staff_and_principal_lakehouse_architect.md): Multi-workspace hub-and-spoke topologies, cross-region BCDR.
+- 🟢 [**Level 1: Junior & Associate**](interview/01_junior_and_associate_databricks_engineer.md): Spark RDD vs DataFrame, Catalyst optimizer phases, Delta ACID guarantees.
+- 🟡 [**Level 2: Mid-Level Lakehouse**](interview/02_mid_level_lakehouse_engineer.md): Compaction, Liquid Clustering, UniForm Iceberg metadata, Delta Live Tables.
+- 🔴 [**Level 3: Senior Performance Engineer**](interview/03_senior_databricks_performance_engineer.md): Tungsten shuffle spill, executor off-heap memory, DABs CI/CD workflows.
+- 🟣 [**Level 4: Staff & Principal Architect**](interview/04_staff_and_principal_lakehouse_architect.md): Multi-workspace hub-and-spoke topologies, cross-region BCDR.
 - 🃏 [**50 Architect Flashcards Deck**](interview/05_flashcards_deck_50.md): Rapid-fire interview questions with quantified production answers.
 
 ---

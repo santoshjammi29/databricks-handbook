@@ -142,10 +142,10 @@ def test_manifest_and_roadmap_difficulty_tiers_synced(base_dir):
     import re
 
     mastery_to_tier = {
-        "Foundational": "L100",
-        "Intermediate": "L200",
-        "Advanced": "L300",
-        "Architect": "L400",
+        "Foundational": "L1",
+        "Intermediate": "L2",
+        "Advanced": "L3",
+        "Architect": "L4",
     }
     manifest = json.loads((base_dir / "manifest.json").read_text(encoding="utf-8"))
     entries = manifest["entries"]
@@ -172,7 +172,7 @@ def test_manifest_and_roadmap_difficulty_tiers_synced(base_dir):
 
     roadmap_text = (base_dir / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
     roadmap_matches = re.findall(
-        r"^- \[ \] `([^`]+)` — \[[^\]]+\]\(([^)]+)\) `(L[1-4]00)`$",
+        r"^- \[ \] `([^`]+)` — \[[^\]]+\]\(([^)]+)\) `(L[1-4])`$",
         roadmap_text,
         re.MULTILINE,
     )
@@ -188,13 +188,13 @@ def test_manifest_and_roadmap_difficulty_tiers_synced(base_dir):
             f"docs/ROADMAP.md {entry_id} links to {link}, expected {path_by_id[entry_id]}"
         )
 
-    # Verify each entry appears inside a matching Level XXX subsection in ROADMAP.md
+    # Verify each entry appears inside a matching Level X subsection in ROADMAP.md
     current_tier: str | None = None
     for line in roadmap_text.splitlines():
-        m_tier_hdr = re.search(r"Tier [1-4]: .+ \(Level (100|200|300|400)\)", line)
+        m_tier_hdr = re.search(r"Tier [1-4]: .+ \(Level (1|2|3|4)\)", line)
         if m_tier_hdr:
             current_tier = f"L{m_tier_hdr.group(1)}"
-        m_item = re.match(r"^- \[ \] `([^`]+)` .* `(L[1-4]00)`$", line)
+        m_item = re.match(r"^- \[ \] `([^`]+)` .* `(L[1-4])`$", line)
         if m_item:
             assert current_tier == m_item.group(2), (
                 f"ROADMAP entry {m_item.group(1)} ({m_item.group(2)}) nested under {current_tier}"
